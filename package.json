@@ -4,6 +4,8 @@
   "description": "Trip planning app - mark dates you're NOT available",
   "scripts": {
     "dev": "netlify dev",
+    "serve": "npx serve public -l 8888",
+    "start": "cd public && python3 -m http.server 8888",
     "build": "echo 'No build step required'"
   },
   "dependencies": {

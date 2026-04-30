@@ -21,7 +21,18 @@ function initAuth() {
         updateUI();
     });
 
-    netlifyIdentity.init();
+    // Configure Netlify Identity
+    // When running locally, point to the production site since Identity can't work on localhost without netlify dev
+    // When deployed, the site URL is automatically detected
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    if (isLocal) {
+        netlifyIdentity.init({
+            APIUrl: 'https://reverse-date-picker.netlify.app/.netlify/identity'
+        });
+    } else {
+        netlifyIdentity.init();
+    }
 }
 
 // Update UI based on auth state
