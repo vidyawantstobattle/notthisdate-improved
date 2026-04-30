@@ -31,15 +31,69 @@
             <!-- Landing Page (shown when not logged in) -->
             <section id="landing-page" class="page">
                 <div class="hero">
-                    <h1>Plan group events without the hassle</h1>
-                    <p class="hero-subtitle">
-                        Find out when your group is <strong>NOT</strong> available,
-                        so you can easily spot the perfect dates for your trip, party, or meetup.
-                    </p>
-                    <div class="hero-actions">
-                        <button id="hero-login-btn" class="btn btn-primary btn-large">Get Started - It's Free</button>
-                        <a href="#how-it-works" class="btn btn-outline btn-large">Learn More</a>
+                    <div class="hero-content">
+                        <h1>Plan group events without the hassle</h1>
+                        <p class="hero-subtitle">
+                            Find out when your group is <strong>NOT</strong> available,
+                            so you can easily spot the perfect dates for your trip, party, or meetup.
+                        </p>
+                        <div class="hero-actions">
+                            <button id="hero-login-btn" class="btn btn-primary btn-large">Get Started - It's Free</button>
+                            <a href="#how-it-works" class="btn btn-outline btn-large">Learn More</a>
+                        </div>
                     </div>
+                    <div class="hero-illustration">
+                        <!-- Placeholder for hero image - replace src with actual image -->
+                        <div class="illustration-placeholder" aria-label="Illustration showing group calendar planning">
+                            <svg viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Calendar base -->
+                                <rect x="80" y="60" width="240" height="180" rx="12" fill="#fff" stroke="#e6e9ec" stroke-width="2"/>
+                                <rect x="80" y="60" width="240" height="40" rx="12" fill="#635bff"/>
+                                <rect x="80" y="88" width="240" height="12" fill="#635bff"/>
+                                <!-- Calendar header dots -->
+                                <circle cx="110" cy="80" r="6" fill="#fff" opacity="0.8"/>
+                                <circle cx="130" cy="80" r="6" fill="#fff" opacity="0.8"/>
+                                <circle cx="150" cy="80" r="6" fill="#fff" opacity="0.8"/>
+                                <!-- Calendar grid -->
+                                <rect x="100" y="115" width="30" height="25" rx="4" fill="#f6f9fc"/>
+                                <rect x="140" y="115" width="30" height="25" rx="4" fill="#f6f9fc"/>
+                                <rect x="180" y="115" width="30" height="25" rx="4" fill="#30c67c" opacity="0.3"/>
+                                <rect x="220" y="115" width="30" height="25" rx="4" fill="#30c67c" opacity="0.3"/>
+                                <rect x="260" y="115" width="30" height="25" rx="4" fill="#f6f9fc"/>
+                                <rect x="100" y="150" width="30" height="25" rx="4" fill="#30c67c" opacity="0.3"/>
+                                <rect x="140" y="150" width="30" height="25" rx="4" fill="#fef2f4"/>
+                                <rect x="180" y="150" width="30" height="25" rx="4" fill="#30c67c" opacity="0.5"/>
+                                <rect x="220" y="150" width="30" height="25" rx="4" fill="#30c67c" opacity="0.5"/>
+                                <rect x="260" y="150" width="30" height="25" rx="4" fill="#fef2f4"/>
+                                <rect x="100" y="185" width="30" height="25" rx="4" fill="#f6f9fc"/>
+                                <rect x="140" y="185" width="30" height="25" rx="4" fill="#30c67c" opacity="0.3"/>
+                                <rect x="180" y="185" width="30" height="25" rx="4" fill="#f6f9fc"/>
+                                <rect x="220" y="185" width="30" height="25" rx="4" fill="#fef2f4"/>
+                                <rect x="260" y="185" width="30" height="25" rx="4" fill="#30c67c" opacity="0.3"/>
+                                <!-- People avatars -->
+                                <circle cx="60" cy="130" r="24" fill="#635bff" opacity="0.1"/>
+                                <circle cx="60" cy="130" r="18" fill="#635bff"/>
+                                <circle cx="60" cy="125" r="6" fill="#fff"/>
+                                <path d="M48 142c0-6.6 5.4-12 12-12s12 5.4 12 12" fill="#fff"/>
+                                <circle cx="340" cy="170" r="24" fill="#30c67c" opacity="0.1"/>
+                                <circle cx="340" cy="170" r="18" fill="#30c67c"/>
+                                <circle cx="340" cy="165" r="6" fill="#fff"/>
+                                <path d="M328 182c0-6.6 5.4-12 12-12s12 5.4 12 12" fill="#fff"/>
+                                <!-- Check marks on good dates -->
+                                <path d="M188 160l4 4 8-8" stroke="#30c67c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M228 160l4 4 8-8" stroke="#30c67c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <!-- Or use an actual image: -->
+                        <!-- <img src="./images/hero-illustration.svg" alt="Group calendar planning illustration"> -->
+                    </div>
+                </div>
+
+                <!-- Background decorations -->
+                <div class="hero-bg-decoration" aria-hidden="true">
+                    <div class="decoration-circle decoration-circle-1"></div>
+                    <div class="decoration-circle decoration-circle-2"></div>
+                    <div class="decoration-circle decoration-circle-3"></div>
                 </div>
 
                 <section id="how-it-works" class="features-section">
@@ -155,6 +209,34 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Share Link Modal -->
+            <div id="share-modal" class="modal hidden">
+                <div class="modal-backdrop" data-close-share></div>
+                <div class="modal-content share-modal-content">
+                    <div class="modal-header">
+                        <h2>🎉 Calendar Created!</h2>
+                        <button class="modal-close" data-close-share>&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="share-modal-text">Share this link with your participants:</p>
+                        <div class="share-link-box">
+                            <input type="text" id="share-link-input" readonly>
+                            <button id="copy-link-btn" class="btn btn-primary">
+                                <span class="copy-text">Copy</span>
+                                <span class="copied-text hidden">Copied!</span>
+                            </button>
+                        </div>
+                        <div id="share-participants-info" class="share-info">
+                            <!-- Info about how participants join will be shown here -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a id="open-calendar-link" href="#" class="btn btn-outline">Open Calendar</a>
+                        <button class="btn btn-primary" data-close-share>Done</button>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <!-- Footer -->
@@ -163,7 +245,7 @@
         </footer>
     </div>
 
-    <script src="./app.js" type="module"></script>
+    <script src="./app.js"></script>
 </body>
 </html>
 

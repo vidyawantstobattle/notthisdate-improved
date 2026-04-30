@@ -54,7 +54,45 @@ A reverse-availability trip planner for coordinating group events. Instead of ma
 |---------|-------------|
 | `npm start` | Start local server (Python http.server) |
 | `npm run dev` | Start with Netlify CLI (if installed) |
+| `npm test` | Run all tests |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:coverage` | Run tests with coverage report |
 | `npm run build` | No build step required |
+
+## Testing
+
+The project includes comprehensive unit and integration tests using Jest.
+
+### Run Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run with coverage report
+npm run test:coverage
+```
+
+### Test Structure
+
+```
+tests/
+├── setup.js              # Global test setup & mocks
+├── unit/                 # Unit tests
+│   ├── tagsInput.test.js
+│   ├── passwordValidation.test.js
+│   ├── calendarUtils.test.js
+│   └── apiFunctions.test.js
+└── integration/          # Integration tests
+    ├── calendarCreation.test.js
+    ├── unavailabilitySubmission.test.js
+    └── authentication.test.js
+```
+
+See `tests/README.md` for detailed testing documentation.
 
 ## Project Structure
 

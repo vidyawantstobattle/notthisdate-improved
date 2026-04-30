@@ -51,7 +51,41 @@
 
                 <!-- Submit Tab -->
                 <div id="submit-tab" class="tab-content active">
-                    <div class="form-section">
+                    <!-- Email Verification Section (for open calendars) -->
+                    <div id="email-verification-section" class="verification-section hidden">
+                        <div class="verification-card">
+                            <div class="verification-icon">📧</div>
+                            <h3>Verify Your Email</h3>
+                            <p>To submit your unavailable dates, please verify your email address first.</p>
+
+                            <div id="email-step-1" class="verification-step">
+                                <div class="form-group">
+                                    <label for="verification-email">Your Email Address</label>
+                                    <input type="email" id="verification-email" placeholder="you@example.com" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="verification-name">Your Name</label>
+                                    <input type="text" id="verification-name" placeholder="Enter your name" required>
+                                </div>
+                                <button id="send-verification-btn" class="btn btn-primary">Send Verification Code</button>
+                            </div>
+
+                            <div id="email-step-2" class="verification-step hidden">
+                                <p class="verification-sent-msg">We sent a 6-digit code to <strong id="sent-email-display"></strong></p>
+                                <div class="form-group">
+                                    <label for="verification-code">Enter Code</label>
+                                    <input type="text" id="verification-code" placeholder="000000" maxlength="6" pattern="[0-9]{6}">
+                                </div>
+                                <button id="verify-code-btn" class="btn btn-primary">Verify & Continue</button>
+                                <button id="resend-code-btn" class="btn btn-outline btn-small">Resend Code</button>
+                            </div>
+
+                            <div id="verification-error" class="status-message error hidden"></div>
+                        </div>
+                    </div>
+
+                    <!-- Main Form Section -->
+                    <div id="main-form-section" class="form-section">
                         <div class="form-group">
                             <label>Your Name</label>
                             <div id="participant-input-container">
@@ -90,7 +124,7 @@
                             <p class="empty-message">Select your name to see your submissions</p>
                         </div>
                     </div>
-                </div>
+                </div><!-- End submit-tab -->
 
                 <!-- View Tab -->
                 <div id="view-tab" class="tab-content">
@@ -140,7 +174,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="./calendar.js" type="module"></script>
+    <script src="./calendar.js"></script>
 </body>
 </html>
 

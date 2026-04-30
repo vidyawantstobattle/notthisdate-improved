@@ -524,11 +524,8 @@ async function handleCreateCalendar(e) {
         closeCreateModal();
         loadUserCalendars();
 
-        // Show success and offer to copy link
-        const shareUrl = `${window.location.origin}/c/${data.calendar.id}`;
-        if (confirm(`Calendar created! Share this link with your group:\n\n${shareUrl}\n\nCopy to clipboard?`)) {
-            copyShareLink(shareUrl);
-        }
+        // Show share modal with the link
+        showShareModal(data.calendar);
     } catch (error) {
         console.error('Error creating calendar:', error);
         alert('Failed to create calendar: ' + error.message);
@@ -536,6 +533,64 @@ async function handleCreateCalendar(e) {
 
     submitBtn.disabled = false;
     submitBtn.textContent = 'Create Calendar';
+}
+
+// ===== SHARE MODAL =====
+function showShareModal(calendar) {
+    const shareModal = document.getElementById('share-modal');
+    const shareLinkInput = document.getElementById('share-link-input');
+    const openCalendarLink = document.getElementById('open-calendar-link');
+    const participantsInfo = document.getElementById('share-participants-info');
+
+    const shareUrl = `${window.location.origin}/c/${calendar.id}`;
+
+    shareLinkInput.value = shareUrl;
+    openCalendarLink.href = shareUrl;
+
+    // Show different info based on participants type
+    if (calendar.participantsType === 'open') {
+        participantsInfo.className = 'share-info info-open';
+        participantsInfo.innerHTML = `
+            <h4>📧 Email Verification Required</h4>
+            <p>Anyone with this link can join, but they'll need to verify their email address before adding their unavailable dates. This helps prevent spam and ensures everyone is accountable.</p>
+        `;
+    } else {
+        participantsInfo.className = 'share-info info-defined';
+        participantsInfo.innerHTML = `
+            <h4>👥 Invite Your Participants</h4>
+            <p>Share this link with: <strong>${calendar.participants.join(', ')}</strong>. They'll select their name from a dropdown to submit their unavailable dates - no account needed!</p>
+        `;
+    }
+
+    shareModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    // Setup close handlers
+    shareModal.querySelectorAll('[data-close-share]').forEach(el => {
+        el.onclick = () => closeShareModal();
+    });
+
+    // Setup copy button
+    const copyBtn = document.getElementById('copy-link-btn');
+    copyBtn.onclick = () => {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            copyBtn.querySelector('.copy-text').classList.add('hidden');
+            copyBtn.querySelector('.copied-text').classList.remove('hidden');
+            setTimeout(() => {
+                copyBtn.querySelector('.copy-text').classList.remove('hidden');
+                copyBtn.querySelector('.copied-text').classList.add('hidden');
+            }, 2000);
+        }).catch(() => {
+            shareLinkInput.select();
+            document.execCommand('copy');
+        });
+    };
+}
+
+function closeShareModal() {
+    const shareModal = document.getElementById('share-modal');
+    shareModal.classList.add('hidden');
+    document.body.style.overflow = '';
 }
 
 async function deleteCalendar(calendarId) {

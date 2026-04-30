@@ -6,13 +6,37 @@
     "dev": "netlify dev",
     "serve": "npx serve public -l 8888",
     "start": "cd public && python3 -m http.server 8888",
-    "build": "echo 'No build step required'"
+    "build": "echo 'No build step required'",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
   },
   "dependencies": {
     "@netlify/blobs": "^7.0.0"
   },
   "devDependencies": {
+    "@testing-library/dom": "^9.3.0",
+    "@testing-library/jest-dom": "^6.1.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "netlify-cli": "^17.0.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "roots": [
+      "<rootDir>/tests"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "mjs",
+      "json"
+    ],
+    "transform": {},
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.js"
+    ],
+    "testMatch": [
+      "**/*.test.js"
+    ]
   }
 }
-

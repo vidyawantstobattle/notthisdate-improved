@@ -78,9 +78,14 @@ function renderCalendarInfo() {
 
 function setupParticipantInput() {
     const container = document.getElementById('participant-input-container');
+    const verificationSection = document.getElementById('email-verification-section');
+    const mainFormSection = document.getElementById('main-form-section');
 
     if (calendarData.participantsType === 'defined' && calendarData.participants?.length > 0) {
-        // Show dropdown for defined participants
+        // Show dropdown for defined participants - no verification needed
+        verificationSection?.classList.add('hidden');
+        mainFormSection?.classList.remove('hidden');
+
         const select = document.createElement('select');
         select.id = 'participant-select';
         select.innerHTML = `
@@ -88,14 +93,167 @@ function setupParticipantInput() {
             ${calendarData.participants.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('')}
         `;
         container.appendChild(select);
+
+        // Add helpful hint
+        const hint = document.createElement('p');
+        hint.className = 'form-hint';
+        hint.textContent = 'Select your name from the list to submit your unavailable dates.';
+        container.appendChild(hint);
     } else {
-        // Show text input for open calendars
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.id = 'participant-input';
-        input.placeholder = 'Enter your name...';
-        container.appendChild(input);
+        // Open calendar - require email verification first
+        verificationSection?.classList.remove('hidden');
+        mainFormSection?.classList.add('hidden');
+
+        // Check if user already verified (stored in sessionStorage)
+        const verifiedUser = getVerifiedUser();
+        if (verifiedUser) {
+            // User already verified, show form directly
+            showVerifiedForm(verifiedUser.name, verifiedUser.email);
+        } else {
+            // Setup verification handlers
+            setupEmailVerification();
+        }
     }
+}
+
+// Email verification flow for open calendars
+let verificationEmail = '';
+let verificationName = '';
+let verificationCode = '';
+
+function setupEmailVerification() {
+    const sendBtn = document.getElementById('send-verification-btn');
+    const verifyBtn = document.getElementById('verify-code-btn');
+    const resendBtn = document.getElementById('resend-code-btn');
+
+    sendBtn?.addEventListener('click', sendVerificationCode);
+    verifyBtn?.addEventListener('click', verifyCode);
+    resendBtn?.addEventListener('click', sendVerificationCode);
+}
+
+async function sendVerificationCode() {
+    const emailInput = document.getElementById('verification-email');
+    const nameInput = document.getElementById('verification-name');
+    const errorDiv = document.getElementById('verification-error');
+    const sendBtn = document.getElementById('send-verification-btn');
+
+    verificationEmail = emailInput.value.trim();
+    verificationName = nameInput.value.trim();
+
+    if (!verificationEmail || !verificationName) {
+        showVerificationError('Please enter both your email and name.');
+        return;
+    }
+
+    if (!isValidEmail(verificationEmail)) {
+        showVerificationError('Please enter a valid email address.');
+        return;
+    }
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Sending...';
+    errorDiv.classList.add('hidden');
+
+    try {
+        // Generate a simple verification code (in production, this would be sent via email)
+        // For demo purposes, we'll use a simulated flow
+        verificationCode = generateVerificationCode();
+
+        // In production, you'd call an API to send the email:
+        // await fetch('/.netlify/functions/send-verification', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ email: verificationEmail, name: verificationName, calendarId: calendarData.id })
+        // });
+
+        // For now, simulate sending (show code in console for testing)
+        console.log(`Verification code for ${verificationEmail}: ${verificationCode}`);
+
+        // Show step 2
+        document.getElementById('email-step-1').classList.add('hidden');
+        document.getElementById('email-step-2').classList.remove('hidden');
+        document.getElementById('sent-email-display').textContent = verificationEmail;
+
+        // Show a hint for demo purposes
+        showVerificationError(`Demo mode: Your code is ${verificationCode}`);
+        errorDiv.classList.remove('error');
+        errorDiv.style.color = 'var(--primary-color)';
+        errorDiv.style.background = 'var(--primary-bg)';
+
+    } catch (error) {
+        showVerificationError('Failed to send verification code. Please try again.');
+    }
+
+    sendBtn.disabled = false;
+    sendBtn.textContent = 'Send Verification Code';
+}
+
+function verifyCode() {
+    const codeInput = document.getElementById('verification-code');
+    const enteredCode = codeInput.value.trim();
+    const verifyBtn = document.getElementById('verify-code-btn');
+
+    if (enteredCode === verificationCode) {
+        // Success! Store verification and show form
+        storeVerifiedUser(verificationName, verificationEmail);
+        showVerifiedForm(verificationName, verificationEmail);
+    } else {
+        showVerificationError('Invalid code. Please try again.');
+        codeInput.value = '';
+        codeInput.focus();
+    }
+}
+
+function showVerifiedForm(name, email) {
+    const verificationSection = document.getElementById('email-verification-section');
+    const mainFormSection = document.getElementById('main-form-section');
+    const container = document.getElementById('participant-input-container');
+
+    verificationSection?.classList.add('hidden');
+    mainFormSection?.classList.remove('hidden');
+
+    // Show verified user info
+    container.innerHTML = `
+        <div class="verified-user-info">
+            <div class="verified-badge">
+                <span class="verified-icon">✓</span>
+                <span class="verified-name">${escapeHtml(name)}</span>
+            </div>
+            <p class="verified-email">${escapeHtml(email)}</p>
+        </div>
+    `;
+
+    // Set current participant
+    currentParticipant = name;
+    updateSubmitButton();
+    loadUserSubmissions();
+}
+
+function showVerificationError(message) {
+    const errorDiv = document.getElementById('verification-error');
+    errorDiv.textContent = message;
+    errorDiv.classList.remove('hidden');
+    errorDiv.style.color = '';
+    errorDiv.style.background = '';
+}
+
+function generateVerificationCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function storeVerifiedUser(name, email) {
+    const key = `verified_${calendarData.id}`;
+    sessionStorage.setItem(key, JSON.stringify({ name, email }));
+}
+
+function getVerifiedUser() {
+    const key = `verified_${calendarData.id}`;
+    const stored = sessionStorage.getItem(key);
+    return stored ? JSON.parse(stored) : null;
 }
 
 // Tab switching
