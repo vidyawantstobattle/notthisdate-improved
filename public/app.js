@@ -1,6 +1,212 @@
 // ===== NETLIFY IDENTITY SETUP =====
 const netlifyIdentity = window.netlifyIdentity;
 let currentUser = null;
+let participantsTagsInput = null;
+
+// ===== TAGS INPUT CLASS =====
+class TagsInput {
+    constructor(container, options = {}) {
+        this.container = container;
+        this.tags = options.initialTags || [];
+        this.placeholder = options.placeholder || 'Type a name and press Enter';
+        this.onTagsChange = options.onTagsChange || (() => {});
+
+        this.render();
+        this.bindEvents();
+    }
+
+    render() {
+        this.container.innerHTML = '';
+        this.container.className = 'tags-input-container';
+
+        // Render existing tags
+        this.tags.forEach((tag, index) => {
+            const tagEl = document.createElement('span');
+            tagEl.className = 'tag';
+            tagEl.innerHTML = `
+                ${this.escapeHtml(tag)}
+                <button type="button" class="tag-remove" data-index="${index}" aria-label="Remove ${tag}">×</button>
+            `;
+            this.container.appendChild(tagEl);
+        });
+
+        // Add input
+        this.input = document.createElement('input');
+        this.input.type = 'text';
+        this.input.className = 'tags-input';
+        this.input.placeholder = this.tags.length === 0 ? this.placeholder : 'Add another...';
+        this.container.appendChild(this.input);
+    }
+
+    bindEvents() {
+        this.input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.addTag(this.input.value);
+            } else if (e.key === 'Backspace' && this.input.value === '' && this.tags.length > 0) {
+                this.removeTag(this.tags.length - 1);
+            }
+        });
+
+        // Also add on blur (when user clicks away)
+        this.input.addEventListener('blur', () => {
+            if (this.input.value.trim()) {
+                this.addTag(this.input.value);
+            }
+        });
+
+        this.container.addEventListener('click', (e) => {
+            if (e.target.classList.contains('tag-remove')) {
+                e.preventDefault();
+                e.stopPropagation();
+                const index = parseInt(e.target.dataset.index);
+                this.removeTag(index);
+            } else {
+                this.input.focus();
+            }
+        });
+    }
+
+    addTag(value) {
+        const trimmed = value.trim();
+        if (trimmed && !this.tags.includes(trimmed)) {
+            this.tags.push(trimmed);
+            this.render();
+            this.bindEvents();
+            this.onTagsChange(this.tags);
+            this.input.focus();
+        } else {
+            this.input.value = '';
+        }
+    }
+
+    removeTag(index) {
+        this.tags.splice(index, 1);
+        this.render();
+        this.bindEvents();
+        this.onTagsChange(this.tags);
+        this.input.focus();
+    }
+
+    getTags() {
+        return [...this.tags];
+    }
+
+    setTags(tags) {
+        this.tags = [...tags];
+        this.render();
+        this.bindEvents();
+    }
+
+    clear() {
+        this.tags = [];
+        this.render();
+        this.bindEvents();
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+}
+
+// ===== PASSWORD VALIDATION =====
+const passwordRules = {
+    minLength: { test: (p) => p.length >= 8, message: 'At least 8 characters' },
+    hasUppercase: { test: (p) => /[A-Z]/.test(p), message: 'One uppercase letter' },
+    hasLowercase: { test: (p) => /[a-z]/.test(p), message: 'One lowercase letter' },
+    hasNumber: { test: (p) => /\d/.test(p), message: 'One number' },
+    hasSpecial: { test: (p) => /[!@#$%^&*(),.?":{}|<>]/.test(p), message: 'One special character' }
+};
+
+function setupPasswordValidation() {
+    // Hook into Netlify Identity widget's password fields
+    // The widget creates its own form, so we need to add validation after it opens
+    netlifyIdentity.on('open', () => {
+        setTimeout(() => {
+            const passwordInputs = document.querySelectorAll('.netlify-identity-widget input[type="password"]');
+            passwordInputs.forEach(input => {
+                if (!input.parentElement.classList.contains('password-field')) {
+                    wrapPasswordField(input);
+                }
+            });
+        }, 100);
+    });
+}
+
+function wrapPasswordField(input) {
+    // Add wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'password-field';
+    wrapper.style.position = 'relative';
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+
+    // Add toggle button
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'password-toggle';
+    toggleBtn.setAttribute('aria-label', 'Toggle password visibility');
+    toggleBtn.innerHTML = `
+        <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+        </svg>
+        <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="display:none">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+        </svg>
+    `;
+    toggleBtn.style.cssText = 'position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#8898aa;padding:4px;';
+    wrapper.appendChild(toggleBtn);
+
+    // Update input padding
+    input.style.paddingRight = '40px';
+
+    toggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        toggleBtn.querySelector('.eye-open').style.display = isPassword ? 'none' : 'block';
+        toggleBtn.querySelector('.eye-closed').style.display = isPassword ? 'block' : 'none';
+    });
+
+    // Add validation requirements display for signup
+    if (input.closest('form')?.querySelector('button[type="submit"]')?.textContent?.toLowerCase().includes('sign up')) {
+        addPasswordRequirements(input, wrapper);
+    }
+}
+
+function addPasswordRequirements(input, wrapper) {
+    const requirements = document.createElement('div');
+    requirements.className = 'password-requirements';
+    requirements.style.cssText = 'margin-top:8px;padding:10px;background:#f6f9fc;border-radius:6px;font-size:12px;';
+    requirements.innerHTML = `
+        <p style="margin:0 0 6px 0;font-weight:500;color:#697386;">Password must contain:</p>
+        <ul style="margin:0;padding:0;list-style:none;">
+            ${Object.entries(passwordRules).map(([key, rule]) => `
+                <li id="req-${key}" style="display:flex;align-items:center;gap:6px;padding:2px 0;color:#8898aa;transition:color 0.15s;">
+                    <span class="icon" style="width:14px;text-align:center;">○</span>
+                    <span>${rule.message}</span>
+                </li>
+            `).join('')}
+        </ul>
+    `;
+    wrapper.parentNode.insertBefore(requirements, wrapper.nextSibling);
+
+    input.addEventListener('input', () => {
+        const password = input.value;
+        Object.entries(passwordRules).forEach(([key, rule]) => {
+            const li = document.getElementById(`req-${key}`);
+            if (li) {
+                const isValid = rule.test(password);
+                li.style.color = isValid ? '#30c67c' : '#8898aa';
+                li.querySelector('.icon').textContent = isValid ? '✓' : '○';
+            }
+        });
+    });
+}
 
 // Initialize Netlify Identity
 function initAuth() {
@@ -20,6 +226,9 @@ function initAuth() {
         currentUser = null;
         updateUI();
     });
+
+    // Setup password validation for the identity widget
+    setupPasswordValidation();
 
     // Configure Netlify Identity
     // When running locally, point to the production site since Identity can't work on localhost without netlify dev
@@ -95,6 +304,17 @@ function setupEventListeners() {
     // Form handling
     document.getElementById('create-calendar-form')?.addEventListener('submit', handleCreateCalendar);
 
+    // Initialize participants tags input
+    const participantsContainer = document.getElementById('participants-tags');
+    if (participantsContainer) {
+        participantsTagsInput = new TagsInput(participantsContainer, {
+            placeholder: 'Type a name and press Enter',
+            onTagsChange: (tags) => {
+                console.log('Participants updated:', tags);
+            }
+        });
+    }
+
     // Date range type toggle
     document.querySelectorAll('input[name="date-range-type"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
@@ -152,6 +372,9 @@ function closeCreateModal() {
     document.getElementById('create-calendar-modal').classList.add('hidden');
     document.body.style.overflow = '';
     document.getElementById('create-calendar-form').reset();
+    if (participantsTagsInput) {
+        participantsTagsInput.clear();
+    }
     setDefaultDates();
 }
 
@@ -266,11 +489,7 @@ async function handleCreateCalendar(e) {
 
     let participants = [];
     if (participantsType === 'defined') {
-        const participantsList = document.getElementById('participants-list').value;
-        participants = participantsList
-            .split(/[\n,]+/)
-            .map(p => p.trim())
-            .filter(p => p.length > 0);
+        participants = participantsTagsInput ? participantsTagsInput.getTags() : [];
 
         if (participants.length === 0) {
             alert('Please add at least one participant');
