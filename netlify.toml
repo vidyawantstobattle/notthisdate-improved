@@ -2,6 +2,12 @@
   publish = "public"
   functions = "netlify/functions"
 
+[identity]
+  provider = "gotrue"
+
+[functions]
+  node_bundler = "esbuild"
+
 [[redirects]]
   from = "/c/:calendarId"
   to = "/calendar.html"
