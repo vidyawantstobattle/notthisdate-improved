@@ -33,8 +33,16 @@ export default async (request, context) => {
     }
 
     try {
-        const userStore = getStore("user-calendars");
-        const calendarStore = getStore("calendars");
+        const userStore = getStore({
+            name: "user-calendars",
+            siteID: context.site.id,
+            token: context.token
+        });
+        const calendarStore = getStore({
+            name: "calendars",
+            siteID: context.site.id,
+            token: context.token
+        });
 
         let userCalendarRefs = [];
         try {

@@ -41,8 +41,16 @@ export default async (request, context) => {
     }
 
     try {
-        const calendarStore = getStore("calendars");
-        const userStore = getStore("user-calendars");
+        const calendarStore = getStore({
+            name: "calendars",
+            siteID: context.site.id,
+            token: context.token
+        });
+        const userStore = getStore({
+            name: "user-calendars",
+            siteID: context.site.id,
+            token: context.token
+        });
 
         // Get calendar to verify ownership
         let calendar;

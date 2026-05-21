@@ -63,17 +63,30 @@ export default async (request, context) => {
             unavailability: {}
         };
 
+        console.log(`Creating calendar with ID: ${calendarId}, Name: ${calendar.name}`);
+
         // Store calendar
-        const store = getStore("calendars");
+        const store = getStore({
+            name: "calendars",
+            siteID: context.site.id,
+            token: context.token
+        });
         await store.setJSON(calendarId, calendar);
+        console.log(`Calendar ${calendarId} stored successfully`);
 
         // Add to user's calendar list
-        const userStore = getStore("user-calendars");
+        const userStore = getStore({
+            name: "user-calendars",
+            siteID: context.site.id,
+            token: context.token
+        });
         let userCalendars = [];
         try {
             const existing = await userStore.get(userId, { type: 'json' });
             if (existing) userCalendars = existing;
-        } catch (e) {}
+        } catch (e) {
+            console.log(`No existing calendars for user ${userId}`);
+        }
 
         userCalendars.push({
             id: calendarId,
@@ -82,11 +95,12 @@ export default async (request, context) => {
         });
 
         await userStore.setJSON(userId, userCalendars);
+        console.log(`Updated user calendar list for ${userId}, total calendars: ${userCalendars.length}`);
 
         return new Response(JSON.stringify({ success: true, calendar }), { status: 201, headers });
 
     } catch (error) {
         console.error('Error creating calendar:', error);
-        return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
+        return new Response(JSON.stringify({ error: 'Internal server error', details: error.message }), { status: 500, headers });
     }
 };

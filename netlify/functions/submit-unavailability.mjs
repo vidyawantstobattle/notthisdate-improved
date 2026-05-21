@@ -36,7 +36,11 @@ export default async (request, context) => {
             return new Response(JSON.stringify({ error: 'Unavailable dates must be an array' }), { status: 400, headers });
         }
 
-        const calendarStore = getStore("calendars");
+        const calendarStore = getStore({
+            name: "calendars",
+            siteID: context.site.id,
+            token: context.token
+        });
 
         // Get calendar
         let calendar;

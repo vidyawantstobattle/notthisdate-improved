@@ -25,7 +25,11 @@ export default async (request, context) => {
     }
 
     try {
-        const calendarStore = getStore("calendars");
+        const calendarStore = getStore({
+            name: "calendars",
+            siteID: context.site.id,
+            token: context.token
+        });
 
         try {
             const calendar = await calendarStore.get(calendarId, { type: 'json' });
