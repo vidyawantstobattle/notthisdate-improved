@@ -555,9 +555,33 @@ body {
     max-width: 520px;
 }
 
+.share-modal-content .modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.share-modal-content .modal-header h2 {
+    font-size: 1.25rem;
+}
+
+.share-modal-content .modal-body {
+    padding: 1.5rem;
+}
+
+.share-modal-content .modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    background: var(--bg-primary);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
 .share-modal-text {
     color: var(--text-secondary);
     margin-bottom: 1rem;
+    font-size: 0.95rem;
 }
 
 .share-link-box {
@@ -791,6 +815,33 @@ body {
 .radio-option input {
     width: auto;
     accent-color: var(--primary-color);
+}
+
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.checkbox-option input {
+    width: auto;
+    accent-color: var(--primary-color);
+}
+
+#open-participants-options {
+    margin-top: 0.75rem;
+    padding: 1rem;
+    background: var(--primary-bg);
+    border-radius: var(--radius);
+    border: 1px solid rgba(99, 91, 255, 0.2);
+}
+
+#open-participants-options .form-hint {
+    margin-top: 0.25rem;
+    margin-bottom: 0;
 }
 
 .date-range-options,
