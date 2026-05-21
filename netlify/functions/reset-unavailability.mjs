@@ -26,7 +26,11 @@ export default async (request, context) => {
     }
 
     try {
-        const calendarStore = getStore("calendars");
+        const calendarStore = getStore({
+            name: "calendars",
+            siteID: context.site.id,
+            token: context.token
+        });
 
         // Get calendar
         let calendar;

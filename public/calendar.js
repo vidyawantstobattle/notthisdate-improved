@@ -49,12 +49,47 @@ async function loadCalendar(calendarId) {
         document.getElementById('loading-state').classList.add('hidden');
         document.getElementById('calendar-content').classList.remove('hidden');
 
-        renderCalendarInfo();
-        setupParticipantInput();
-        initDatePicker();
-        initTabs();
-        initFormHandlers();
-        await loadAllUnavailability();
+        try {
+            renderCalendarInfo();
+            console.log('renderCalendarInfo completed');
+        } catch (e) {
+            console.error('Error in renderCalendarInfo:', e);
+        }
+
+        try {
+            setupParticipantInput();
+            console.log('setupParticipantInput completed');
+        } catch (e) {
+            console.error('Error in setupParticipantInput:', e);
+        }
+
+        try {
+            initDatePicker();
+            console.log('initDatePicker completed');
+        } catch (e) {
+            console.error('Error in initDatePicker:', e);
+        }
+
+        try {
+            initTabs();
+            console.log('initTabs completed');
+        } catch (e) {
+            console.error('Error in initTabs:', e);
+        }
+
+        try {
+            initFormHandlers();
+            console.log('initFormHandlers completed');
+        } catch (e) {
+            console.error('Error in initFormHandlers:', e);
+        }
+
+        try {
+            await loadAllUnavailability();
+            console.log('loadAllUnavailability completed');
+        } catch (e) {
+            console.error('Error in loadAllUnavailability:', e);
+        }
 
     } catch (error) {
         console.error('Error loading calendar:', error);
