@@ -213,6 +213,10 @@ function initAuth() {
     netlifyIdentity.on('init', user => {
         currentUser = user;
         updateUI();
+        // If user is already logged in on page load, load their calendars
+        if (user) {
+            loadUserCalendars();
+        }
     });
 
     netlifyIdentity.on('login', user => {
@@ -331,10 +335,14 @@ function setupEventListeners() {
     document.querySelectorAll('input[name="participants-type"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
             const definedParticipants = document.getElementById('defined-participants');
+            const openParticipantsOptions = document.getElementById('open-participants-options');
+
             if (e.target.value === 'defined') {
                 definedParticipants.style.display = 'block';
+                openParticipantsOptions?.classList.add('hidden');
             } else {
                 definedParticipants.style.display = 'none';
+                openParticipantsOptions?.classList.remove('hidden');
             }
         });
     });
@@ -488,6 +496,8 @@ async function handleCreateCalendar(e) {
     }
 
     let participants = [];
+    let requireEmailVerification = false;
+
     if (participantsType === 'defined') {
         participants = participantsTagsInput ? participantsTagsInput.getTags() : [];
 
@@ -497,6 +507,9 @@ async function handleCreateCalendar(e) {
             submitBtn.textContent = 'Create Calendar';
             return;
         }
+    } else {
+        // For open calendars, check if email verification is required
+        requireEmailVerification = document.getElementById('require-email-verification')?.checked || false;
     }
 
     try {
@@ -511,7 +524,8 @@ async function handleCreateCalendar(e) {
                 startDate,
                 endDate,
                 participantsType,
-                participants
+                participants,
+                requireEmailVerification
             })
         });
 
@@ -547,13 +561,20 @@ function showShareModal(calendar) {
     shareLinkInput.value = shareUrl;
     openCalendarLink.href = shareUrl;
 
-    // Show different info based on participants type
+    // Show different info based on participants type and email verification
     if (calendar.participantsType === 'open') {
         participantsInfo.className = 'share-info info-open';
-        participantsInfo.innerHTML = `
-            <h4>📧 Email Verification Required</h4>
-            <p>Anyone with this link can join, but they'll need to verify their email address before adding their unavailable dates. This helps prevent spam and ensures everyone is accountable.</p>
-        `;
+        if (calendar.requireEmailVerification) {
+            participantsInfo.innerHTML = `
+                <h4>📧 Email Verification Required</h4>
+                <p>Anyone with this link can join, but they'll need to verify their email address before adding their unavailable dates. This helps prevent spam and ensures everyone is accountable.</p>
+            `;
+        } else {
+            participantsInfo.innerHTML = `
+                <h4>🔗 Open Access</h4>
+                <p>Anyone with this link can join and submit their unavailable dates. They just need to enter their name - no email verification required.</p>
+            `;
+        }
     } else {
         participantsInfo.className = 'share-info info-defined';
         participantsInfo.innerHTML = `
@@ -607,7 +628,8 @@ async function deleteCalendar(calendarId) {
 
         if (!response.ok) throw new Error('Failed to delete calendar');
 
-        loadUserCalendars();
+        // Refresh the calendar list
+        await loadUserCalendars();
     } catch (error) {
         console.error('Error deleting calendar:', error);
         alert('Failed to delete calendar. Please try again.');
