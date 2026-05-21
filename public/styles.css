@@ -5,6 +5,11 @@
     box-sizing: border-box;
 }
 
+/* Utility classes */
+.hidden {
+    display: none !important;
+}
+
 :root {
     /* Stripe-inspired color palette */
     --primary-color: #635bff;
