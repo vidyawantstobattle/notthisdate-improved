@@ -4,8 +4,14 @@ export default async (request, context) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
         'Content-Type': 'application/json'
     };
+
+    // Handle CORS preflight
+    if (request.method === 'OPTIONS') {
+        return new Response('', { status: 204, headers });
+    }
 
     if (request.method !== 'DELETE') {
         return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers });

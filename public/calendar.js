@@ -30,15 +30,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Load calendar data
 async function loadCalendar(calendarId) {
+    console.log('Loading calendar with ID:', calendarId);
+
     try {
         const response = await fetch(`/.netlify/functions/get-calendar?id=${calendarId}`);
+        console.log('Response status:', response.status);
 
         if (!response.ok) {
-            showError();
+            const errorText = await response.text();
+            console.error('Failed to load calendar:', response.status, errorText);
+            showError(`Calendar not found (Status: ${response.status})`);
             return;
         }
 
         calendarData = await response.json();
+        console.log('Calendar data loaded:', calendarData);
 
         document.getElementById('loading-state').classList.add('hidden');
         document.getElementById('calendar-content').classList.remove('hidden');
@@ -52,13 +58,18 @@ async function loadCalendar(calendarId) {
 
     } catch (error) {
         console.error('Error loading calendar:', error);
-        showError();
+        showError(error.message);
     }
 }
 
-function showError() {
+function showError(message = '') {
     document.getElementById('loading-state').classList.add('hidden');
     document.getElementById('error-state').classList.remove('hidden');
+
+    // Optionally show detailed error in console
+    if (message) {
+        console.log('Calendar error:', message);
+    }
 }
 
 function renderCalendarInfo() {
