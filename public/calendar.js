@@ -110,8 +110,8 @@ function setupParticipantInput() {
         hint.className = 'form-hint';
         hint.textContent = 'Select your name from the list to submit your unavailable dates.';
         container.appendChild(hint);
-    } else {
-        // Open calendar - require email verification first
+    } else if (calendarData.requireEmailVerification) {
+        // Open calendar WITH email verification required
         verificationSection?.classList.remove('hidden');
         mainFormSection?.classList.add('hidden');
 
@@ -124,6 +124,35 @@ function setupParticipantInput() {
             // Setup verification handlers
             setupEmailVerification();
         }
+    } else {
+        // Open calendar WITHOUT email verification - just show name input
+        verificationSection?.classList.add('hidden');
+        mainFormSection?.classList.remove('hidden');
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = 'participant-name-input';
+        input.placeholder = 'Enter your name';
+        input.className = 'form-input';
+        container.appendChild(input);
+
+        // Add helpful hint
+        const hint = document.createElement('p');
+        hint.className = 'form-hint';
+        hint.textContent = 'Enter your name to submit your unavailable dates.';
+        container.appendChild(hint);
+
+        // Add event listener to update current participant
+        input.addEventListener('input', (e) => {
+            currentParticipant = e.target.value.trim();
+            updateSubmitButton();
+        });
+
+        input.addEventListener('blur', () => {
+            if (currentParticipant) {
+                loadUserSubmissions();
+            }
+        });
     }
 }
 

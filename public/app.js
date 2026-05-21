@@ -607,8 +607,7 @@ async function deleteCalendar(calendarId) {
 
         if (!response.ok) throw new Error('Failed to delete calendar');
 
-        // Refresh the calendar list
-        await loadUserCalendars();
+        loadUserCalendars();
     } catch (error) {
         console.error('Error deleting calendar:', error);
         alert('Failed to delete calendar. Please try again.');

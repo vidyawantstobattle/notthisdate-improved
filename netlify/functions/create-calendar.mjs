@@ -38,7 +38,7 @@ export default async (request, context) => {
 
     try {
         const body = await request.json();
-        const { name, description, dateRangeType, startDate, endDate, participantsType, participants } = body;
+        const { name, description, dateRangeType, startDate, endDate, participantsType, participants, requireEmailVerification } = body;
 
         if (!name || !name.trim()) {
             return new Response(JSON.stringify({ error: 'Calendar name is required' }), { status: 400, headers });
@@ -56,6 +56,7 @@ export default async (request, context) => {
             endDate,
             participantsType,
             participants: participants || [],
+            requireEmailVerification: participantsType === 'open' ? (requireEmailVerification || false) : false,
             ownerId: userId,
             ownerEmail: userEmail,
             createdAt: new Date().toISOString(),
