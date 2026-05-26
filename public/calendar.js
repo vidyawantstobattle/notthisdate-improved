@@ -811,7 +811,26 @@ async function loadAllUnavailability() {
     try {
         const response = await fetch(`/.netlify/functions/get-unavailability?calendarId=${calendarData.id}`);
         const data = await response.json();
-        allUnavailability = data.unavailability || {};
+
+        // Transform from participant-based to date-based structure
+        // Backend returns: { "participantName": { dates: [...], submittedAt: "..." }, ... }
+        // We need: { "2026-06-15": ["person1", "person2"], ... }
+        const rawUnavailability = data.unavailability || {};
+        allUnavailability = {};
+
+        Object.entries(rawUnavailability).forEach(([participant, info]) => {
+            // Handle both old format (array) and new format (object with dates property)
+            const dates = Array.isArray(info) ? info : (info.dates || []);
+            dates.forEach(date => {
+                if (!allUnavailability[date]) {
+                    allUnavailability[date] = [];
+                }
+                if (!allUnavailability[date].includes(participant)) {
+                    allUnavailability[date].push(participant);
+                }
+            });
+        });
+
         renderAvailabilityCalendar();
     } catch (error) {
         console.error('Failed to load unavailability:', error);
@@ -915,8 +934,11 @@ function renderMonth(container, year, month, rangeStart, rangeEnd) {
 
 function getAllParticipants() {
     const participants = {};
-    Object.values(allUnavailability).forEach(people => {
-        people.forEach(p => participants[p] = true);
+    // allUnavailability is now: { "2026-06-15": ["person1", "person2"], ... }
+    Object.values(allUnavailability).forEach(peopleArray => {
+        if (Array.isArray(peopleArray)) {
+            peopleArray.forEach(p => participants[p] = true);
+        }
     });
     return participants;
 }

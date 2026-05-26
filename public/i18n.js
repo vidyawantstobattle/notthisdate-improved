@@ -4,6 +4,10 @@
 const translations = {
     en: {
         'app.name': 'NotThisDate',
+        'nav.login': 'Login',
+        'nav.logout': 'Logout',
+        'nav.howItWorks': 'How It Works',
+        'nav.about': 'About',
         'footer.tagline': 'Group scheduling made simple.',
         'footer.product': 'Product',
         'footer.home': 'Home',
@@ -16,6 +20,10 @@ const translations = {
     },
     nl: {
         'app.name': 'NotThisDate',
+        'nav.login': 'Inloggen',
+        'nav.logout': 'Uitloggen',
+        'nav.howItWorks': 'Hoe Het Werkt',
+        'nav.about': 'Over Ons',
         'footer.tagline': 'Groepsplanning simpel gemaakt.',
         'footer.product': 'Product',
         'footer.home': 'Home',

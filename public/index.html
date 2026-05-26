@@ -65,14 +65,24 @@
         <!-- Header -->
         <header class="app-header">
             <div class="header-content">
-                <a href="/" class="logo">🗓️ NotThisDate</a>
+                <a href="/" class="logo">
+                    <img src="/images/logo.svg" alt="NotThisDate" class="logo-icon">
+                    <span>NotThisDate</span>
+                </a>
                 <nav class="header-nav">
+                    <ul class="nav-links">
+                        <li><a href="/#how-it-works" data-i18n="footer.howItWorks">How It Works</a></li>
+                        <li><a href="/about.html" data-i18n="footer.about">About</a></li>
+                    </ul>
+                    <div class="language-toggle">
+                        <button class="lang-btn active" data-lang="en">EN</button>
+                        <button class="lang-btn" data-lang="nl">NL</button>
+                    </div>
                     <div id="auth-section">
-                        <!-- Login/Logout buttons will be inserted here -->
-                        <button id="login-btn" class="btn btn-outline">Login</button>
+                        <button id="login-btn" class="btn btn-primary btn-small" data-i18n="nav.login">Login</button>
                         <div id="user-menu" class="user-menu hidden">
                             <span id="user-name"></span>
-                            <button id="logout-btn" class="btn btn-outline btn-small">Logout</button>
+                            <button id="logout-btn" class="btn btn-outline btn-small" data-i18n="nav.logout">Logout</button>
                         </div>
                     </div>
                 </nav>
