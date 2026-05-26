@@ -18,6 +18,15 @@ function getCalendarId() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+    // Ensure proper initial state
+    const loadingState = document.getElementById('loading-state');
+    const errorState = document.getElementById('error-state');
+    const calendarContent = document.getElementById('calendar-content');
+
+    if (loadingState) loadingState.classList.remove('hidden');
+    if (errorState) errorState.classList.add('hidden');
+    if (calendarContent) calendarContent.classList.add('hidden');
+
     const calendarId = getCalendarId();
 
     if (!calendarId) {
@@ -47,6 +56,7 @@ async function loadCalendar(calendarId) {
         console.log('Calendar data loaded:', calendarData);
 
         document.getElementById('loading-state').classList.add('hidden');
+        document.getElementById('error-state').classList.add('hidden');
         document.getElementById('calendar-content').classList.remove('hidden');
 
         try {
@@ -98,8 +108,13 @@ async function loadCalendar(calendarId) {
 }
 
 function showError(message = '') {
-    document.getElementById('loading-state').classList.add('hidden');
-    document.getElementById('error-state').classList.remove('hidden');
+    const loadingState = document.getElementById('loading-state');
+    const errorState = document.getElementById('error-state');
+    const calendarContent = document.getElementById('calendar-content');
+
+    if (loadingState) loadingState.classList.add('hidden');
+    if (errorState) errorState.classList.remove('hidden');
+    if (calendarContent) calendarContent.classList.add('hidden');
 
     // Optionally show detailed error in console
     if (message) {
