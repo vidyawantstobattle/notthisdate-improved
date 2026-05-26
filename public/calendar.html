@@ -3,7 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar - NotThisDate</title>
+
+    <!-- Primary Meta Tags (will be updated dynamically) -->
+    <title>Calendar - NotThisDate | Group Availability Scheduler</title>
+    <meta name="title" content="Calendar - NotThisDate | Group Availability Scheduler">
+    <meta name="description" content="View and submit your availability for this group event. Mark the dates you're NOT available and see when everyone can meet. Free scheduling tool - no signup required.">
+    <meta name="keywords" content="group scheduling, availability calendar, event planning, coordinate schedules, share availability, group calendar">
+    <meta name="robots" content="noindex, follow">
+    <link rel="canonical" href="https://reverse-date-picker.netlify.app/">
+
+    <!-- Open Graph / Facebook (will be updated dynamically) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="">
+    <meta property="og:title" content="Join this event calendar on NotThisDate">
+    <meta property="og:description" content="Mark when you're NOT available so we can find the best dates for everyone!">
+    <meta property="og:site_name" content="NotThisDate">
+
+    <!-- Twitter (will be updated dynamically) -->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:url" content="">
+    <meta property="twitter:title" content="Join this event calendar on NotThisDate">
+    <meta property="twitter:description" content="Mark when you're NOT available so we can find the best dates for everyone!">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗓️</text></svg>">
+
+    <!-- Structured Data / JSON-LD (will be updated dynamically) -->
+    <script type="application/ld+json" id="calendar-structured-data">
+    {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": "Group Event Calendar",
+      "description": "Coordinate availability for this group event",
+      "eventAttendanceMode": "https://schema.org/MixedEventAttendanceMode",
+      "eventStatus": "https://schema.org/EventScheduled"
+    }
+    </script>
+
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
@@ -99,6 +135,16 @@
                             <div id="date-picker-container">
                                 <input type="text" id="date-picker" placeholder="Click to select dates..." aria-label="Date picker for unavailable dates">
                             </div>
+                            <div class="date-selection-legend">
+                                <div class="legend-item">
+                                    <span class="legend-color pending"></span>
+                                    <span>Pending (not yet submitted)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color submitted"></span>
+                                    <span>Submitted</span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="selected-dates-section">
@@ -169,11 +215,44 @@
 
         <!-- Footer -->
         <footer class="app-footer">
-            <p>Made with ❤️ for easier group planning</p>
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="/" class="footer-logo">
+                        <img src="/images/logo.svg" alt="NotThisDate" class="logo-icon">
+                        <span>NotThisDate</span>
+                    </a>
+                    <p class="footer-tagline" data-i18n="footer.tagline">Group scheduling made simple.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4 data-i18n="footer.product">Product</h4>
+                        <ul>
+                            <li><a href="/" data-i18n="footer.home">Home</a></li>
+                            <li><a href="/about.html" data-i18n="footer.about">About Us</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4 data-i18n="footer.resources">Resources</h4>
+                        <ul>
+                            <li><a href="/#how-it-works" data-i18n="footer.howItWorks">How It Works</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4 data-i18n="footer.legal">Legal</h4>
+                        <ul>
+                            <li><a href="/privacy.html" data-i18n="footer.privacy">Privacy Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 NotThisDate. <span data-i18n="footer.madeWith">Made with ❤️ for easier group planning.</span></p>
+            </div>
         </footer>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="/i18n.js"></script>
     <script src="/calendar.js"></script>
 </body>
 </html>

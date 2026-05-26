@@ -1,0 +1,19 @@
+# NotThisDate - Robots.txt
+# Allow search engines to crawl public pages
+
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /styles.css
+Allow: /app.js
+
+# Block crawling of individual calendar pages (contain user data)
+Disallow: /c/
+Disallow: /calendar.html
+
+# Block API endpoints
+Disallow: /.netlify/functions/
+
+# Sitemap location
+Sitemap: https://reverse-date-picker.netlify.app/sitemap.xml
+

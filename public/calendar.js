@@ -135,6 +135,97 @@ function renderCalendarInfo() {
 
     // Update page title
     document.title = `${calendarData.name} - NotThisDate`;
+
+    // Update SEO meta tags dynamically
+    updateSEOMetaTags();
+}
+
+// Update SEO meta tags with calendar-specific content
+function updateSEOMetaTags() {
+    const calendarName = calendarData.name || 'Group Event';
+    const description = calendarData.description || 'Mark when you\'re NOT available so we can find the best dates for everyone!';
+    const startDate = calendarData.startDate;
+    const endDate = calendarData.endDate;
+    const currentUrl = window.location.href;
+
+    // Update title tags
+    const pageTitle = `${calendarName} | NotThisDate - Group Availability Calendar`;
+    document.title = pageTitle;
+    updateMetaTag('name', 'title', pageTitle);
+
+    // Update description
+    const seoDescription = `${description} Select dates from ${formatDisplayDate(startDate)} to ${formatDisplayDate(endDate)}. Free group scheduling tool.`;
+    updateMetaTag('name', 'description', seoDescription);
+
+    // Update canonical URL
+    updateLinkTag('canonical', currentUrl);
+
+    // Update Open Graph tags
+    updateMetaTag('property', 'og:url', currentUrl);
+    updateMetaTag('property', 'og:title', `Join: ${calendarName}`);
+    updateMetaTag('property', 'og:description', description);
+
+    // Update Twitter Card tags
+    updateMetaTag('property', 'twitter:url', currentUrl);
+    updateMetaTag('property', 'twitter:title', `Join: ${calendarName}`);
+    updateMetaTag('property', 'twitter:description', description);
+
+    // Update structured data
+    updateStructuredData();
+}
+
+function updateMetaTag(attribute, attributeValue, content) {
+    let element = document.querySelector(`meta[${attribute}="${attributeValue}"]`);
+    if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute(attribute, attributeValue);
+        document.head.appendChild(element);
+    }
+    element.setAttribute('content', content);
+}
+
+function updateLinkTag(rel, href) {
+    let element = document.querySelector(`link[rel="${rel}"]`);
+    if (!element) {
+        element = document.createElement('link');
+        element.setAttribute('rel', rel);
+        document.head.appendChild(element);
+    }
+    element.setAttribute('href', href);
+}
+
+function updateStructuredData() {
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "Event",
+        "name": calendarData.name,
+        "description": calendarData.description || "Group event availability coordination",
+        "startDate": calendarData.startDate,
+        "endDate": calendarData.endDate,
+        "eventAttendanceMode": "https://schema.org/MixedEventAttendanceMode",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "organizer": {
+            "@type": "Organization",
+            "name": "NotThisDate",
+            "url": "https://reverse-date-picker.netlify.app/"
+        }
+    };
+
+    if (calendarData.participants && calendarData.participants.length > 0) {
+        structuredData.attendee = calendarData.participants.map(name => ({
+            "@type": "Person",
+            "name": name
+        }));
+    }
+
+    let scriptTag = document.getElementById('calendar-structured-data');
+    if (!scriptTag) {
+        scriptTag = document.createElement('script');
+        scriptTag.type = 'application/ld+json';
+        scriptTag.id = 'calendar-structured-data';
+        document.head.appendChild(scriptTag);
+    }
+    scriptTag.textContent = JSON.stringify(structuredData, null, 2);
 }
 
 function setupParticipantInput() {
@@ -400,13 +491,51 @@ function initDatePicker() {
         onDayCreate: (dObj, dStr, fp, dayElem) => {
             const dateStr = formatDateLocal(dayElem.dateObj);
 
-            if (userSubmittedDates.includes(dateStr)) {
-                dayElem.classList.add('user-submitted');
-            } else if (selectedDates.includes(dateStr)) {
-                dayElem.classList.add('user-pending');
+            // Check which list contains this date
+            const isSubmitted = userSubmittedDates.includes(dateStr);
+            const isPending = selectedDates.includes(dateStr);
+
+            if (isSubmitted || isPending) {
+                const dateList = isSubmitted ? userSubmittedDates : selectedDates;
+                const baseClass = isSubmitted ? 'user-submitted' : 'user-pending';
+
+                dayElem.classList.add(baseClass);
+
+                // Determine range position based on adjacency
+                const rangePosition = getRangePosition(dateStr, dateList);
+                if (rangePosition) {
+                    dayElem.classList.add(rangePosition);
+                }
             }
         }
     });
+}
+
+// Determine if a date is start, middle, or end of a continuous range
+function getRangePosition(dateStr, dateList) {
+    const prevDate = getAdjacentDateStr(dateStr, -1);
+    const nextDate = getAdjacentDateStr(dateStr, 1);
+
+    const hasPrev = dateList.includes(prevDate);
+    const hasNext = dateList.includes(nextDate);
+
+    if (!hasPrev && !hasNext) {
+        return 'range-single'; // isolated date
+    } else if (!hasPrev && hasNext) {
+        return 'range-start';
+    } else if (hasPrev && hasNext) {
+        return 'range-middle';
+    } else if (hasPrev && !hasNext) {
+        return 'range-end';
+    }
+    return null;
+}
+
+// Get adjacent date string (offset in days)
+function getAdjacentDateStr(dateStr, offsetDays) {
+    const date = new Date(dateStr + 'T12:00:00');
+    date.setDate(date.getDate() + offsetDays);
+    return formatDateLocal(date);
 }
 
 function refreshDatePicker() {
@@ -517,18 +646,24 @@ function removeRange(range) {
 async function submitUnavailability() {
     if (!currentParticipant) return;
 
+    const calendarId = calendarData.id || getCalendarId();
+
+    if (!calendarId) {
+        showStatus('error', 'Calendar ID not found. Please refresh the page.');
+        return;
+    }
+
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
 
     try {
-        const response = await fetch('/.netlify/functions/submit-unavailability', {
+        const response = await fetch(`/.netlify/functions/submit-unavailability?calendarId=${encodeURIComponent(calendarId)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                calendarId: calendarData.id,
-                participant: currentParticipant,
-                dates: selectedDates
+                participantName: currentParticipant,
+                unavailableDates: selectedDates
             })
         });
 
@@ -566,18 +701,21 @@ async function resetUserDates() {
         return;
     }
 
+    const calendarId = calendarData.id || getCalendarId();
+
+    if (!calendarId) {
+        showStatus('error', 'Calendar ID not found. Please refresh the page.');
+        return;
+    }
+
     const resetBtn = document.getElementById('reset-btn');
     resetBtn.disabled = true;
     resetBtn.textContent = 'Resetting...';
 
     try {
-        const response = await fetch('/.netlify/functions/reset-unavailability', {
+        const response = await fetch(`/.netlify/functions/reset-unavailability?calendarId=${encodeURIComponent(calendarId)}&participant=${encodeURIComponent(currentParticipant)}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                calendarId: calendarData.id,
-                participant: currentParticipant
-            })
+            headers: { 'Content-Type': 'application/json' }
         });
 
         if (response.ok) {
@@ -717,6 +855,7 @@ function renderAvailabilityCalendar() {
 }
 
 function renderMonth(container, year, month, rangeStart, rangeEnd) {
+    // Use local date construction to get correct day of week
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const startDayOfWeek = firstDay.getDay();
@@ -732,12 +871,17 @@ function renderMonth(container, year, month, rangeStart, rangeEnd) {
         html += '<div class="calendar-day empty"></div>';
     }
 
+    // Normalize range dates for comparison (strip time component)
+    const rangeStartNorm = new Date(rangeStart.getFullYear(), rangeStart.getMonth(), rangeStart.getDate());
+    const rangeEndNorm = new Date(rangeEnd.getFullYear(), rangeEnd.getMonth(), rangeEnd.getDate());
+
     for (let day = 1; day <= lastDay.getDate(); day++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dateObj = new Date(dateStr + 'T12:00:00');
+        // Create date object in local timezone for comparison
+        const dateObj = new Date(year, month, day);
 
         // Check if date is in range
-        if (dateObj < rangeStart || dateObj > rangeEnd) {
+        if (dateObj < rangeStartNorm || dateObj > rangeEndNorm) {
             html += '<div class="calendar-day empty"></div>';
             continue;
         }
