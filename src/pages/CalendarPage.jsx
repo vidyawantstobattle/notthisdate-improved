@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCalendar } from '../hooks/useCalendar';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 import DatePicker from '../components/DatePicker';
 import DateRangeDisplay from '../components/DateRangeDisplay';
 import ParticipantInput from '../components/ParticipantInput';
