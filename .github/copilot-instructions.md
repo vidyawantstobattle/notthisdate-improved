@@ -6,7 +6,7 @@ NotThisDate is a reverse-availability trip planner for coordinating group trips.
 
 ## Tech Stack
 
-- **Frontend**: Vanilla HTML/CSS/JavaScript
+- **Frontend**: HTML/CSS/JavaScript (current) + Migrate to React
 - **Backend**: Netlify Functions (serverless)
 - **Database**: Netlify Blobs (built-in key-value storage)
 - **Authentication**: Netlify Identity

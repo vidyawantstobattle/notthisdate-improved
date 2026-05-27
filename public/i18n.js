@@ -1,5 +1,5 @@
 // ===== INTERNATIONALIZATION (i18n) =====
-// Supports English (en) and Dutch (nl)
+// Supports English (en), Dutch (nl), and Marathi (mr)
 
 const translations = {
     en: {
@@ -33,6 +33,22 @@ const translations = {
         'footer.legal': 'Juridisch',
         'footer.privacy': 'Privacybeleid',
         'footer.madeWith': 'Gemaakt met ❤️ voor makkelijker groepsplannen.'
+    },
+    mr: {
+        'app.name': 'NotThisDate',
+        'nav.login': 'लॉगिन',
+        'nav.logout': 'लॉगआउट',
+        'nav.howItWorks': 'हे कसे काम करते',
+        'nav.about': 'आमच्याबद्दल',
+        'footer.tagline': 'ग्रुप शेड्युलिंग सोपे केले.',
+        'footer.product': 'उत्पादन',
+        'footer.home': 'मुख्यपृष्ठ',
+        'footer.about': 'आमच्याबद्दल',
+        'footer.resources': 'संसाधने',
+        'footer.howItWorks': 'हे कसे काम करते',
+        'footer.legal': 'कायदेशीर',
+        'footer.privacy': 'गोपनीयता धोरण',
+        'footer.madeWith': 'सोप्या ग्रुप प्लॅनिंगसाठी ❤️ ने बनवले.'
     }
 };
 

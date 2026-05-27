@@ -1,5 +1,6 @@
 [build]
-  publish = "public"
+  publish = "dist"
+  command = "npm run build"
   functions = "netlify/functions"
 
 [identity]
@@ -8,10 +9,6 @@
 [functions]
   node_bundler = "esbuild"
 
-[[redirects]]
-  from = "/c/:calendarId"
-  to = "/calendar.html"
-  status = 200
 
 [[redirects]]
   from = "/*"

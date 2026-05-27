@@ -73,9 +73,13 @@ async function loadCalendar(calendarId) {
             console.error('Error in setupParticipantInput:', e);
         }
 
+        // Only initialize date picker now if it's a defined participants calendar
+        // For open calendars, date picker is initialized after name entry
         try {
-            initDatePicker();
-            console.log('initDatePicker completed');
+            if (calendarData.participantsType === 'defined' || calendarData.requireEmailVerification) {
+                initDatePicker();
+                console.log('initDatePicker completed');
+            }
         } catch (e) {
             console.error('Error in initDatePicker:', e);
         }
@@ -232,11 +236,15 @@ function setupParticipantInput() {
     const container = document.getElementById('participant-input-container');
     const verificationSection = document.getElementById('email-verification-section');
     const mainFormSection = document.getElementById('main-form-section');
+    const nameEntryStep = document.getElementById('name-entry-step');
+    const dateSelectionStep = document.getElementById('date-selection-step');
 
     if (calendarData.participantsType === 'defined' && calendarData.participants?.length > 0) {
-        // Show dropdown for defined participants - no verification needed
+        // Show dropdown for defined participants - skip name entry, go straight to date selection
         verificationSection?.classList.add('hidden');
         mainFormSection?.classList.remove('hidden');
+        nameEntryStep?.classList.add('hidden');
+        dateSelectionStep?.classList.remove('hidden');
 
         const select = document.createElement('select');
         select.id = 'participant-select';
@@ -251,6 +259,15 @@ function setupParticipantInput() {
         hint.className = 'form-hint';
         hint.textContent = 'Select your name from the list to submit your unavailable dates.';
         container.appendChild(hint);
+
+        // Add change listener
+        select.addEventListener('change', (e) => {
+            currentParticipant = e.target.value;
+            updateSubmitButton();
+            if (currentParticipant) {
+                loadUserSubmissions();
+            }
+        });
     } else if (calendarData.requireEmailVerification) {
         // Open calendar WITH email verification required
         verificationSection?.classList.remove('hidden');
@@ -266,35 +283,74 @@ function setupParticipantInput() {
             setupEmailVerification();
         }
     } else {
-        // Open calendar WITHOUT email verification - just show name input
+        // Open calendar WITHOUT email verification - show name entry step first
         verificationSection?.classList.add('hidden');
         mainFormSection?.classList.remove('hidden');
+        nameEntryStep?.classList.remove('hidden');
+        dateSelectionStep?.classList.add('hidden');
 
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.id = 'participant-name-input';
-        input.placeholder = 'Enter your name';
-        input.className = 'form-input';
-        container.appendChild(input);
-
-        // Add helpful hint
-        const hint = document.createElement('p');
-        hint.className = 'form-hint';
-        hint.textContent = 'Enter your name to submit your unavailable dates.';
-        container.appendChild(hint);
-
-        // Add event listener to update current participant
-        input.addEventListener('input', (e) => {
-            currentParticipant = e.target.value.trim();
-            updateSubmitButton();
-        });
-
-        input.addEventListener('blur', () => {
-            if (currentParticipant) {
-                loadUserSubmissions();
-            }
-        });
+        // Setup name entry handlers
+        setupNameEntry();
     }
+}
+
+// Name entry flow for open calendars without email verification
+function setupNameEntry() {
+    const nameInput = document.getElementById('participant-name-input');
+    const confirmBtn = document.getElementById('confirm-name-btn');
+
+    // Enable/disable confirm button based on input
+    nameInput?.addEventListener('input', (e) => {
+        const name = e.target.value.trim();
+        confirmBtn.disabled = !name;
+    });
+
+    // Handle Enter key
+    nameInput?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && nameInput.value.trim()) {
+            confirmName();
+        }
+    });
+
+    // Handle confirm button click
+    confirmBtn?.addEventListener('click', confirmName);
+}
+
+function confirmName() {
+    const nameInput = document.getElementById('participant-name-input');
+    const name = nameInput.value.trim();
+
+    if (!name) return;
+
+    currentParticipant = name;
+
+    // Hide name entry, show date selection
+    document.getElementById('name-entry-step')?.classList.add('hidden');
+    document.getElementById('date-selection-step')?.classList.remove('hidden');
+
+    // Show the confirmed name in the participant container
+    const container = document.getElementById('participant-input-container');
+    container.innerHTML = `
+        <div class="confirmed-name-display">
+            <span class="confirmed-name">${escapeHtml(name)}</span>
+            <button type="button" class="change-name-btn" title="Change name">✎</button>
+        </div>
+    `;
+
+    // Allow changing the name
+    container.querySelector('.change-name-btn')?.addEventListener('click', () => {
+        document.getElementById('name-entry-step')?.classList.remove('hidden');
+        document.getElementById('date-selection-step')?.classList.add('hidden');
+        document.getElementById('participant-name-input').value = currentParticipant;
+        document.getElementById('participant-name-input').focus();
+    });
+
+    // Initialize the date picker now
+    initDatePicker();
+
+    // Update submit button and load previous submissions
+    updateSubmitButton();
+    loadUserSubmissions();
 }
 
 // Email verification flow for open calendars
@@ -597,11 +653,16 @@ function updateSubmitButton() {
     submitBtn.disabled = !currentParticipant;
 }
 
-function updateSelectedDatesUI() {
+function updateSelectedDatesUI(justSubmitted = false) {
     const container = document.getElementById('selected-dates-list');
 
     if (selectedDates.length === 0) {
-        container.innerHTML = '<p class="empty-message">No dates selected for this session</p>';
+        if (justSubmitted) {
+            // Show success message instead of empty message after successful submit
+            container.innerHTML = '<p class="success-message">✓ Dates submitted successfully! Select more dates if needed.</p>';
+        } else {
+            container.innerHTML = '<p class="empty-message">No dates selected yet</p>';
+        }
         return;
     }
 
@@ -657,6 +718,9 @@ async function submitUnavailability() {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
 
+    // Store the dates we're submitting
+    const submittedDates = [...selectedDates];
+
     try {
         const response = await fetch(`/.netlify/functions/submit-unavailability?calendarId=${encodeURIComponent(calendarId)}`, {
             method: 'POST',
@@ -674,10 +738,36 @@ async function submitUnavailability() {
                 ? 'Recorded! You\'re available for all dates! 🎉'
                 : 'Your unavailability has been recorded!';
             showStatus('success', message);
+
+            // Move submitted dates to userSubmittedDates (for solid highlighting)
+            // and update allUnavailability locally without refresh
+            submittedDates.forEach(date => {
+                if (!userSubmittedDates.includes(date)) {
+                    userSubmittedDates.push(date);
+                }
+                // Update allUnavailability locally
+                if (!allUnavailability[date]) {
+                    allUnavailability[date] = [];
+                }
+                if (!allUnavailability[date].includes(currentParticipant)) {
+                    allUnavailability[date].push(currentParticipant);
+                }
+            });
+
+            // Clear selected dates AFTER moving them
             selectedDates = [];
-            updateSelectedDatesUI();
+
+            // Update the selected dates UI to show success state, not empty
+            updateSelectedDatesUI(true); // Pass true to indicate successful submit
+
+            // Refresh the date picker to show solid highlights
+            refreshDatePicker();
+
+            // Re-render availability calendar to show updated counts
+            renderAvailabilityCalendar();
+
+            // Load user submissions to show in the list
             loadUserSubmissions();
-            loadAllUnavailability();
         } else {
             showStatus('error', result.error || 'Failed to submit');
         }
@@ -886,6 +976,7 @@ function renderMonth(container, year, month, rangeStart, rangeEnd) {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     let html = days.map(d => `<div class="calendar-header">${d}</div>`).join('');
 
+    // Add empty cells for days before the 1st
     for (let i = 0; i < startDayOfWeek; i++) {
         html += '<div class="calendar-day empty"></div>';
     }
@@ -894,14 +985,22 @@ function renderMonth(container, year, month, rangeStart, rangeEnd) {
     const rangeStartNorm = new Date(rangeStart.getFullYear(), rangeStart.getMonth(), rangeStart.getDate());
     const rangeEndNorm = new Date(rangeEnd.getFullYear(), rangeEnd.getMonth(), rangeEnd.getDate());
 
+    // Render ALL days in the month, but mark out-of-range dates as disabled
     for (let day = 1; day <= lastDay.getDate(); day++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         // Create date object in local timezone for comparison
         const dateObj = new Date(year, month, day);
 
         // Check if date is in range
-        if (dateObj < rangeStartNorm || dateObj > rangeEndNorm) {
-            html += '<div class="calendar-day empty"></div>';
+        const isInRange = dateObj >= rangeStartNorm && dateObj <= rangeEndNorm;
+
+        if (!isInRange) {
+            // Show the date but make it greyed out and disabled
+            html += `
+                <div class="calendar-day out-of-range" title="Outside event date range">
+                    <span class="day-number">${day}</span>
+                </div>
+            `;
             continue;
         }
 
@@ -921,6 +1020,7 @@ function renderMonth(container, year, month, rangeStart, rangeEnd) {
                 ${unavailableCount > 0 ? `<span class="unavailable-count">${unavailableCount}</span>` : ''}
             </div>
         `;
+    }
     }
 
     container.innerHTML = html;
