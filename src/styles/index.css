@@ -144,6 +144,13 @@ body {
     font-size: 0.9rem;
 }
 
+/* Auth buttons spacing */
+.auth-buttons {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
 /* ===== BUTTONS ===== */
 .btn {
     display: inline-flex;
@@ -407,15 +414,16 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .calendar-card {
     background: var(--bg-white);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
+    transition: all 0.2s ease;
     box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
-    transition: all 0.15s ease;
 }
 
 .calendar-card:hover {
@@ -426,40 +434,31 @@ body {
 .calendar-card h3 {
     color: var(--secondary-color);
     margin-bottom: 0.5rem;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.125rem;
 }
 
-.calendar-card-description {
+.calendar-description {
     color: var(--text-secondary);
     font-size: 0.9rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
-.calendar-card-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    font-size: 0.85rem;
+.calendar-meta {
     color: var(--text-muted);
+    font-size: 0.85rem;
     margin-bottom: 1rem;
-}
-
-.calendar-card-meta span {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
 }
 
 .calendar-card-actions {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     flex-wrap: wrap;
 }
 
 .calendar-card-actions .btn {
     flex: 1;
-    min-width: 80px;
+    min-width: 70px;
+    font-size: 0.85rem;
 }
 
 /* Empty State */
@@ -552,6 +551,7 @@ body {
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: var(--shadow-lg);
+    padding: 2rem;
 }
 
 .modal-header {
@@ -583,6 +583,62 @@ body {
 .modal-close:hover {
     color: var(--text-primary);
     background: var(--bg-primary);
+}
+
+/* Modal overlay for create calendar */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(26, 31, 54, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal-overlay .modal-content {
+    position: relative;
+    background: var(--bg-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-overlay .close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.modal-overlay .close-btn:hover {
+    color: var(--text-primary);
+}
+
+.modal-overlay h3 {
+    color: var(--secondary-color);
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
 }
 
 #create-calendar-form {
@@ -974,6 +1030,12 @@ body {
     font-size: 0.85rem;
 }
 
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
 .form-actions {
     display: flex;
     gap: 1rem;
@@ -1271,6 +1333,17 @@ body {
     background: var(--success-bg);
     border-radius: var(--radius);
     text-align: center;
+}
+
+.error-message {
+    color: var(--danger-color);
+    font-weight: 500;
+    padding: 0.75rem;
+    background: var(--danger-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--danger-color);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
 }
 
 /* Calendar Grid */
