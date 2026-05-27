@@ -5,6 +5,9 @@ import { useAuth } from '../context/AuthContext';
 function AboutPage() {
   const { user, loading, login, signup, logout } = useAuth();
 
+  // Set page title
+  useDocumentTitle('About');
+
   return (
     <div className="about-page">
       {/* Header */}

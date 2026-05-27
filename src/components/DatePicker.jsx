@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -12,12 +12,27 @@ function DatePicker({
   const pickerRef = useRef(null);
   const instanceRef = useRef(null);
 
+  // Memoize the date arrays to prevent unnecessary re-renders
+  const selectedDatesRef = useRef(selectedDates);
+  const submittedDatesRef = useRef(submittedDates);
+
+  useEffect(() => {
+    selectedDatesRef.current = selectedDates;
+    submittedDatesRef.current = submittedDates;
+  }, [selectedDates, submittedDates]);
+
   useEffect(() => {
     if (!pickerRef.current || !startDate || !endDate) return;
 
-    const start = new Date(startDate + 'T00:00:00');
-    const end = new Date(endDate + 'T00:00:00');
+    // Parse dates properly
+    const start = new Date(startDate + 'T12:00:00');
+    const end = new Date(endDate + 'T12:00:00');
     const isMobile = window.innerWidth <= 600;
+
+    // Destroy existing instance
+    if (instanceRef.current) {
+      instanceRef.current.destroy();
+    }
 
     instanceRef.current = flatpickr(pickerRef.current, {
       mode: 'range',
@@ -26,30 +41,47 @@ function DatePicker({
       dateFormat: 'Y-m-d',
       inline: true,
       showMonths: isMobile ? 1 : 2,
+      locale: {
+        firstDayOfWeek: 0 // Sunday
+      },
       onChange: (selectedDateRange) => {
-        if (selectedDateRange.length === 2 || selectedDateRange.length === 1) {
+        if (selectedDateRange.length === 2) {
+          // Complete range selected
           const rangeStart = selectedDateRange[0];
-          const rangeEnd = selectedDateRange.length === 2 ? selectedDateRange[1] : selectedDateRange[0];
+          const rangeEnd = selectedDateRange[1];
 
           if (onDateRangeSelect) {
             onDateRangeSelect(rangeStart, rangeEnd);
           }
 
-          instanceRef.current.clear();
+          // Clear the picker for next selection
+          setTimeout(() => {
+            if (instanceRef.current) {
+              instanceRef.current.clear();
+            }
+          }, 100);
+        } else if (selectedDateRange.length === 1) {
+          // Single date - treat as a single day range on second click or timeout
+          // We'll wait briefly to see if user selects an end date
         }
       },
       onDayCreate: (dObj, dStr, fp, dayElem) => {
         const dateStr = formatDateLocal(dayElem.dateObj);
-        const isSubmitted = submittedDates.includes(dateStr);
-        const isPending = selectedDates.includes(dateStr);
+        const isSubmitted = submittedDatesRef.current.includes(dateStr);
+        const isPending = selectedDatesRef.current.includes(dateStr);
 
-        if (isSubmitted || isPending) {
-          const dateList = isSubmitted ? submittedDates : selectedDates;
-          const baseClass = isSubmitted ? 'user-submitted' : 'user-pending';
+        // Clear any existing custom classes
+        dayElem.classList.remove('user-submitted', 'user-pending', 'range-start', 'range-middle', 'range-end', 'range-single');
 
-          dayElem.classList.add(baseClass);
-
-          const rangePosition = getRangePosition(dateStr, dateList);
+        if (isSubmitted) {
+          dayElem.classList.add('user-submitted');
+          const rangePosition = getRangePosition(dateStr, submittedDatesRef.current);
+          if (rangePosition) {
+            dayElem.classList.add(rangePosition);
+          }
+        } else if (isPending) {
+          dayElem.classList.add('user-pending');
+          const rangePosition = getRangePosition(dateStr, selectedDatesRef.current);
           if (rangePosition) {
             dayElem.classList.add(rangePosition);
           }
@@ -60,18 +92,33 @@ function DatePicker({
     return () => {
       if (instanceRef.current) {
         instanceRef.current.destroy();
+        instanceRef.current = null;
       }
     };
-  }, [startDate, endDate]);
+  }, [startDate, endDate, onDateRangeSelect]);
 
-  // Refresh when dates change
+  // Redraw when dates change to update highlighting
   useEffect(() => {
     if (instanceRef.current) {
       instanceRef.current.redraw();
     }
   }, [selectedDates, submittedDates]);
 
-  return <div ref={pickerRef} className="date-picker-container"></div>;
+  return (
+    <div className="date-picker-wrapper">
+      <div ref={pickerRef} className="date-picker-container"></div>
+      <div className="date-picker-legend">
+        <span className="legend-item">
+          <span className="legend-color pending"></span>
+          <span>Pending selection</span>
+        </span>
+        <span className="legend-item">
+          <span className="legend-color submitted"></span>
+          <span>Already submitted</span>
+        </span>
+      </div>
+    </div>
+  );
 }
 
 // Helper functions
@@ -83,6 +130,8 @@ function formatDateLocal(date) {
 }
 
 function getRangePosition(dateStr, dateList) {
+  if (!dateList || dateList.length === 0) return null;
+
   const prevDate = getAdjacentDateStr(dateStr, -1);
   const nextDate = getAdjacentDateStr(dateStr, 1);
 
@@ -108,4 +157,3 @@ function getAdjacentDateStr(dateStr, offsetDays) {
 }
 
 export default DatePicker;
-

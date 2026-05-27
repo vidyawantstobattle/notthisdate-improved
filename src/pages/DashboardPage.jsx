@@ -10,6 +10,9 @@ function DashboardPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [error, setError] = useState('');
 
+  // Set page title
+  useDocumentTitle('Dashboard');
+
   // Redirect if not logged in
   useEffect(() => {
     if (!loading && !user) {
@@ -147,11 +150,11 @@ function DashboardPage() {
                     <span className="meta-item">
                       📅 {formatDate(calendar.startDate)} - {formatDate(calendar.endDate)}
                     </span>
-                    {calendar.participants && (
-                      <span className="meta-item">
-                        👥 {calendar.participants.length} participants
-                      </span>
-                    )}
+                    <span className="meta-item">
+                      👥 {calendar.participantsType === 'defined'
+                        ? `${calendar.participants?.length || 0} participants`
+                        : 'Open to anyone'}
+                    </span>
                   </div>
                   <div className="calendar-card-actions">
                     <button

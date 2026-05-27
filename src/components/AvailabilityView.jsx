@@ -5,8 +5,8 @@ function AvailabilityView({ calendar, allUnavailability }) {
 
   if (!calendar) return null;
 
-  const startDate = new Date(calendar.startDate + 'T00:00:00');
-  const endDate = new Date(calendar.endDate + 'T00:00:00');
+  const startDate = new Date(calendar.startDate + 'T12:00:00');
+  const endDate = new Date(calendar.endDate + 'T12:00:00');
 
   // Generate months to display
   const months = [];
@@ -22,25 +22,34 @@ function AvailabilityView({ calendar, allUnavailability }) {
   }
 
   // Calculate total participants
+  const allParticipants = getAllParticipants(allUnavailability);
   const totalPeople = calendar.participantsType === 'defined'
     ? calendar.participants?.length || 1
-    : Object.keys(getAllParticipants(allUnavailability)).length || 1;
+    : Math.max(Object.keys(allParticipants).length, 1);
 
   return (
     <div className="availability-view">
-      <div className="availability-legend">
-        <span className="legend-item">
-          <span className="legend-color available"></span> Available
-        </span>
-        <span className="legend-item">
-          <span className="legend-color partial"></span> Some unavailable
-        </span>
-        <span className="legend-item">
-          <span className="legend-color unavailable"></span> Most unavailable
-        </span>
+      <div className="availability-header">
+        <h3>Group Availability Overview</h3>
+        <p className="availability-subtitle">Click on any date to see who's available</p>
       </div>
 
-      <div className="availability-calendar">
+      <div className="availability-legend">
+        <div className="legend-item">
+          <span className="legend-color" style={{ background: '#4ade80' }}></span>
+          <span>Everyone available</span>
+        </div>
+        <div className="legend-item">
+          <span className="legend-color" style={{ background: '#fbbf24' }}></span>
+          <span>Some unavailable</span>
+        </div>
+        <div className="legend-item">
+          <span className="legend-color" style={{ background: '#6b7280' }}></span>
+          <span>Most unavailable</span>
+        </div>
+      </div>
+
+      <div className="availability-months-grid">
         {months.map(({ year, month }) => (
           <MonthCalendar
             key={`${year}-${month}`}
@@ -56,7 +65,7 @@ function AvailabilityView({ calendar, allUnavailability }) {
       </div>
 
       {selectedDate && (
-        <DateDetails
+        <DateDetailsModal
           dateStr={selectedDate}
           calendar={calendar}
           allUnavailability={allUnavailability}
@@ -68,31 +77,36 @@ function AvailabilityView({ calendar, allUnavailability }) {
 }
 
 function MonthCalendar({ year, month, startDate, endDate, allUnavailability, totalPeople, onDateClick }) {
-  const monthName = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const startDayOfWeek = firstDay.getDay();
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
+  const startDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday
+  const daysInMonth = lastDayOfMonth.getDate();
 
-  const rangeStartNorm = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-  const rangeEndNorm = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const calendarDays = [];
+  // Normalize date range for comparison
+  const rangeStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const rangeEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
 
-  // Empty cells before the 1st
+  const calendarCells = [];
+
+  // Add empty cells for days before the 1st
   for (let i = 0; i < startDayOfWeek; i++) {
-    calendarDays.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
+    calendarCells.push(
+      <div key={`empty-${i}`} className="av-calendar-day empty"></div>
+    );
   }
 
-  // Actual days
-  for (let day = 1; day <= lastDay.getDate(); day++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  // Add actual days
+  for (let day = 1; day <= daysInMonth; day++) {
     const dateObj = new Date(year, month, day);
-    const isInRange = dateObj >= rangeStartNorm && dateObj <= rangeEndNorm;
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const isInRange = dateObj >= rangeStart && dateObj <= rangeEnd;
 
     if (!isInRange) {
-      calendarDays.push(
-        <div key={day} className="calendar-day out-of-range">
+      calendarCells.push(
+        <div key={day} className="av-calendar-day out-of-range">
           <span className="day-number">{day}</span>
         </div>
       );
@@ -101,38 +115,40 @@ function MonthCalendar({ year, month, startDate, endDate, allUnavailability, tot
 
     const unavailablePeople = allUnavailability[dateStr] || [];
     const unavailableCount = unavailablePeople.length;
-    const grayness = Math.min(unavailableCount / totalPeople, 1);
-    const color = getAvailabilityColor(grayness);
-    const textColor = grayness > 0.5 ? '#fff' : '#333';
+    const ratio = totalPeople > 0 ? unavailableCount / totalPeople : 0;
+    const bgColor = getAvailabilityColor(ratio);
+    const textColor = ratio > 0.5 ? '#ffffff' : '#1a1f36';
 
-    calendarDays.push(
+    calendarCells.push(
       <div
         key={day}
-        className="calendar-day clickable"
-        style={{ background: color, color: textColor }}
+        className="av-calendar-day in-range"
+        style={{ backgroundColor: bgColor, color: textColor }}
         onClick={() => onDateClick(dateStr)}
-        title={`${unavailableCount} unavailable`}
+        title={unavailableCount > 0 ? `${unavailableCount} unavailable` : 'Everyone available'}
       >
         <span className="day-number">{day}</span>
-        {unavailableCount > 0 && <span className="unavailable-count">{unavailableCount}</span>}
+        {unavailableCount > 0 && (
+          <span className="unavailable-badge">{unavailableCount}</span>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="month-calendar">
-      <h3 className="month-name">{monthName}</h3>
-      <div className="calendar-grid">
-        {days.map(d => (
-          <div key={d} className="calendar-header">{d}</div>
+    <div className="av-month-calendar">
+      <h4 className="av-month-name">{monthName}</h4>
+      <div className="av-calendar-grid">
+        {weekDays.map(day => (
+          <div key={day} className="av-weekday-header">{day}</div>
         ))}
-        {calendarDays}
+        {calendarCells}
       </div>
     </div>
   );
 }
 
-function DateDetails({ dateStr, calendar, allUnavailability, onClose }) {
+function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }) {
   const unavailablePeople = allUnavailability[dateStr] || [];
   const date = new Date(dateStr + 'T12:00:00');
   const dateDisplay = date.toLocaleDateString('en-US', {
@@ -149,31 +165,34 @@ function DateDetails({ dateStr, calendar, allUnavailability, onClose }) {
   const availablePeople = allParticipants.filter(p => !unavailablePeople.includes(p));
 
   return (
-    <div className="date-details-overlay" onClick={onClose}>
-      <div className="date-details-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="close-btn" onClick={onClose}>&times;</button>
-        <h4>{dateDisplay}</h4>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content date-details-modal" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose}>&times;</button>
+        <h3>{dateDisplay}</h3>
 
         {unavailablePeople.length === 0 ? (
-          <p className="all-available">🎉 Everyone is available on this date!</p>
+          <div className="all-available-message">
+            <span className="success-icon">🎉</span>
+            <p>Everyone is available on this date!</p>
+          </div>
         ) : (
-          <>
-            <div className="unavailable-section">
-              <strong>❌ Unavailable ({unavailablePeople.length}):</strong>
+          <div className="availability-details">
+            <div className="detail-section unavailable">
+              <h4>❌ Unavailable ({unavailablePeople.length})</h4>
               <ul>
-                {unavailablePeople.map((p, idx) => (
-                  <li key={idx}>{p}</li>
+                {unavailablePeople.map((person, idx) => (
+                  <li key={idx}>{person}</li>
                 ))}
               </ul>
             </div>
 
             {availablePeople.length > 0 && (
-              <div className="available-section">
-                <strong>✅ Available ({availablePeople.length}):</strong>
+              <div className="detail-section available">
+                <h4>✅ Available ({availablePeople.length})</h4>
                 <p>{availablePeople.join(', ')}</p>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>
@@ -184,24 +203,20 @@ function getAllParticipants(allUnavailability) {
   const participants = {};
   Object.values(allUnavailability || {}).forEach(peopleArray => {
     if (Array.isArray(peopleArray)) {
-      peopleArray.forEach(p => participants[p] = true);
+      peopleArray.forEach(p => {
+        participants[p] = true;
+      });
     }
   });
   return participants;
 }
 
-function getAvailabilityColor(grayness) {
-  if (grayness === 0) return '#4ade80'; // Green
-
-  const green = { r: 74, g: 222, b: 128 };
-  const gray = { r: 100, g: 100, b: 100 };
-
-  const r = Math.round(green.r + (gray.r - green.r) * grayness);
-  const g = Math.round(green.g + (gray.g - green.g) * grayness);
-  const b = Math.round(green.b + (gray.b - green.b) * grayness);
-
-  return `rgb(${r}, ${g}, ${b})`;
+function getAvailabilityColor(ratio) {
+  if (ratio === 0) return '#4ade80'; // Green - everyone available
+  if (ratio < 0.3) return '#86efac'; // Light green
+  if (ratio < 0.5) return '#fbbf24'; // Yellow
+  if (ratio < 0.7) return '#f97316'; // Orange
+  return '#6b7280'; // Gray - most unavailable
 }
 
 export default AvailabilityView;
-

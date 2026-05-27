@@ -1,8 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-function ParticipantInput({ calendar, currentParticipant, onParticipantChange }) {
+function ParticipantInput({
+  calendar,
+  currentParticipant,
+  onParticipantChange,
+  submittedDates = [],
+  onReset,
+  isResetting = false
+}) {
   const [nameInput, setNameInput] = useState('');
   const [nameConfirmed, setNameConfirmed] = useState(false);
+
+  // If currentParticipant is already set (e.g., from localStorage or parent), mark as confirmed
+  useEffect(() => {
+    if (currentParticipant && !nameConfirmed) {
+      setNameConfirmed(true);
+      setNameInput(currentParticipant);
+    }
+  }, [currentParticipant]);
 
   // Defined participants - show dropdown
   if (calendar?.participantsType === 'defined' && calendar?.participants?.length > 0) {
@@ -20,13 +35,37 @@ function ParticipantInput({ calendar, currentParticipant, onParticipantChange })
             <option key={idx} value={name}>{name}</option>
           ))}
         </select>
-        <p className="form-hint">Select your name from the list to submit your unavailable dates.</p>
+        {currentParticipant && submittedDates.length > 0 && (
+          <div className="submission-status">
+            <p className="form-hint success">
+              ✅ You have already submitted {submittedDates.length} unavailable date(s). You can add more below.
+            </p>
+            {onReset && (
+              <button
+                type="button"
+                className="btn btn-outline btn-small btn-danger-outline"
+                onClick={onReset}
+                disabled={isResetting}
+              >
+                {isResetting ? 'Resetting...' : 'Reset My Dates'}
+              </button>
+            )}
+          </div>
+        )}
+        {currentParticipant && submittedDates.length === 0 && (
+          <p className="form-hint">
+            Select dates below to mark when you're NOT available.
+          </p>
+        )}
+        {!currentParticipant && (
+          <p className="form-hint">Select your name from the list to submit your unavailable dates.</p>
+        )}
       </div>
     );
   }
 
   // Open calendar - name entry
-  if (!nameConfirmed) {
+  if (!nameConfirmed || !currentParticipant) {
     return (
       <div className="participant-section">
         <label htmlFor="participant-name-input">Enter your name:</label>
@@ -61,26 +100,49 @@ function ParticipantInput({ calendar, currentParticipant, onParticipantChange })
     );
   }
 
-  // Name confirmed - show with edit option
+  // Name confirmed - show with status and edit option
   return (
     <div className="participant-section">
       <div className="confirmed-participant">
-        <span className="participant-label">Submitting as:</span>
-        <span className="participant-name">{currentParticipant}</span>
+        <div className="participant-info">
+          <span className="participant-label">Submitting as:</span>
+          <span className="participant-name">{currentParticipant}</span>
+        </div>
         <button
           type="button"
-          className="btn btn-outline btn-small change-name-btn"
+          className="btn btn-outline btn-small"
           onClick={() => {
             setNameInput(currentParticipant);
             setNameConfirmed(false);
+            onParticipantChange('');
           }}
         >
           Change
         </button>
       </div>
+      {submittedDates.length > 0 ? (
+        <div className="submission-status">
+          <p className="form-hint success">
+            ✅ You have already submitted {submittedDates.length} unavailable date(s). You can add more below.
+          </p>
+          {onReset && (
+            <button
+              type="button"
+              className="btn btn-outline btn-small btn-danger-outline"
+              onClick={onReset}
+              disabled={isResetting}
+            >
+              {isResetting ? 'Resetting...' : 'Reset My Dates'}
+            </button>
+          )}
+        </div>
+      ) : (
+        <p className="form-hint">
+          Select dates below to mark when you're NOT available.
+        </p>
+      )}
     </div>
   );
 }
 
 export default ParticipantInput;
-

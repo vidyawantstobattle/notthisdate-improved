@@ -18,6 +18,9 @@ function CalendarPage() {
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
   const [submitting, setSubmitting] = useState(false);
 
+  // Set page title based on calendar name
+  useDocumentTitle(calendar?.name || 'Calendar');
+
   // Load user submissions when participant changes
   useEffect(() => {
     if (currentParticipant && calendar?.id) {
@@ -85,6 +88,7 @@ function CalendarPage() {
     }
   };
 
+  // Handle adding dates from the date picker
   const handleDateRangeSelect = (start, end) => {
     const dates = [];
     let current = new Date(start);
@@ -92,6 +96,7 @@ function CalendarPage() {
 
     while (current <= endDate) {
       const dateStr = formatDateLocal(current);
+      // Only add if not already selected or submitted
       if (!selectedDates.includes(dateStr) && !submittedDates.includes(dateStr)) {
         dates.push(dateStr);
       }
@@ -99,7 +104,8 @@ function CalendarPage() {
     }
 
     if (dates.length > 0) {
-      setSelectedDates([...selectedDates, ...dates].sort());
+      // Append to existing selections (allows multiple selections)
+      setSelectedDates(prev => [...new Set([...prev, ...dates])].sort());
     }
   };
 
@@ -144,7 +150,7 @@ function CalendarPage() {
         showStatus('success', message);
 
         // Move selected to submitted
-        setSubmittedDates([...submittedDates, ...selectedDates].sort());
+        setSubmittedDates(prev => [...new Set([...prev, ...selectedDates])].sort());
         setSelectedDates([]);
       } else {
         const result = await response.json();
@@ -204,7 +210,7 @@ function CalendarPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="calendar-page">
+      <div className="page-wrapper">
         <div className="loading-state">
           <div className="spinner"></div>
           <p>Loading calendar...</p>
@@ -216,7 +222,7 @@ function CalendarPage() {
   // Error state
   if (error) {
     return (
-      <div className="calendar-page">
+      <div className="page-wrapper">
         <div className="error-state">
           <h2>❌ Calendar Not Found</h2>
           <p>This calendar doesn't exist or the link is incorrect.</p>
@@ -231,107 +237,133 @@ function CalendarPage() {
   }
 
   return (
-    <div className="calendar-page">
+    <div className="page-wrapper">
       {/* Header */}
-      <header className="calendar-header">
-        <Link to="/" className="back-link">← Back</Link>
-        <h1>{calendar.name}</h1>
-        {calendar.description && <p className="calendar-description">{calendar.description}</p>}
-        <p className="date-range-display">
-          📅 {formatDisplayDate(calendar.startDate)} - {formatDisplayDate(calendar.endDate)}
-        </p>
+      <header className="app-header">
+        <div className="header-content">
+          <Link to="/" className="logo">
+            <span className="logo-icon">📅</span>
+            <span>NotThisDate</span>
+          </Link>
+          <nav className="header-nav">
+            <Link to="/about" className="nav-link">About</Link>
+          </nav>
+        </div>
       </header>
 
-      {/* Tabs */}
-      <div className="tabs">
-        <button
-          className={`tab-btn ${activeTab === 'submit' ? 'active' : ''}`}
-          onClick={() => setActiveTab('submit')}
-        >
-          📝 Submit Dates
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'view' ? 'active' : ''}`}
-          onClick={() => setActiveTab('view')}
-        >
-          📊 View Availability
-        </button>
-      </div>
+      {/* Calendar Content */}
+      <main className="calendar-main">
+        <div className="calendar-container">
+          {/* Calendar Header */}
+          <div className="calendar-header-section">
+            <Link to="/dashboard" className="back-link">← Back to Dashboard</Link>
+            <h1>{calendar.name}</h1>
+            {calendar.description && <p className="calendar-description">{calendar.description}</p>}
+            <p className="calendar-date-range">
+              📅 {formatDisplayDate(calendar.startDate)} - {formatDisplayDate(calendar.endDate)}
+            </p>
+          </div>
 
-      {/* Submit Tab */}
-      {activeTab === 'submit' && (
-        <div className="submit-tab">
-          <ParticipantInput
-            calendar={calendar}
-            currentParticipant={currentParticipant}
-            onParticipantChange={setCurrentParticipant}
-          />
+          {/* Tabs */}
+          <div className="tabs-container">
+            <div className="tabs">
+              <button
+                className={`tab-btn ${activeTab === 'submit' ? 'active' : ''}`}
+                onClick={() => setActiveTab('submit')}
+              >
+                📝 Submit Dates
+              </button>
+              <button
+                className={`tab-btn ${activeTab === 'view' ? 'active' : ''}`}
+                onClick={() => setActiveTab('view')}
+              >
+                📊 View Availability
+              </button>
+            </div>
 
-          {currentParticipant && (
-            <>
-              <div className="date-picker-section">
-                <h3>Select dates you're NOT available</h3>
-                <p className="form-hint">Click or drag to select date ranges</p>
-                <DatePicker
-                  startDate={calendar.startDate}
-                  endDate={calendar.endDate}
-                  selectedDates={selectedDates}
-                  submittedDates={submittedDates}
-                  onDateRangeSelect={handleDateRangeSelect}
-                />
-              </div>
+            {/* Tab Content */}
+            <div className="tab-content">
+              {/* Submit Tab */}
+              {activeTab === 'submit' && (
+                <div className="submit-tab-content">
+                  <ParticipantInput
+                    calendar={calendar}
+                    currentParticipant={currentParticipant}
+                    onParticipantChange={setCurrentParticipant}
+                    submittedDates={submittedDates}
+                    onReset={handleReset}
+                    isResetting={submitting}
+                  />
 
-              <div className="selected-dates-section">
-                <h3>Selected Dates ({selectedDates.length})</h3>
-                <DateRangeDisplay
-                  dates={selectedDates}
-                  onRemoveRange={handleRemoveRange}
-                />
-              </div>
+                  {currentParticipant && (
+                    <>
+                      <div className="date-picker-section">
+                        <h3>Select dates you're NOT available</h3>
+                        <p className="form-hint">Click or drag to select date ranges. You can select multiple ranges.</p>
+                        <DatePicker
+                          startDate={calendar.startDate}
+                          endDate={calendar.endDate}
+                          selectedDates={selectedDates}
+                          submittedDates={submittedDates}
+                          onDateRangeSelect={handleDateRangeSelect}
+                        />
+                      </div>
 
-              {submittedDates.length > 0 && (
-                <div className="submitted-dates-section">
-                  <h3>Already Submitted ({submittedDates.length})</h3>
-                  <DateRangeDisplay dates={submittedDates} />
+                      <div className="selected-dates-section">
+                        <h3>Selected Dates ({selectedDates.length})</h3>
+                        <DateRangeDisplay
+                          dates={selectedDates}
+                          onRemoveRange={handleRemoveRange}
+                        />
+                      </div>
+
+                      {submittedDates.length > 0 && (
+                        <div className="submitted-dates-section">
+                          <h3>Already Submitted ({submittedDates.length})</h3>
+                          <DateRangeDisplay dates={submittedDates} />
+                        </div>
+                      )}
+
+                      {statusMessage.text && (
+                        <div className={`status-message ${statusMessage.type}`}>
+                          {statusMessage.text}
+                        </div>
+                      )}
+
+                      <div className="action-buttons">
+                        <button
+                          className="btn btn-primary btn-large"
+                          onClick={handleSubmit}
+                          disabled={submitting}
+                        >
+                          {submitting ? 'Submitting...' : 'Submit Unavailability'}
+                        </button>
+                        <button
+                          className="btn btn-outline"
+                          onClick={handleReset}
+                          disabled={submitting}
+                        >
+                          Reset My Dates
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
-              {statusMessage.text && (
-                <div className={`status-message ${statusMessage.type}`}>
-                  {statusMessage.text}
+              {/* View Tab */}
+              {activeTab === 'view' && (
+                <div className="view-tab-content">
+                  <AvailabilityView
+                    calendar={calendar}
+                    allUnavailability={allUnavailability}
+                  />
                 </div>
               )}
-
-              <div className="action-buttons">
-                <button
-                  className="btn btn-primary btn-large"
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                >
-                  {submitting ? 'Submitting...' : 'Submit Unavailability'}
-                </button>
-                <button
-                  className="btn btn-secondary"
-                  onClick={handleReset}
-                  disabled={submitting}
-                >
-                  Reset My Dates
-                </button>
-              </div>
-            </>
-          )}
+            </div>
+          </div>
         </div>
-      )}
-
-      {/* View Tab */}
-      {activeTab === 'view' && (
-        <div className="view-tab">
-          <AvailabilityView
-            calendar={calendar}
-            allUnavailability={allUnavailability}
-          />
-        </div>
-      )}
+      </main>
     </div>
   );
 }

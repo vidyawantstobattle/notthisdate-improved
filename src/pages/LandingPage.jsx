@@ -1,10 +1,14 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 function LandingPage() {
   const { user, loading, login, signup, logout } = useAuth();
   const navigate = useNavigate();
+
+  // Set page title (default landing title)
+  useDocumentTitle('Reverse Availability Trip Planner', true);
 
   // Redirect to dashboard if logged in
   React.useEffect(() => {
