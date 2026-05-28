@@ -3,11 +3,12 @@
 
 // State
 let calendarData = null;
-let selectedDates = [];
+let selectedDates = new Set();
 let userSubmittedDates = [];
 let flatpickrInstance = null;
 let allUnavailability = {};
 let currentParticipant = '';
+let isManualMonthChange = false;
 
 // Get calendar ID from URL
 function getCalendarId() {
@@ -103,6 +104,14 @@ async function loadCalendar(calendarId) {
             console.log('loadAllUnavailability completed');
         } catch (e) {
             console.error('Error in loadAllUnavailability:', e);
+        }
+
+        // Load participants for the first time
+        try {
+            await loadParticipants();
+            console.log('loadParticipants completed');
+        } catch (e) {
+            console.error('Error in loadParticipants:', e);
         }
 
     } catch (error) {
@@ -549,10 +558,10 @@ function initDatePicker() {
 
             // Check which list contains this date
             const isSubmitted = userSubmittedDates.includes(dateStr);
-            const isPending = selectedDates.includes(dateStr);
+            const isPending = selectedDates.has(dateStr);
 
             if (isSubmitted || isPending) {
-                const dateList = isSubmitted ? userSubmittedDates : selectedDates;
+                const dateList = isSubmitted ? userSubmittedDates : Array.from(selectedDates);
                 const baseClass = isSubmitted ? 'user-submitted' : 'user-pending';
 
                 dayElem.classList.add(baseClass);
@@ -618,15 +627,19 @@ function addDateRange(start, end) {
     }
 
     dates.forEach(date => {
-        if (!selectedDates.includes(date)) {
-            selectedDates.push(date);
+        if (!selectedDates.has(date)) {
+            selectedDates.add(date);
         }
     });
 
-    selectedDates.sort();
-    updateSelectedDatesUI();
-    updateSubmitButton();
+    // Update the selected dates UI to show success state, not empty
+    updateSelectedDatesUI(true); // Pass true to indicate successful submit
+
+    // Refresh the date picker to show solid highlights
     refreshDatePicker();
+
+    // Re-render availability calendar to show updated counts
+    renderAvailabilityCalendar();
 }
 
 // Form handlers
@@ -656,7 +669,7 @@ function updateSubmitButton() {
 function updateSelectedDatesUI(justSubmitted = false) {
     const container = document.getElementById('selected-dates-list');
 
-    if (selectedDates.length === 0) {
+    if (selectedDates.size === 0) {
         if (justSubmitted) {
             // Show success message instead of empty message after successful submit
             container.innerHTML = '<p class="success-message">✓ Dates submitted successfully! Select more dates if needed.</p>';
@@ -666,7 +679,7 @@ function updateSelectedDatesUI(justSubmitted = false) {
         return;
     }
 
-    const ranges = groupIntoRanges(selectedDates);
+    const ranges = groupIntoRanges(Array.from(selectedDates));
 
     container.innerHTML = ranges.map((range, index) => {
         const displayText = range.start === range.end
@@ -693,7 +706,7 @@ function removeRange(range) {
     const start = new Date(range.start + 'T12:00:00');
     const end = new Date(range.end + 'T12:00:00');
 
-    selectedDates = selectedDates.filter(dateStr => {
+    selectedDates = Array.from(selectedDates).filter(dateStr => {
         const date = new Date(dateStr + 'T12:00:00');
         return date < start || date > end;
     });
@@ -727,14 +740,14 @@ async function submitUnavailability() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 participantName: currentParticipant,
-                unavailableDates: selectedDates
+                unavailableDates: submittedDates
             })
         });
 
         const result = await response.json();
 
         if (response.ok) {
-            const message = selectedDates.length === 0
+            const message = submittedDates.length === 0
                 ? 'Recorded! You\'re available for all dates! 🎉'
                 : 'Your unavailability has been recorded!';
             showStatus('success', message);
@@ -755,7 +768,7 @@ async function submitUnavailability() {
             });
 
             // Clear selected dates AFTER moving them
-            selectedDates = [];
+            selectedDates.clear();
 
             // Update the selected dates UI to show success state, not empty
             updateSelectedDatesUI(true); // Pass true to indicate successful submit
@@ -810,7 +823,7 @@ async function resetUserDates() {
 
         if (response.ok) {
             showStatus('success', 'Your dates have been reset!');
-            selectedDates = [];
+            selectedDates.clear();
             updateSelectedDatesUI();
             loadUserSubmissions();
             loadAllUnavailability();
@@ -1150,3 +1163,211 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// Calendar rendering and participant loading
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+
+function renderCalendar() {
+    const calendarGrid = document.getElementById('calendar-grid');
+    if (!calendarGrid) return;
+
+    // Clear existing content
+    calendarGrid.innerHTML = '';
+
+    // Create date objects for the first and last visible dates
+    const firstDate = new Date(currentYear, currentMonth, 1);
+    const lastDate = new Date(currentYear, currentMonth + 1, 0);
+
+    // Generate HTML for each day in the current month
+    let html = '';
+    for (let d = firstDate; d <= lastDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = formatDateLocal(d);
+        const dayOfWeek = d.getDay();
+
+        // Check if the date is in the unavailability data
+        const isUnavailable = allUnavailability[dateStr] || [];
+
+        // Count the number of unavailable participants for this date
+        const unavailableCount = isUnavailable.length;
+
+        // Determine the background color based on availability
+        const grayness = Math.min(unavailableCount / (calendarData.participants?.length || 1), 1);
+        const bgColor = getAvailabilityColor(grayness);
+
+        // Create the day cell
+        html += `
+            <div class="calendar-day" data-date="${dateStr}" style="background: ${bgColor};">
+                <div class="day-number">${d.getDate()}</div>
+                ${unavailableCount > 0 ? `<div class="unavailable-count">${unavailableCount}</div>` : ''}
+            </div>
+        `;
+    }
+
+    // Insert the generated HTML into the calendar grid
+    calendarGrid.innerHTML = html;
+
+    // Add event listeners to the newly created day cells
+    calendarGrid.querySelectorAll('.calendar-day').forEach(dayEl => {
+        dayEl.addEventListener('click', () => {
+            const dateStr = dayEl.dataset.date;
+            handleDateClick(dateStr, dayEl);
+        });
+    });
+
+    // Add animation class if manual change
+    if (isManualMonthChange) {
+        calendarGrid.classList.add('month-flip');
+        setTimeout(() => calendarGrid.classList.remove('month-flip'), 300);
+        isManualMonthChange = false;
+    }
+}
+
+function setupEventListeners() {
+    // Modify prev/next month buttons to set manual change flag
+    const prevBtn = document.getElementById('prevMonth');
+    const nextBtn = document.getElementById('nextMonth');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            isManualMonthChange = true;
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            isManualMonthChange = true;
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        });
+    }
+}
+
+let lastClickTime = 0;
+let lastClickedDate = null;
+
+function handleDateClick(dateStr, dayElement) {
+    const currentTime = Date.now();
+    const isDoubleClick = (currentTime - lastClickTime < 300) && (lastClickedDate === dateStr);
+
+    lastClickTime = currentTime;
+    lastClickedDate = dateStr;
+
+    if (isDoubleClick) {
+        // On double-click, just deselect if already selected
+        if (selectedDates.has(dateStr)) {
+            selectedDates.delete(dateStr);
+            dayElement.classList.remove('selected');
+        }
+        return;
+    }
+
+    // Single click logic
+    if (selectedDates.has(dateStr)) {
+        selectedDates.delete(dateStr);
+        dayElement.classList.remove('selected');
+    } else {
+        selectedDates.add(dateStr);
+        dayElement.classList.add('selected');
+    }
+}
+
+// Load participants for the dropdown
+async function loadParticipants() {
+    try {
+        const response = await fetch(`/.netlify/functions/get-unavailability?calendarId=${calendarId}`);
+        if (!response.ok) throw new Error('Failed to load participants');
+
+        const data = await response.json();
+        const participantSelect = document.getElementById('participantSelect');
+
+        if (!participantSelect) return;
+
+        // Get unique participants including all submitters
+        const uniqueParticipants = new Set();
+
+        if (data.unavailability) {
+            Object.keys(data.unavailability).forEach(participant => {
+                uniqueParticipants.add(participant);
+            });
+        }
+
+        // Add current calendar creator if available
+        if (calendarData?.createdBy) {
+            uniqueParticipants.add(calendarData.createdBy);
+        }
+
+        // Clear and populate dropdown
+        participantSelect.innerHTML = '<option value="">Select participant</option>';
+
+        Array.from(uniqueParticipants).sort().forEach(participant => {
+            const option = document.createElement('option');
+            option.value = participant;
+            option.textContent = participant;
+            participantSelect.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error('Error loading participants:', error);
+    }
+}
+
+// Call this function to submit unavailability
+async function submitUnavailability() {
+    if (!currentParticipant) return;
+
+    const calendarId = calendarData.id || getCalendarId();
+
+    if (!calendarId) {
+        showStatus('error', 'Calendar ID not found. Please refresh the page.');
+        return;
+    }
+
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    // Store the dates we're submitting
+    const submittedDates = [...selectedDates];
+
+    try {
+        const response = await fetch(`/.netlify/functions/submit-unavailability?calendarId=${encodeURIComponent(calendarId)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                participantName: currentParticipant,
+                unavailableDates: submittedDates
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert('Your unavailable dates have been submitted!');
+            selectedDates.clear();
+
+            // Reload participants to include the newly submitted user
+            await loadParticipants();
+            await loadUnavailability();
+
+            renderCalendar();
+        }
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Unavailability';
+        updateSubmitButton();
+    } catch (error) {
+        console.error('Error submitting unavailability:', error);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Unavailability';
+    }
+}
