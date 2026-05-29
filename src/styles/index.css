@@ -10,6 +10,18 @@
     display: none !important;
 }
 
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
 :root {
     /* Stripe-inspired color palette */
     --primary-color: #635bff;
@@ -1857,55 +1869,633 @@ body {
         padding: 1rem;
     }
 
+    .calendar-container {
+        padding: 0;
+    }
+
+    .calendar-header-section {
+        padding: 0 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
     .calendar-header-section h1 {
         font-size: 1.5rem;
+        line-height: 1.3;
+    }
+
+    .calendar-description {
+        font-size: 0.9rem;
+    }
+
+    .calendar-date-range {
+        font-size: 0.85rem;
+    }
+
+    .back-link {
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Tabs Mobile */
+    .tabs {
+        border-radius: var(--radius-sm);
+    }
+
+    .tab-btn {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+        white-space: nowrap;
     }
 
     .tab-content {
-        padding: 1.5rem 1rem;
+        padding: 1rem;
+        border-radius: 0 0 var(--radius-sm) var(--radius-sm);
     }
 
+    .submit-tab-content,
+    .view-tab-content {
+        padding: 0;
+    }
+
+    /* Participant Section Mobile */
+    .participant-section {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .participant-select,
+    .name-input {
+        font-size: 16px !important; /* Prevents iOS zoom */
+        padding: 0.7rem 0.9rem;
+    }
+
+    .name-input-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .name-input-row .btn {
+        width: 100%;
+    }
+
+    .confirmed-participant {
+        flex-wrap: wrap;
+        padding: 0.65rem 0.85rem;
+    }
+
+    .participant-info {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .submission-status {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .submission-status .btn {
+        align-self: stretch;
+    }
+
+    /* Date Picker Section Mobile */
+    .date-picker-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .date-picker-section h3 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .date-picker-section .form-hint {
+        font-size: 0.8rem;
+    }
+
+    /* Selected/Submitted Dates Mobile */
+    .selected-dates-section,
+    .submitted-dates-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .selected-dates-section h3,
+    .submitted-dates-section h3 {
+        font-size: 0.95rem;
+    }
+
+    .date-range-tag {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.65rem;
+    }
+
+    .date-range-remove {
+        min-width: 24px;
+        min-height: 24px;
+    }
+
+    /* Action Buttons Mobile */
     .action-buttons {
         flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
     }
 
     .action-buttons .btn {
         width: 100%;
     }
 
+    /* Availability View Mobile */
     .availability-months-grid {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
 
+    .availability-month {
+        padding: 1rem;
+    }
+
+    .availability-month h3 {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .av-calendar-grid {
+        gap: 2px;
+    }
+
+    .av-weekday-header {
+        font-size: 0.65rem;
+        padding: 0.25rem;
+    }
+
+    .av-calendar-day {
+        font-size: 0.8rem;
+        min-height: 42px;
+    }
+
+    .av-day-number {
+        font-size: 0.85rem;
+    }
+
+    .av-unavailable-count {
+        font-size: 0.6rem;
+    }
+
+    /* Date Details Mobile */
+    .date-details-panel {
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .date-details-panel h4 {
+        font-size: 1rem;
+    }
+
+    .unavailable-list,
+    .available-list {
+        font-size: 0.85rem;
+    }
+
+    /* Legend Mobile */
     .date-picker-legend {
         flex-direction: column;
-        gap: 0.75rem;
-        align-items: center;
+        gap: 0.5rem;
+        align-items: flex-start;
+        padding: 0.75rem;
+    }
+
+    .legend-item {
+        font-size: 0.8rem;
     }
 
     .availability-legend {
         flex-direction: column;
-        gap: 0.75rem;
-        align-items: center;
+        gap: 0.5rem;
+        align-items: flex-start;
+        padding: 0.75rem;
     }
 
-    .name-input-row {
-        flex-direction: column;
+    /* Status Message Mobile */
+    .status-message {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
     }
 }
 
 @media (max-width: 480px) {
+    /* Extra small mobile adjustments */
+    .calendar-main {
+        padding: 0.75rem;
+    }
+
+    .calendar-header-section h1 {
+        font-size: 1.25rem;
+    }
+
+    .back-link {
+        font-size: 0.8rem;
+    }
+
+    /* Tabs */
+    .tab-btn {
+        padding: 0.65rem 0.35rem;
+        font-size: 0.8rem;
+    }
+
+    .tab-content {
+        padding: 0.75rem;
+    }
+
+    /* Forms */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+    }
+
+    .form-input,
+    .participant-select,
+    .name-input {
+        padding: 0.65rem 0.85rem;
+        font-size: 16px !important;
+    }
+
+    .form-hint {
+        font-size: 0.75rem;
+    }
+
+    .btn {
+        padding: 0.65rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .btn-small {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    /* Flatpickr adjustments */
+    .flatpickr-calendar {
+        font-size: 0.9rem !important;
+    }
+
     .flatpickr-day {
         height: 36px !important;
         line-height: 36px !important;
+        font-size: 0.85rem !important;
+    }
+
+    .flatpickr-months {
+        padding: 0.35rem 0 !important;
+    }
+
+    .flatpickr-current-month {
+        font-size: 1rem !important;
+    }
+
+    /* Availability Calendar */
+    .av-calendar-grid {
+        gap: 1px;
     }
 
     .av-calendar-day {
         font-size: 0.75rem;
+        min-height: 38px;
+    }
+
+    .av-day-number {
+        font-size: 0.8rem;
     }
 
     .av-weekday-header {
         font-size: 0.6rem;
+        padding: 0.2rem;
+    }
+
+    /* Date tags */
+    .date-range-tag {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.55rem;
+    }
+
+    /* Participant section */
+    .participant-section {
+        padding: 0.85rem;
+    }
+
+    .confirmed-participant {
+        padding: 0.6rem 0.75rem;
+    }
+
+    .participant-label {
+        font-size: 0.8rem;
+    }
+
+    .participant-name {
+        font-size: 0.9rem;
+    }
+}
+
+/* Landscape orientation for mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .calendar-main {
+        padding: 0.75rem;
+    }
+
+    .calendar-header-section {
+        margin-bottom: 1rem;
+    }
+
+    .tab-content {
+        max-height: calc(100vh - 180px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .availability-months-grid {
+        max-height: calc(100vh - 250px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    /* Increase minimum touch targets */
+    .btn {
+        min-height: 44px;
+    }
+
+    .participant-select,
+    .name-input,
+    .form-input {
+        min-height: 44px;
+    }
+
+    .av-calendar-day {
+        min-height: 44px;
+    }
+
+    .date-range-remove,
+    .tag-remove {
+        min-width: 32px;
+        min-height: 32px;
+    }
+
+    .tab-btn {
+        min-height: 44px;
+    }
+
+    /* Remove hover effects on touch */
+    .btn:hover:not(:disabled) {
+        transform: none;
+    }
+
+    .av-calendar-day:hover {
+        border-color: var(--border-color);
+    }
+
+    /* Better tap feedback */
+    .btn:active {
+        transform: scale(0.98);
+    }
+
+    .av-calendar-day:active {
+        opacity: 0.8;
+    }
+}
+
+/* ===== GENERAL MOBILE STYLES ===== */
+@media (max-width: 768px) {
+    /* Header Mobile */
+    .app-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .header-content {
+        gap: 1rem;
+    }
+
+    .logo {
+        font-size: 1.1rem;
+    }
+
+    .logo-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .header-nav {
+        gap: 0.75rem;
+    }
+
+    .nav-link {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .user-menu {
+        gap: 0.5rem;
+    }
+
+    .user-email {
+        display: none; /* Hide email on mobile to save space */
+    }
+
+    .auth-buttons {
+        gap: 0.5rem;
+    }
+
+    /* Main content padding */
+    .main-content {
+        padding: 1rem;
+    }
+
+    /* Dashboard Mobile */
+    .dashboard-main {
+        padding: 1rem;
+    }
+
+    .dashboard-container {
+        padding: 0;
+    }
+
+    .dashboard-header {
+        padding: 0 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .dashboard-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .dashboard-actions .btn {
+        width: 100%;
+    }
+
+    /* Calendar Cards Mobile */
+    .calendars-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .calendar-card {
+        padding: 1rem;
+    }
+
+    .calendar-card-header h3 {
+        font-size: 1rem;
+    }
+
+    .calendar-card-actions {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .calendar-card-actions .btn {
+        flex: 1;
+        min-width: calc(50% - 0.25rem);
+    }
+
+    /* About Page Mobile */
+    .about-main {
+        padding: 1rem;
+    }
+
+    .about-container {
+        padding: 0;
+    }
+
+    .about-hero {
+        padding: 2rem 1rem;
+    }
+
+    .about-hero h1 {
+        font-size: 1.75rem;
+    }
+
+    .about-section {
+        padding: 1.5rem 1rem;
+    }
+
+    .about-section h2 {
+        font-size: 1.25rem;
+    }
+
+    .how-it-works-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .cta-buttons {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .cta-buttons .btn {
+        width: 100%;
+    }
+
+    /* Landing Page Mobile */
+    .landing-page {
+        padding: 0;
+    }
+
+    .hero {
+        padding: 2rem 1rem;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .hero-actions .btn {
+        width: 100%;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Extra small header */
+    .app-header {
+        padding: 0.65rem 0.75rem;
+    }
+
+    .logo {
+        font-size: 1rem;
+    }
+
+    .logo-icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .btn-small {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.8rem;
+    }
+
+    /* Dashboard extra small */
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .calendar-card {
+        padding: 0.85rem;
+    }
+
+    /* About page extra small */
+    .about-hero {
+        padding: 1.5rem 0.75rem;
+    }
+
+    .about-hero h1 {
+        font-size: 1.5rem;
+    }
+
+    .about-section {
+        padding: 1.25rem 0.75rem;
+    }
+
+    .step-number {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+
+    /* Landing extra small */
+    .hero {
+        padding: 1.5rem 0.75rem;
+    }
+
+    .hero h1 {
+        font-size: 1.75rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.95rem;
     }
 }
 

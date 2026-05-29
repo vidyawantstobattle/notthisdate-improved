@@ -4,7 +4,9 @@
   "description": "Trip planning app - mark dates you're NOT available",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run validate:imports && vite build",
+    "build:skip-validation": "vite build",
+    "validate:imports": "node scripts/validate-imports.js",
     "preview": "vite preview",
     "netlify-dev": "netlify dev",
     "serve": "npx serve public -l 8888",

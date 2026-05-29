@@ -66,13 +66,13 @@
         <header class="app-header">
             <div class="header-content">
                 <a href="/" class="logo">
-                    <img src="/images/logo.svg" alt="NotThisDate" class="logo-icon">
+                    <img src="./images/logo.svg" alt="NotThisDate" class="logo-icon">
                     <span>NotThisDate</span>
                 </a>
                 <nav class="header-nav">
                     <ul class="nav-links">
-                        <li><a href="/#how-it-works" data-i18n="footer.howItWorks">How It Works</a></li>
-                        <li><a href="/about.html" data-i18n="footer.about">About</a></li>
+                        <li><a href="#how-it-works" data-i18n="footer.howItWorks">How It Works</a></li>
+                        <li><a href="./about.html" data-i18n="footer.about">About</a></li>
                     </ul>
                     <div class="language-toggle">
                         <button class="lang-btn active" data-lang="en">EN</button>
@@ -115,7 +115,7 @@
                     <div class="hero-illustration">
                         <!-- Placeholder for hero image - replace src with actual image -->
                         <div class="illustration-placeholder" aria-label="Illustration showing group calendar planning">
-                            <svg viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <svg viewBox="0 0 400 300">
                                 <!-- Calendar base -->
                                 <rect x="80" y="60" width="240" height="180" rx="12" fill="#fff" stroke="#e6e9ec" stroke-width="2"/>
                                 <rect x="80" y="60" width="240" height="40" rx="12" fill="#635bff"/>
@@ -244,63 +244,6 @@
                         </div>
                     </div>
                 </section>
-
-                <!-- About Section - How It Works -->
-                <section class="about-section">
-                    <div class="container">
-                        <h2>How It Works</h2>
-                        <p class="subtitle">Mark when you're NOT available, and we'll find the best dates for everyone.</p>
-
-                        <!-- Add modes explanation -->
-                        <div class="modes-container">
-                            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary-color);">Choose Your Collaboration Mode</h3>
-
-                            <div class="mode-cards">
-                                <div class="mode-card">
-                                    <div class="mode-icon">🔗</div>
-                                    <h4>Anyone with Link Can Join</h4>
-                                    <p class="mode-description">
-                                        Perfect for casual groups and flexible planning. Share a single link with anyone,
-                                        and they can join by entering their name. No accounts needed - just share and go!
-                                    </p>
-                                    <ul class="mode-features">
-                                        <li>✓ No authentication required</li>
-                                        <li>✓ Quick and easy sharing</li>
-                                        <li>✓ Ideal for informal groups</li>
-                                    </ul>
-                                </div>
-
-                                <div class="mode-card">
-                                    <div class="mode-icon">✅</div>
-                                    <h4>Verified Users Only</h4>
-                                    <p class="mode-description">
-                                        For organized teams who want accountability. Only users with verified accounts
-                                        can submit their availability. Everyone must sign up before participating.
-                                    </p>
-                                    <ul class="mode-features">
-                                        <li>✓ Secure and authenticated</li>
-                                        <li>✓ Track who submitted what</li>
-                                        <li>✓ Best for work teams or serious planning</li>
-                                    </ul>
-                                </div>
-
-                                <div class="mode-card">
-                                    <div class="mode-icon">📧</div>
-                                    <h4>Pre-filled Email Invites</h4>
-                                    <p class="mode-description">
-                                        Add participants upfront with their names and emails. Each person gets a
-                                        personalized link sent directly to their inbox. Perfect for formal events.
-                                    </p>
-                                    <ul class="mode-features">
-                                        <li>✓ Pre-define your guest list</li>
-                                        <li>✓ Personalized invitation links</li>
-                                        <li>✓ Track who hasn't responded</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
             </section>
 
             <!-- Dashboard (shown when logged in) -->
@@ -413,7 +356,8 @@
                     <div class="modal-body">
                         <p class="share-modal-text">Share this link with your participants:</p>
                         <div class="share-link-box">
-                            <input type="text" id="share-link-input" readonly>
+                            <label for="share-link-input" class="visually-hidden">Calendar share link</label>
+                            <input type="text" id="share-link-input" readonly aria-label="Calendar share link">
                             <button id="copy-link-btn" class="btn btn-primary">
                                 <span class="copy-text">Copy</span>
                                 <span class="copied-text hidden">Copied!</span>
@@ -436,7 +380,7 @@
             <div class="footer-content">
                 <div class="footer-brand">
                     <a href="/" class="footer-logo">
-                        <img src="/images/logo.svg" alt="NotThisDate" class="logo-icon">
+                        <img src="./images/logo.svg" alt="NotThisDate" class="logo-icon">
                         <span>NotThisDate</span>
                     </a>
                     <p class="footer-tagline" data-i18n="footer.tagline">Group scheduling made simple.</p>
@@ -445,20 +389,20 @@
                     <div class="footer-column">
                         <h4 data-i18n="footer.product">Product</h4>
                         <ul>
-                            <li><a href="/" data-i18n="footer.home">Home</a></li>
-                            <li><a href="/about.html" data-i18n="footer.about">About Us</a></li>
+                            <li><a href="./" data-i18n="footer.home">Home</a></li>
+                            <li><a href="./about.html" data-i18n="footer.about">About Us</a></li>
                         </ul>
                     </div>
                     <div class="footer-column">
                         <h4 data-i18n="footer.resources">Resources</h4>
                         <ul>
-                            <li><a href="/#how-it-works" data-i18n="footer.howItWorks">How It Works</a></li>
+                            <li><a href="#how-it-works" data-i18n="footer.howItWorks">How It Works</a></li>
                         </ul>
                     </div>
                     <div class="footer-column">
                         <h4 data-i18n="footer.legal">Legal</h4>
                         <ul>
-                            <li><a href="/privacy.html" data-i18n="footer.privacy">Privacy Policy</a></li>
+                            <li><a href="./privacy.html" data-i18n="footer.privacy">Privacy Policy</a></li>
                         </ul>
                     </div>
                 </div>
@@ -469,7 +413,8 @@
         </footer>
     </div>
 
-    <script src="/i18n.js"></script>
-    <script src="/app.js"></script>
+    <script src="./i18n.js"></script>
+    <script src="./app.js"></script>
 </body>
 </html>
+
