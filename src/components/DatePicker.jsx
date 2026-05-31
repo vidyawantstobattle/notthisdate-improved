@@ -34,35 +34,64 @@ function DatePicker({
       instanceRef.current.destroy();
     }
 
+    // Track selection state
+    let firstSelectedDate = null;
+
     instanceRef.current = flatpickr(pickerRef.current, {
-      mode: 'range',
+      mode: 'multiple', // Changed from 'range' to 'multiple' for better control
       minDate: start,
       maxDate: end,
       dateFormat: 'Y-m-d',
       inline: true,
       showMonths: isMobile ? 1 : 2,
+      static: true, // Prevents auto-flipping behavior
       locale: {
         firstDayOfWeek: 0 // Sunday
       },
+      onValueUpdate: () => {
+        // Prevent default behavior
+      },
       onChange: (selectedDateRange) => {
-        if (selectedDateRange.length === 2) {
-          // Complete range selected
+        // Single click: if first date is set and this is a different date, create range
+        // If same date, treat as single day
+        if (selectedDateRange.length === 1) {
+          const clickedDate = selectedDateRange[0];
+
+          if (firstSelectedDate === null) {
+            // First click - store it
+            firstSelectedDate = clickedDate;
+          } else {
+            // Second click - create range from first to this
+            const rangeStart = firstSelectedDate < clickedDate ? firstSelectedDate : clickedDate;
+            const rangeEnd = firstSelectedDate < clickedDate ? clickedDate : firstSelectedDate;
+
+            if (onDateRangeSelect) {
+              onDateRangeSelect(rangeStart, rangeEnd);
+            }
+
+            // Reset for next selection
+            firstSelectedDate = null;
+            setTimeout(() => {
+              if (instanceRef.current) {
+                instanceRef.current.clear();
+              }
+            }, 50);
+          }
+        } else if (selectedDateRange.length >= 2) {
+          // Handle if multiple dates selected (shouldn't happen but just in case)
           const rangeStart = selectedDateRange[0];
-          const rangeEnd = selectedDateRange[1];
+          const rangeEnd = selectedDateRange[selectedDateRange.length - 1];
 
           if (onDateRangeSelect) {
             onDateRangeSelect(rangeStart, rangeEnd);
           }
 
-          // Clear the picker for next selection
+          firstSelectedDate = null;
           setTimeout(() => {
             if (instanceRef.current) {
               instanceRef.current.clear();
             }
-          }, 100);
-        } else if (selectedDateRange.length === 1) {
-          // Single date - treat as a single day range on second click or timeout
-          // We'll wait briefly to see if user selects an end date
+          }, 50);
         }
       },
       onDayCreate: (dObj, dStr, fp, dayElem) => {
