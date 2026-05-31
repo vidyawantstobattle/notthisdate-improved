@@ -43,10 +43,10 @@ function DatePicker({
     const updateHint = (state) => {
       if (hintRef.current) {
         if (state === 'first') {
-          hintRef.current.textContent = '👆 Now tap the end date to complete your selection';
+          hintRef.current.textContent = '👆 Tap another date for a range, or tap same date again for single day';
           hintRef.current.classList.add('active');
         } else {
-          hintRef.current.textContent = 'Tap a date to start, then tap another to select a range';
+          hintRef.current.textContent = 'Tap a date to select it (tap twice for single day, or tap two dates for a range)';
           hintRef.current.classList.remove('active');
         }
       }
@@ -68,6 +68,32 @@ function DatePicker({
         // Prevent default behavior
       },
       onChange: (selectedDateRange, dateStr, instance) => {
+        if (selectedDateRange.length === 0) {
+          // Date was deselected (clicked same date twice in multiple mode)
+          // If we had a first selection, treat this as selecting that single date
+          if (firstSelectedDate !== null) {
+            if (onDateRangeSelect) {
+              onDateRangeSelect(firstSelectedDate, firstSelectedDate);
+            }
+
+            // Clear visual feedback
+            if (firstSelectedElement) {
+              firstSelectedElement.classList.remove('first-selected');
+              firstSelectedElement = null;
+            }
+
+            firstSelectedDate = null;
+            updateHint('none');
+
+            setTimeout(() => {
+              if (instanceRef.current) {
+                instanceRef.current.clear();
+              }
+            }, 50);
+          }
+          return;
+        }
+
         if (selectedDateRange.length === 1) {
           const clickedDate = selectedDateRange[0];
 
@@ -86,7 +112,7 @@ function DatePicker({
               }
             });
           } else {
-            // Second click - create range
+            // Second click - create range (could be same date for single day)
             const rangeStart = firstSelectedDate < clickedDate ? firstSelectedDate : clickedDate;
             const rangeEnd = firstSelectedDate < clickedDate ? clickedDate : firstSelectedDate;
 
@@ -184,7 +210,7 @@ function DatePicker({
         role="status"
         aria-live="polite"
       >
-        Tap a date to start, then tap another to select a range
+        Tap a date to select it (tap twice for single day, or tap two dates for a range)
       </div>
       <div
         ref={pickerRef} 
