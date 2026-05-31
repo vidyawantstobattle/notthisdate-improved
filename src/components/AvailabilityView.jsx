@@ -22,10 +22,18 @@ function AvailabilityView({ calendar, allUnavailability }) {
   }
 
   // Calculate total participants
-  const allParticipants = getAllParticipants(allUnavailability);
+  const allParticipants = getAllParticipants(allUnavailability, calendar);
   const totalPeople = calendar.participantsType === 'defined'
     ? calendar.participants?.length || 1
-    : Math.max(Object.keys(allParticipants).length, 1);
+    : Math.max(allParticipants.length, 1);
+
+  console.log('AvailabilityView Debug:', {
+    calendarParticipants: calendar.participants,
+    participantsType: calendar.participantsType,
+    allUnavailability,
+    allParticipants,
+    totalPeople
+  });
 
   return (
     <div className="availability-view">
@@ -171,7 +179,7 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }) {
 
   const allParticipants = calendar.participantsType === 'defined'
     ? calendar.participants || []
-    : Object.keys(getAllParticipants(allUnavailability));
+    : getAllParticipants(allUnavailability, calendar);
 
   const availablePeople = allParticipants.filter(p => !unavailablePeople.includes(p));
 
@@ -210,16 +218,26 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }) {
   );
 }
 
-function getAllParticipants(allUnavailability) {
-  const participants = {};
+function getAllParticipants(allUnavailability, calendar) {
+  const participants = new Set();
+
+  // If defined participants, use those
+  if (calendar?.participantsType === 'defined' && calendar?.participants) {
+    return calendar.participants;
+  }
+
+  // Otherwise, collect from unavailability data
   Object.values(allUnavailability || {}).forEach(peopleArray => {
     if (Array.isArray(peopleArray)) {
       peopleArray.forEach(p => {
-        participants[p] = true;
+        if (p && typeof p === 'string') {
+          participants.add(p);
+        }
       });
     }
   });
-  return participants;
+
+  return Array.from(participants).sort();
 }
 
 function getAvailabilityColor(ratio) {

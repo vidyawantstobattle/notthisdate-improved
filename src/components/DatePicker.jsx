@@ -63,7 +63,11 @@ function DatePicker({
           if (firstSelectedDate === null) {
             // First click/tap - store it and show visual feedback
             firstSelectedDate = clickedDate;
-            setSelectionState('first');
+
+            // Defer React state update to avoid DOM conflicts
+            requestAnimationFrame(() => {
+              setSelectionState('first');
+            });
 
             // Add visual feedback for mobile - highlight first selected date
             const allDays = instance.calendarContainer.querySelectorAll('.flatpickr-day');
@@ -91,13 +95,17 @@ function DatePicker({
 
             // Reset for next selection
             firstSelectedDate = null;
-            setSelectionState('complete');
-            setTimeout(() => {
-              if (instanceRef.current) {
-                instanceRef.current.clear();
-              }
-              setSelectionState('none');
-            }, 50);
+
+            // Defer React state updates to avoid DOM conflicts
+            requestAnimationFrame(() => {
+              setSelectionState('complete');
+              setTimeout(() => {
+                if (instanceRef.current) {
+                  instanceRef.current.clear();
+                }
+                setSelectionState('none');
+              }, 50);
+            });
           }
         } else if (selectedDateRange.length >= 2) {
           // Handle if multiple dates selected (shouldn't happen but just in case)
@@ -115,13 +123,17 @@ function DatePicker({
           }
 
           firstSelectedDate = null;
-          setSelectionState('complete');
-          setTimeout(() => {
-            if (instanceRef.current) {
-              instanceRef.current.clear();
-            }
-            setSelectionState('none');
-          }, 50);
+
+          // Defer React state updates to avoid DOM conflicts
+          requestAnimationFrame(() => {
+            setSelectionState('complete');
+            setTimeout(() => {
+              if (instanceRef.current) {
+                instanceRef.current.clear();
+              }
+              setSelectionState('none');
+            }, 50);
+          });
         }
       },
       onDayCreate: (dObj, dStr, fp, dayElem) => {
