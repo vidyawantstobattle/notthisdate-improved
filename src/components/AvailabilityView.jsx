@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 function AvailabilityView({ calendar, allUnavailability }) {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -34,18 +34,18 @@ function AvailabilityView({ calendar, allUnavailability }) {
         <p className="availability-subtitle">Click on any date to see who's available</p>
       </div>
 
-      <div className="availability-legend">
+      <div className="availability-legend" role="region" aria-label="Availability color legend">
         <div className="legend-item">
-          <span className="legend-color" style={{ background: '#4ade80' }}></span>
-          <span>Everyone available</span>
+          <span className="legend-color" style={{ background: '#4ade80' }} aria-hidden="true"></span>
+          <span>Everyone available (green)</span>
         </div>
         <div className="legend-item">
-          <span className="legend-color" style={{ background: '#fbbf24' }}></span>
-          <span>Some unavailable</span>
+          <span className="legend-color" style={{ background: '#fbbf24' }} aria-hidden="true"></span>
+          <span>Some unavailable (yellow)</span>
         </div>
         <div className="legend-item">
-          <span className="legend-color" style={{ background: '#6b7280' }}></span>
-          <span>Most unavailable</span>
+          <span className="legend-color" style={{ background: '#6b7280' }} aria-hidden="true"></span>
+          <span>Most unavailable (gray)</span>
         </div>
       </div>
 
@@ -120,18 +120,18 @@ function MonthCalendar({ year, month, startDate, endDate, allUnavailability, tot
     const textColor = ratio > 0.5 ? '#ffffff' : '#1a1f36';
 
     calendarCells.push(
-      <div
+      <button
         key={day}
         className="av-calendar-day in-range"
         style={{ backgroundColor: bgColor, color: textColor }}
         onClick={() => onDateClick(dateStr)}
-        title={unavailableCount > 0 ? `${unavailableCount} unavailable` : 'Everyone available'}
+        aria-label={`${monthName} ${day}. ${unavailableCount > 0 ? `${unavailableCount} people unavailable` : 'Everyone available'}`}
       >
         <span className="day-number">{day}</span>
         {unavailableCount > 0 && (
-          <span className="unavailable-badge">{unavailableCount}</span>
+          <span className="unavailable-badge" aria-hidden="true">{unavailableCount}</span>
         )}
-      </div>
+      </button>
     );
   }
 
@@ -149,6 +149,17 @@ function MonthCalendar({ year, month, startDate, endDate, allUnavailability, tot
 }
 
 function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }) {
+  const modalRef = useRef(null);
+  
+  useEffect(() => {
+    if (modalRef.current) {
+      const firstButton = modalRef.current.querySelector('button');
+      if (firstButton) {
+        firstButton.focus();
+      }
+    }
+  }, []);
+  
   const unavailablePeople = allUnavailability[dateStr] || [];
   const date = new Date(dateStr + 'T12:00:00');
   const dateDisplay = date.toLocaleDateString('en-US', {
@@ -165,10 +176,10 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }) {
   const availablePeople = allParticipants.filter(p => !unavailablePeople.includes(p));
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content date-details-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>&times;</button>
-        <h3>{dateDisplay}</h3>
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="date-details-title">
+      <div className="modal-content date-details-modal" onClick={(e) => e.stopPropagation()} ref={modalRef}>
+        <button className="modal-close" onClick={onClose} aria-label="Close dialog">&times;</button>
+        <h3 id="date-details-title">{dateDisplay}</h3>
 
         {unavailablePeople.length === 0 ? (
           <div className="all-available-message">

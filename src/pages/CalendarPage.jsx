@@ -6,6 +6,8 @@ import DatePicker from '../components/DatePicker';
 import DateRangeDisplay from '../components/DateRangeDisplay';
 import ParticipantInput from '../components/ParticipantInput';
 import AvailabilityView from '../components/AvailabilityView';
+import { apiGet, apiPost } from '../utils/apiClient';
+import ErrorMessage from '../components/ErrorMessage';
 
 function CalendarPage() {
   const { calendarId } = useParams();
@@ -18,6 +20,7 @@ function CalendarPage() {
   const [allUnavailability, setAllUnavailability] = useState({});
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [apiError, setApiError] = useState(null);
 
   // Set page title based on calendar name
   useDocumentTitle(calendar?.name || 'Calendar');
@@ -38,10 +41,10 @@ function CalendarPage() {
 
   const loadUserSubmissions = async () => {
     try {
-      const response = await fetch(
+      setApiError(null);
+      const data = await apiGet(
         `/.netlify/functions/get-user-submissions?calendarId=${calendar.id}&participant=${encodeURIComponent(currentParticipant)}`
       );
-      const data = await response.json();
 
       const dates = [];
       if (data.submissions && data.submissions.length > 0) {
@@ -58,14 +61,15 @@ function CalendarPage() {
       setSubmittedDates(dates.sort());
     } catch (err) {
       console.error('Failed to load submissions:', err);
+      setApiError(err);
       setSubmittedDates([]);
     }
   };
 
   const loadAllUnavailability = async () => {
     try {
-      const response = await fetch(`/.netlify/functions/get-unavailability?calendarId=${calendar.id}`);
-      const data = await response.json();
+      setApiError(null);
+      const data = await apiGet(`/.netlify/functions/get-unavailability?calendarId=${calendar.id}`);
 
       const unavailabilityByDate = {};
       const rawUnavailability = data.unavailability || {};
@@ -85,6 +89,7 @@ function CalendarPage() {
       setAllUnavailability(unavailabilityByDate);
     } catch (err) {
       console.error('Failed to load unavailability:', err);
+      setApiError(err);
       setAllUnavailability({});
     }
   };
@@ -129,36 +134,29 @@ function CalendarPage() {
     }
 
     setSubmitting(true);
+    setApiError(null);
 
     try {
-      const response = await fetch(
+      await apiPost(
         `/.netlify/functions/submit-unavailability?calendarId=${encodeURIComponent(calendar.id)}`,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            participantName: currentParticipant,
-            unavailableDates: selectedDates
-          })
+          participantName: currentParticipant,
+          unavailableDates: selectedDates
         }
       );
 
-      if (response.ok) {
-        const message = selectedDates.length === 0
-          ? 'Recorded! You\'re available for all dates! 🎉'
-          : `Submitted ${selectedDates.length} unavailable date(s)! ✅`;
+      const message = selectedDates.length === 0
+        ? 'Recorded! You\'re available for all dates! 🎉'
+        : `Submitted ${selectedDates.length} unavailable date(s)! ✅`;
 
-        showStatus('success', message);
+      showStatus('success', message);
 
-        // Move selected to submitted
-        setSubmittedDates(prev => [...new Set([...prev, ...selectedDates])].sort());
-        setSelectedDates([]);
-      } else {
-        const result = await response.json();
-        showStatus('error', result.error || 'Failed to submit');
-      }
+      // Move selected to submitted
+      setSubmittedDates(prev => [...new Set([...prev, ...selectedDates])].sort());
+      setSelectedDates([]);
     } catch (err) {
-      showStatus('error', 'Network error. Please try again.');
+      setApiError(err);
+      showStatus('error', 'Failed to submit. Please try again.');
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -176,25 +174,20 @@ function CalendarPage() {
     }
 
     setSubmitting(true);
+    setApiError(null);
 
     try {
-      const response = await fetch(
+      await apiPost(
         `/.netlify/functions/reset-unavailability?calendarId=${encodeURIComponent(calendar.id)}&participant=${encodeURIComponent(currentParticipant)}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        }
+        {}
       );
 
-      if (response.ok) {
-        showStatus('success', 'Your dates have been reset!');
-        setSelectedDates([]);
-        setSubmittedDates([]);
-      } else {
-        showStatus('error', 'Failed to reset');
-      }
+      showStatus('success', 'Your dates have been reset!');
+      setSelectedDates([]);
+      setSubmittedDates([]);
     } catch (err) {
-      showStatus('error', 'Network error. Please try again.');
+      setApiError(err);
+      showStatus('error', 'Failed to reset. Please try again.');
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -287,6 +280,14 @@ function CalendarPage() {
               {/* Submit Tab */}
               {activeTab === 'submit' && (
                 <div className="submit-tab-content">
+                  {apiError && (
+                    <ErrorMessage 
+                      error={apiError}
+                      onRetry={() => loadUserSubmissions()}
+                      onDismiss={() => setApiError(null)}
+                    />
+                  )}
+                  
                   <ParticipantInput
                     calendar={calendar}
                     currentParticipant={currentParticipant}
@@ -355,6 +356,14 @@ function CalendarPage() {
               {/* View Tab */}
               {activeTab === 'view' && (
                 <div className="view-tab-content">
+                  {apiError && (
+                    <ErrorMessage 
+                      error={apiError}
+                      onRetry={() => loadAllUnavailability()}
+                      onDismiss={() => setApiError(null)}
+                    />
+                  )}
+                  
                   <AvailabilityView
                     calendar={calendar}
                     allUnavailability={allUnavailability}

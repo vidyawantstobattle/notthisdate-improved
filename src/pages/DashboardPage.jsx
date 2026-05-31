@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+import { apiGet, apiPost, apiDelete } from '../utils/apiClient';
+import ErrorMessage from '../components/ErrorMessage';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 function DashboardPage() {
   const { user, loading, logout, getAuthHeaders } = useAuth();
@@ -9,7 +12,8 @@ function DashboardPage() {
   const [calendars, setCalendars] = useState([]);
   const [loadingCalendars, setLoadingCalendars] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   // Set page title
   useDocumentTitle('Dashboard');
@@ -31,21 +35,14 @@ function DashboardPage() {
   const loadUserCalendars = async () => {
     try {
       setLoadingCalendars(true);
-      setError('');
+      setError(null);
       const headers = await getAuthHeaders();
-      const response = await fetch('/.netlify/functions/get-calendars', {
-        headers
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to load calendars');
-      }
-
-      const data = await response.json();
+      const token = headers['Authorization']?.replace('Bearer ', '');
+      const data = await apiGet('/.netlify/functions/get-calendars', token);
       setCalendars(Array.isArray(data) ? data : data.calendars || []);
     } catch (err) {
       console.error('Failed to load calendars:', err);
-      setError('Failed to load your calendars. Please try again.');
+      setError(err);
       setCalendars([]);
     } finally {
       setLoadingCalendars(false);
@@ -56,16 +53,16 @@ function DashboardPage() {
     if (!confirm('Are you sure you want to delete this calendar?')) return;
 
     try {
+      setDeletingId(calendarId);
       const headers = await getAuthHeaders();
-      const response = await fetch(`/.netlify/functions/delete-calendar?id=${calendarId}`, {
-        method: 'DELETE',
-        headers
-      });
-      if (response.ok) {
-        setCalendars(calendars.filter(c => c.id !== calendarId));
-      }
+      const token = headers['Authorization']?.replace('Bearer ', '');
+      await apiDelete(`/.netlify/functions/delete-calendar?id=${calendarId}`, token);
+      setCalendars(calendars.filter(c => c.id !== calendarId));
     } catch (err) {
       console.error('Failed to delete calendar:', err);
+      alert('Failed to delete calendar. Please try again.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -126,10 +123,11 @@ function DashboardPage() {
           </div>
 
           {error && (
-            <div className="error-banner">
-              {error}
-              <button onClick={loadUserCalendars}>Retry</button>
-            </div>
+            <ErrorMessage 
+              error={error} 
+              onRetry={loadUserCalendars}
+              onDismiss={() => setError(null)}
+            />
           )}
 
           {loadingCalendars ? (
@@ -161,20 +159,23 @@ function DashboardPage() {
                     <button
                       className="btn btn-primary btn-small"
                       onClick={() => navigate(`/c/${calendar.id}`)}
+                      disabled={deletingId === calendar.id}
                     >
                       View
                     </button>
                     <button
                       className="btn btn-outline btn-small"
                       onClick={() => handleShareCalendar(calendar.id)}
+                      disabled={deletingId === calendar.id}
                     >
                       Share
                     </button>
                     <button
                       className="btn btn-danger btn-small"
                       onClick={() => handleDeleteCalendar(calendar.id)}
+                      disabled={deletingId !== null}
                     >
-                      Delete
+                      {deletingId === calendar.id ? 'Deleting...' : 'Delete'}
                     </button>
                   </div>
                 </div>
@@ -221,6 +222,7 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const nameInputRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -246,25 +248,16 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
     setSubmitting(true);
     try {
       const headers = await getAuthHeaders();
-      const response = await fetch('/.netlify/functions/create-calendar', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          description: formData.description.trim(),
-          startDate: formData.startDate,
-          endDate: formData.endDate
-        })
-      });
-
-      if (response.ok) {
-        onCalendarCreated();
-      } else {
-        const data = await response.json();
-        setError(data.error || `Failed to create calendar (${response.status})`);
-      }
+      const token = headers['Authorization']?.replace('Bearer ', '');
+      await apiPost('/.netlify/functions/create-calendar', {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        startDate: formData.startDate,
+        endDate: formData.endDate
+      }, token);
+      onCalendarCreated();
     } catch (err) {
-      setError('Network error. Please check your connection and try again.');
+      setError(err.message || 'Failed to create calendar. Please try again.');
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -282,26 +275,32 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
       startDate: formatDateInput(today),
       endDate: formatDateInput(threeMonthsLater)
     }));
+    
+    // Focus the first input when modal opens
+    if (nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
   }, []);
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="create-calendar-title">
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>&times;</button>
+        <button className="modal-close" onClick={onClose} aria-label="Close dialog">&times;</button>
 
-        <h2>Create New Calendar</h2>
+        <h2 id="create-calendar-title">Create New Calendar</h2>
         <p className="modal-subtitle">Set up a new group availability calendar</p>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="cal-name">Calendar Name *</label>
             <input
+              ref={nameInputRef}
               id="cal-name"
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
               placeholder="e.g., Summer Trip 2026"
-              autoFocus
+              aria-required="true"
             />
           </div>
 
