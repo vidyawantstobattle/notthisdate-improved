@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -11,7 +11,7 @@ function DatePicker({
 }) {
   const pickerRef = useRef(null);
   const instanceRef = useRef(null);
-  const [selectionState, setSelectionState] = useState('none'); // 'none', 'first', 'complete'
+  const hintRef = useRef(null);
 
   // Memoize the date arrays to prevent unnecessary re-renders
   const selectedDatesRef = useRef(selectedDates);
@@ -35,41 +35,48 @@ function DatePicker({
       instanceRef.current.destroy();
     }
 
-    // Track selection state
+    // Track selection state (NOT React state - direct DOM manipulation)
     let firstSelectedDate = null;
     let firstSelectedElement = null;
 
+    // Helper to update hint text without React re-render
+    const updateHint = (state) => {
+      if (hintRef.current) {
+        if (state === 'first') {
+          hintRef.current.textContent = '👆 Now tap the end date to complete your selection';
+          hintRef.current.classList.add('active');
+        } else {
+          hintRef.current.textContent = 'Tap a date to start, then tap another to select a range';
+          hintRef.current.classList.remove('active');
+        }
+      }
+    };
+
     instanceRef.current = flatpickr(pickerRef.current, {
-      mode: 'multiple', // Changed from 'range' to 'multiple' for better control
+      mode: 'multiple',
       minDate: start,
       maxDate: end,
       dateFormat: 'Y-m-d',
       inline: true,
       showMonths: isMobile ? 1 : 2,
-      static: true, // Prevents auto-flipping behavior
-      disableMobile: false, // Allow mobile-friendly behavior
+      static: true,
+      disableMobile: false,
       locale: {
-        firstDayOfWeek: 0 // Sunday
+        firstDayOfWeek: 0
       },
       onValueUpdate: () => {
         // Prevent default behavior
       },
       onChange: (selectedDateRange, dateStr, instance) => {
-        // Single click/tap: if first date is set and this is a different date, create range
-        // If same date, treat as single day
         if (selectedDateRange.length === 1) {
           const clickedDate = selectedDateRange[0];
 
           if (firstSelectedDate === null) {
-            // First click/tap - store it and show visual feedback
+            // First click - store and show visual feedback
             firstSelectedDate = clickedDate;
+            updateHint('first');
 
-            // Defer React state update to avoid DOM conflicts
-            requestAnimationFrame(() => {
-              setSelectionState('first');
-            });
-
-            // Add visual feedback for mobile - highlight first selected date
+            // Highlight first selected date
             const allDays = instance.calendarContainer.querySelectorAll('.flatpickr-day');
             allDays.forEach(day => {
               day.classList.remove('first-selected');
@@ -79,7 +86,7 @@ function DatePicker({
               }
             });
           } else {
-            // Second click/tap - create range from first to this
+            // Second click - create range
             const rangeStart = firstSelectedDate < clickedDate ? firstSelectedDate : clickedDate;
             const rangeEnd = firstSelectedDate < clickedDate ? clickedDate : firstSelectedDate;
 
@@ -95,20 +102,15 @@ function DatePicker({
 
             // Reset for next selection
             firstSelectedDate = null;
+            updateHint('none');
 
-            // Defer React state updates to avoid DOM conflicts
-            requestAnimationFrame(() => {
-              setSelectionState('complete');
-              setTimeout(() => {
-                if (instanceRef.current) {
-                  instanceRef.current.clear();
-                }
-                setSelectionState('none');
-              }, 50);
-            });
+            setTimeout(() => {
+              if (instanceRef.current) {
+                instanceRef.current.clear();
+              }
+            }, 50);
           }
         } else if (selectedDateRange.length >= 2) {
-          // Handle if multiple dates selected (shouldn't happen but just in case)
           const rangeStart = selectedDateRange[0];
           const rangeEnd = selectedDateRange[selectedDateRange.length - 1];
 
@@ -116,24 +118,19 @@ function DatePicker({
             onDateRangeSelect(rangeStart, rangeEnd);
           }
 
-          // Clear visual feedback
           if (firstSelectedElement) {
             firstSelectedElement.classList.remove('first-selected');
             firstSelectedElement = null;
           }
 
           firstSelectedDate = null;
+          updateHint('none');
 
-          // Defer React state updates to avoid DOM conflicts
-          requestAnimationFrame(() => {
-            setSelectionState('complete');
-            setTimeout(() => {
-              if (instanceRef.current) {
-                instanceRef.current.clear();
-              }
-              setSelectionState('none');
-            }, 50);
-          });
+          setTimeout(() => {
+            if (instanceRef.current) {
+              instanceRef.current.clear();
+            }
+          }, 50);
         }
       },
       onDayCreate: (dObj, dStr, fp, dayElem) => {
@@ -141,7 +138,6 @@ function DatePicker({
         const isSubmitted = submittedDatesRef.current.includes(dateStr);
         const isPending = selectedDatesRef.current.includes(dateStr);
 
-        // Clear any existing custom classes
         dayElem.classList.remove('user-submitted', 'user-pending', 'range-start', 'range-middle', 'range-end', 'range-single', 'first-selected');
 
         if (isSubmitted) {
@@ -158,7 +154,6 @@ function DatePicker({
           }
         }
 
-        // Improve touch targets for mobile
         if (isMobile) {
           dayElem.style.minHeight = '44px';
           dayElem.style.minWidth = '44px';
@@ -183,16 +178,14 @@ function DatePicker({
 
   return (
     <div className="date-picker-wrapper">
-      {selectionState === 'first' && (
-        <div className="date-picker-hint active" role="status" aria-live="polite">
-          👆 Now tap the end date to complete your selection
-        </div>
-      )}
-      {selectionState === 'none' && (
-        <div className="date-picker-hint" role="status">
-          Tap a date to start, then tap another to select a range
-        </div>
-      )}
+      <div
+        ref={hintRef}
+        className="date-picker-hint"
+        role="status"
+        aria-live="polite"
+      >
+        Tap a date to start, then tap another to select a range
+      </div>
       <div
         ref={pickerRef} 
         className="date-picker-container"
