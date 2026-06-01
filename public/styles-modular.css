@@ -1,0 +1,26 @@
+/* ===== NOTTHISDATE - MODULAR STYLES ===== */
+/* Main stylesheet that imports all modular CSS files */
+
+/* 1. Variables - CSS Custom Properties */
+@import './styles/variables.css';
+
+/* 2. Base - Reset, utilities, and base styles */
+@import './styles/base.css';
+
+/* 3. Layout */
+@import './styles/layout/header.css';
+@import './styles/layout/footer.css';
+
+/* 4. Components */
+@import './styles/components/buttons.css';
+@import './styles/components/forms.css';
+@import './styles/components/modals.css';
+@import './styles/components/calendar.css';
+
+/* 5. Pages */
+@import './styles/pages/landing.css';
+@import './styles/pages/dashboard.css';
+
+/* 6. Responsive - Media queries */
+@import './styles/responsive.css';
+
