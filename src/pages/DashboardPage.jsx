@@ -201,9 +201,11 @@ function DashboardPage() {
       {showCreateForm && (
         <CreateCalendarModal
           onClose={() => setShowCreateForm(false)}
-          onCalendarCreated={() => {
+          onCalendarCreated={async () => {
+            setLoadingCalendars(true);
             setShowCreateForm(false);
-            loadUserCalendars();
+            await loadUserCalendars();
+            setLoadingCalendars(false);
           }}
           getAuthHeaders={getAuthHeaders}
         />
@@ -255,7 +257,7 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
         startDate: formData.startDate,
         endDate: formData.endDate
       }, token);
-      onCalendarCreated();
+      await onCalendarCreated();
     } catch (err) {
       setError(err.message || 'Failed to create calendar. Please try again.');
       console.error(err);
@@ -298,9 +300,9 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
               id="cal-name"
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              placeholder="e.g., Summer Trip 2026"
-              aria-required="true"
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
+              required
+              disabled={submitting}
             />
           </div>
 
@@ -377,4 +379,3 @@ function formatDateInput(date) {
 }
 
 export default DashboardPage;
-
