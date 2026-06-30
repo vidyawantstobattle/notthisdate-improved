@@ -110,16 +110,18 @@ function DashboardPage() {
       <main className="dashboard-main">
         <div className="dashboard-container">
           <div className="dashboard-header">
-            <div>
+            <div className="dashboard-header-content">
               <h1>Your Calendars</h1>
               <p className="dashboard-subtitle">Manage your group planning calendars</p>
             </div>
-            <button
-              className="btn btn-primary"
-              onClick={() => setShowCreateForm(true)}
-            >
-              + Create New Calendar
-            </button>
+            <div className="dashboard-actions">
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowCreateForm(true)}
+              >
+                + Create New Calendar
+              </button>
+            </div>
           </div>
 
           {error && (

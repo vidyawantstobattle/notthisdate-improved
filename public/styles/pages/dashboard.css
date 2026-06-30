@@ -1,18 +1,48 @@
 /* ===== DASHBOARD ===== */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
 .dashboard-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+    padding: 1.5rem 2rem;
+    background: var(--bg-white);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
     flex-wrap: wrap;
     gap: 1rem;
 }
 
+.dashboard-header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
 .dashboard-header h1 {
     color: var(--secondary-color);
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.dashboard-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    margin: 0;
+}
+
+.dashboard-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
 }
 
 .calendars-grid {

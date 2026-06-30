@@ -505,8 +505,11 @@ function initTabs() {
 
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
+                content.classList.add('hidden');
             });
-            document.getElementById(`${tabId}-tab`).classList.add('active');
+            const activeTab = document.getElementById(`${tabId}-tab`);
+            activeTab.classList.add('active');
+            activeTab.classList.remove('hidden');
 
             if (tabId === 'view') {
                 loadAllUnavailability();

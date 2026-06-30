@@ -9,8 +9,26 @@
     overflow-x: auto;
     max-width: 100%;
     box-sizing: border-box;
-    padding-right: 8px;
-    padding-left: 8px;
+    padding: 1.5rem 8px 0 8px;
+}
+
+.calendar-header-section .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.calendar-header-section .back-link:hover {
+    background: var(--primary-bg);
+    color: var(--primary-dark);
 }
 
 .calendar-header-section h1 {
@@ -74,13 +92,18 @@
 }
 
 .tab-content {
-    display: none;
+    display: block;
     background: var(--bg-white);
     padding: 2rem;
     border-radius: 0 0 var(--radius) var(--radius);
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
     border-top: none;
+}
+
+/* For non-React usage where CSS controls visibility */
+.tab-content.hidden {
+    display: none;
 }
 
 .tab-content.active {
