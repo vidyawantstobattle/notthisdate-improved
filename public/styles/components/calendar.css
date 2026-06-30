@@ -110,12 +110,189 @@
     display: block;
 }
 
-/* ===== SELECTED DATES ===== */
-.selected-dates-section {
+/* ===== SUBMIT TAB CONTENT ===== */
+.submit-tab-content {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.form-section:last-child {
+    margin-bottom: 0;
+}
+
+/* Form groups within tab */
+.form-group {
     margin-bottom: 1.5rem;
 }
 
-.selected-dates-section h3 {
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.form-group .hint {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Date picker container with padding */
+#date-picker-container {
+    background: var(--bg-primary);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+}
+
+/* Name entry and verification cards */
+.name-entry-card,
+.verification-card {
+    background: var(--bg-primary);
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.name-entry-icon,
+.verification-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.name-entry-card h3,
+.verification-card h3 {
+    color: var(--secondary-color);
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+}
+
+.name-entry-card p,
+.verification-card p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.name-entry-card .form-group,
+.verification-card .form-group {
+    text-align: left;
+}
+
+/* Confirmed name display */
+.confirmed-name-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--primary-bg);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--primary-color);
+}
+
+.confirmed-name {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.change-name-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.25rem;
+    transition: color 0.2s ease;
+}
+
+.change-name-btn:hover {
+    color: var(--primary-color);
+}
+
+/* Verified user info */
+.verified-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+.verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--success-bg);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--success-color);
+}
+
+.verified-icon {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+.verified-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.verified-email {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* ===== DATE PICKER SECTION ===== */
+.date-picker-section {
+    background: var(--bg-primary);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.5rem;
+}
+
+.date-picker-section h3 {
+    color: var(--secondary-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.date-picker-section .form-hint {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+/* ===== SELECTED DATES ===== */
+.selected-dates-section {
+    background: var(--bg-white);
+    padding: 1.25rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+.submitted-dates-section {
+    background: var(--bg-white);
+    padding: 1.25rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+.selected-dates-section h3,
+.submitted-dates-section h3 {
     color: var(--secondary-color);
     margin-bottom: 0.75rem;
     font-size: 1rem;
@@ -165,6 +342,40 @@
     background: var(--success-bg);
     border-radius: var(--radius);
     text-align: center;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.action-buttons .btn {
+    flex: 1;
+    min-width: 150px;
+}
+
+/* ===== STATUS MESSAGE ===== */
+.status-message {
+    padding: 1rem;
+    border-radius: var(--radius);
+    text-align: center;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.status-message.success {
+    background: var(--success-bg);
+    color: var(--success-color);
+    border: 1px solid var(--success-color);
+}
+
+.status-message.error {
+    background: var(--danger-bg);
+    color: var(--danger-color);
+    border: 1px solid var(--danger-color);
 }
 
 /* ===== CALENDAR GRID ===== */
@@ -495,33 +706,121 @@
     width: 100% !important;
 }
 
-/* Date selection legend */
+/* Date picker wrapper (React) */
+.date-picker-wrapper {
+    margin-bottom: 1.5rem;
+}
+
+.date-picker-hint {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.date-picker-inner {
+    width: 100%;
+}
+
+/* Date picker legend (used by both React and vanilla) */
+.date-picker-legend,
 .date-selection-legend {
     display: flex;
     gap: 1.5rem;
     margin-top: 1rem;
     font-size: 0.85rem;
     flex-wrap: wrap;
+    padding: 1rem;
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
 }
 
+.date-picker-legend .legend-item,
 .date-selection-legend .legend-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    color: var(--text-secondary);
 }
 
+.date-picker-legend .legend-color,
 .date-selection-legend .legend-color {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     border-radius: 4px;
+    flex-shrink: 0;
 }
 
+.date-picker-legend .legend-color.pending,
 .date-selection-legend .legend-color.pending {
     background: rgba(223, 27, 65, 0.3);
-    border: 1px solid rgba(223, 27, 65, 0.5);
+    border: 2px solid rgba(223, 27, 65, 0.6);
 }
 
+.date-picker-legend .legend-color.submitted,
 .date-selection-legend .legend-color.submitted {
-    background: var(--danger-color);
+    background: #df1b41;
+    border: 2px solid #df1b41;
+}
+
+/* ===== AVAILABILITY VIEW ===== */
+.availability-view {
+    max-width: 100%;
+}
+
+.availability-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.availability-header h3 {
+    color: var(--secondary-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.availability-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.availability-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+    padding: 1rem 1.5rem;
+    background: var(--bg-primary);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+.availability-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.availability-legend .legend-color {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.availability-months-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+/* View tab content */
+.view-tab-content {
+    padding: 1rem 0;
 }
 

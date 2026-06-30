@@ -94,24 +94,20 @@ function CalendarPage() {
     }
   };
 
-  // Handle adding dates from the date picker
-  const handleDateRangeSelect = (start, end) => {
-    const dates = [];
-    let current = new Date(start);
-    const endDate = new Date(end);
-
-    while (current <= endDate) {
-      const dateStr = formatDateLocal(current);
-      // Only add if not already selected or submitted
-      if (!selectedDates.includes(dateStr) && !submittedDates.includes(dateStr)) {
-        dates.push(dateStr);
-      }
-      current.setDate(current.getDate() + 1);
+  // Handle single date selection (toggle on/off)
+  const handleDateSelect = (dateStr) => {
+    // Don't allow selecting already submitted dates
+    if (submittedDates.includes(dateStr)) {
+      return;
     }
 
-    if (dates.length > 0) {
-      // Append to existing selections (allows multiple selections)
-      setSelectedDates(prev => [...new Set([...prev, ...dates])].sort());
+    // Toggle the date
+    if (selectedDates.includes(dateStr)) {
+      // Remove if already selected
+      setSelectedDates(prev => prev.filter(d => d !== dateStr));
+    } else {
+      // Add if not selected
+      setSelectedDates(prev => [...prev, dateStr].sort());
     }
   };
 
@@ -301,13 +297,13 @@ function CalendarPage() {
                     <>
                       <div className="date-picker-section">
                         <h3>Select dates you're NOT available</h3>
-                        <p className="form-hint">Click or drag to select date ranges. You can select multiple ranges.</p>
+                        <p className="form-hint">Click on dates to select/deselect them. Click multiple dates to mark them all as unavailable.</p>
                         <DatePicker
                           startDate={calendar.startDate}
                           endDate={calendar.endDate}
                           selectedDates={selectedDates}
                           submittedDates={submittedDates}
-                          onDateRangeSelect={handleDateRangeSelect}
+                          onDateSelect={handleDateSelect}
                         />
                       </div>
 

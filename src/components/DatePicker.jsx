@@ -7,11 +7,10 @@ function DatePicker({
   endDate,
   selectedDates = [],
   submittedDates = [],
-  onDateRangeSelect
+  onDateSelect // Changed from onDateRangeSelect to onDateSelect
 }) {
   const pickerRef = useRef(null);
   const instanceRef = useRef(null);
-  const hintRef = useRef(null);
 
   // Memoize the date arrays to prevent unnecessary re-renders
   const selectedDatesRef = useRef(selectedDates);
@@ -35,23 +34,6 @@ function DatePicker({
       instanceRef.current.destroy();
     }
 
-    // Track selection state (NOT React state - direct DOM manipulation)
-    let firstSelectedDate = null;
-    let firstSelectedElement = null;
-
-    // Helper to update hint text without React re-render
-    const updateHint = (state) => {
-      if (hintRef.current) {
-        if (state === 'first') {
-          hintRef.current.textContent = '👆 Tap another date for a range, or tap same date again for single day';
-          hintRef.current.classList.add('active');
-        } else {
-          hintRef.current.textContent = 'Tap a date to select it (tap twice for single day, or tap two dates for a range)';
-          hintRef.current.classList.remove('active');
-        }
-      }
-    };
-
     instanceRef.current = flatpickr(pickerRef.current, {
       mode: 'multiple',
       minDate: start,
@@ -64,107 +46,32 @@ function DatePicker({
       locale: {
         firstDayOfWeek: 0
       },
-      onValueUpdate: () => {
-        // Prevent default behavior
-      },
-      onChange: (selectedDateRange, dateStr, instance) => {
-        if (selectedDateRange.length === 0) {
-          // Date was deselected (clicked same date twice in multiple mode)
-          // If we had a first selection, treat this as selecting that single date
-          if (firstSelectedDate !== null) {
-            if (onDateRangeSelect) {
-              onDateRangeSelect(firstSelectedDate, firstSelectedDate);
-            }
+      onChange: (selectedDateArray) => {
+        // Get the last selected date (most recent click)
+        if (selectedDateArray.length > 0) {
+          const lastDate = selectedDateArray[selectedDateArray.length - 1];
+          const dateStr = formatDateLocal(lastDate);
 
-            // Clear visual feedback
-            if (firstSelectedElement) {
-              firstSelectedElement.classList.remove('first-selected');
-              firstSelectedElement = null;
-            }
-
-            firstSelectedDate = null;
-            updateHint('none');
-
-            setTimeout(() => {
-              if (instanceRef.current) {
-                instanceRef.current.clear();
-              }
-            }, 50);
+          // Call parent handler with the clicked date
+          if (onDateSelect) {
+            onDateSelect(dateStr);
           }
-          return;
         }
 
-        if (selectedDateRange.length === 1) {
-          const clickedDate = selectedDateRange[0];
-
-          if (firstSelectedDate === null) {
-            // First click - store and show visual feedback
-            firstSelectedDate = clickedDate;
-            updateHint('first');
-
-            // Highlight first selected date
-            const allDays = instance.calendarContainer.querySelectorAll('.flatpickr-day');
-            allDays.forEach(day => {
-              day.classList.remove('first-selected');
-              if (day.dateObj && day.dateObj.getTime() === clickedDate.getTime()) {
-                day.classList.add('first-selected');
-                firstSelectedElement = day;
-              }
-            });
-          } else {
-            // Second click - create range (could be same date for single day)
-            const rangeStart = firstSelectedDate < clickedDate ? firstSelectedDate : clickedDate;
-            const rangeEnd = firstSelectedDate < clickedDate ? clickedDate : firstSelectedDate;
-
-            if (onDateRangeSelect) {
-              onDateRangeSelect(rangeStart, rangeEnd);
-            }
-
-            // Clear visual feedback
-            if (firstSelectedElement) {
-              firstSelectedElement.classList.remove('first-selected');
-              firstSelectedElement = null;
-            }
-
-            // Reset for next selection
-            firstSelectedDate = null;
-            updateHint('none');
-
-            setTimeout(() => {
-              if (instanceRef.current) {
-                instanceRef.current.clear();
-              }
-            }, 50);
+        // Clear flatpickr's internal selection to allow re-clicking
+        setTimeout(() => {
+          if (instanceRef.current) {
+            instanceRef.current.clear();
+            instanceRef.current.redraw();
           }
-        } else if (selectedDateRange.length >= 2) {
-          const rangeStart = selectedDateRange[0];
-          const rangeEnd = selectedDateRange[selectedDateRange.length - 1];
-
-          if (onDateRangeSelect) {
-            onDateRangeSelect(rangeStart, rangeEnd);
-          }
-
-          if (firstSelectedElement) {
-            firstSelectedElement.classList.remove('first-selected');
-            firstSelectedElement = null;
-          }
-
-          firstSelectedDate = null;
-          updateHint('none');
-
-          setTimeout(() => {
-            if (instanceRef.current) {
-              instanceRef.current.clear();
-            }
-          }, 50);
-        }
+        }, 10);
       },
       onDayCreate: (dObj, dStr, fp, dayElem) => {
         const dateStr = formatDateLocal(dayElem.dateObj);
         const isSubmitted = submittedDatesRef.current.includes(dateStr);
         const isPending = selectedDatesRef.current.includes(dateStr);
 
-        dayElem.classList.remove('user-submitted', 'user-pending', 'range-start', 'range-middle', 'range-end', 'range-single', 'first-selected');
+        dayElem.classList.remove('user-submitted', 'user-pending', 'range-start', 'range-middle', 'range-end', 'range-single');
 
         if (isSubmitted) {
           dayElem.classList.add('user-submitted');
@@ -193,7 +100,7 @@ function DatePicker({
         instanceRef.current = null;
       }
     };
-  }, [startDate, endDate, onDateRangeSelect]);
+  }, [startDate, endDate, onDateSelect]);
 
   // Redraw when dates change to update highlighting
   useEffect(() => {
@@ -204,20 +111,17 @@ function DatePicker({
 
   return (
     <div className="date-picker-wrapper">
-      <div
-        ref={hintRef}
-        className="date-picker-hint"
-        role="status"
-        aria-live="polite"
-      >
-        Tap a date to select it (tap twice for single day, or tap two dates for a range)
+      <p className="date-picker-hint">
+        Click on dates to select/deselect them
+      </p>
+      <div id="date-picker-container">
+        <div
+          ref={pickerRef}
+          className="date-picker-inner"
+          role="application"
+          aria-label="Date picker for selecting unavailable dates"
+        ></div>
       </div>
-      <div
-        ref={pickerRef} 
-        className="date-picker-container"
-        role="application"
-        aria-label="Date picker for selecting unavailable dates"
-      ></div>
       <div className="date-picker-legend" role="region" aria-label="Date picker legend">
         <span className="legend-item">
           <span className="legend-color pending" aria-hidden="true"></span>

@@ -525,27 +525,35 @@ function initDatePicker() {
     const isMobile = window.innerWidth <= 600;
 
     flatpickrInstance = flatpickr('#date-picker', {
-        mode: 'range',
+        mode: 'multiple',
         minDate: startDate,
         maxDate: endDate,
         dateFormat: 'Y-m-d',
         inline: true,
         showMonths: isMobile ? 1 : 2,
-        onChange: (selectedDateRange) => {
-            if (selectedDateRange.length === 2 || selectedDateRange.length === 1) {
-                const currentMonth = flatpickrInstance.currentMonth;
-                const currentYear = flatpickrInstance.currentYear;
+        onChange: (selectedDateArray) => {
+            // Get the last selected date (most recent click)
+            if (selectedDateArray.length > 0) {
+                const lastDate = selectedDateArray[selectedDateArray.length - 1];
+                const dateStr = formatDateLocal(lastDate);
 
-                const start = selectedDateRange[0];
-                const end = selectedDateRange.length === 2 ? selectedDateRange[1] : selectedDateRange[0];
-                addDateRange(start, end);
-                flatpickrInstance.clear();
-
-                if (isMobile) {
-                    flatpickrInstance.changeMonth(currentMonth, false);
-                    flatpickrInstance.changeYear(currentYear);
+                // Toggle date selection
+                if (selectedDates.includes(dateStr)) {
+                    // Remove if already in our list
+                    selectedDates = selectedDates.filter(d => d !== dateStr);
+                } else if (!userSubmittedDates.includes(dateStr)) {
+                    // Add if not already submitted
+                    selectedDates.push(dateStr);
                 }
+
+                selectedDates.sort();
+                updateSelectedDatesUI();
+                updateSubmitButton();
             }
+
+            // Clear flatpickr's internal selection to allow re-clicking
+            flatpickrInstance.clear();
+            refreshDatePicker();
         },
         onDayCreate: (dObj, dStr, fp, dayElem) => {
             const dateStr = formatDateLocal(dayElem.dateObj);
