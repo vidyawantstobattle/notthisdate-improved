@@ -225,6 +225,55 @@
         margin-bottom: 0.75rem;
     }
 
+    /* Availability View Mobile */
+    .availability-months-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .av-month-calendar {
+        padding: 1rem;
+    }
+
+    .av-month-name {
+        font-size: 1rem;
+    }
+
+    .av-calendar-grid {
+        gap: 3px;
+    }
+
+    .av-calendar-day {
+        min-height: 36px;
+        font-size: 0.8rem;
+    }
+
+    .av-weekday-header {
+        font-size: 0.65rem;
+        padding: 0.35rem 0;
+    }
+
+    .av-calendar-day .unavailable-badge {
+        font-size: 0.55rem;
+        padding: 1px 3px;
+    }
+
+    .availability-legend {
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .availability-legend .legend-item {
+        font-size: 0.8rem;
+    }
+
+    .availability-legend .legend-color {
+        width: 20px;
+        height: 20px;
+    }
+
     /* Date Details Mobile */
     #date-details {
         padding: 1rem;
