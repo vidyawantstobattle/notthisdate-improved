@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import { apiGet, apiPost, apiDelete } from '../utils/apiClient';
 import ErrorMessage from '../components/ErrorMessage';
-import LoadingOverlay from '../components/LoadingOverlay';
 
 function DashboardPage() {
   const { user, loading, logout, getAuthHeaders } = useAuth();

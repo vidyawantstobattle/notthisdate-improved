@@ -316,17 +316,27 @@
     font-size: 0.85rem;
 }
 
+.date-tag .remove-btn,
 .date-tag-remove {
     background: none;
     border: none;
     cursor: pointer;
     color: var(--danger-color);
-    font-size: 1rem;
+    font-size: 1.1rem;
     line-height: 1;
     padding: 0;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
+.date-tag .remove-btn:hover,
 .date-tag-remove:hover {
+    background: rgba(223, 27, 65, 0.2);
     color: var(--text-primary);
 }
 

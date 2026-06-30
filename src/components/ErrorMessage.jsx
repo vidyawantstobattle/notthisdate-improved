@@ -18,7 +18,7 @@ function ErrorMessage({ error, onRetry, onDismiss, context = '' }) {
       <div className="error-actions">
         {errorInfo.action === 'Retry' && onRetry && (
           <button 
-            className="btn btn-primary btn-sm" 
+            className="btn btn-primary btn-small"
             onClick={onRetry}
             aria-label="Retry the failed operation"
           >
@@ -27,7 +27,7 @@ function ErrorMessage({ error, onRetry, onDismiss, context = '' }) {
         )}
         {onDismiss && (
           <button 
-            className="btn btn-secondary btn-sm" 
+            className="btn btn-outline btn-small"
             onClick={onDismiss}
             aria-label="Dismiss this error message"
           >

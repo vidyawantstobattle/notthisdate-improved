@@ -17,13 +17,17 @@ function DateRangeDisplay({ dates, onRemoveRange }) {
         return (
           <span key={index} className="date-tag">
             {displayText}
-            <span
-              className="remove-btn"
-              onClick={() => onRemoveRange && onRemoveRange(range)}
-              title="Remove this date range"
-            >
-              &times;
-            </span>
+            {onRemoveRange && (
+              <button
+                type="button"
+                className="remove-btn"
+                onClick={() => onRemoveRange(range)}
+                title="Remove this date range"
+                aria-label={`Remove ${displayText}`}
+              >
+                &times;
+              </button>
+            )}
           </span>
         );
       })}

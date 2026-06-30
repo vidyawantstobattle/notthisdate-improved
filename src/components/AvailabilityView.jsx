@@ -27,13 +27,6 @@ function AvailabilityView({ calendar, allUnavailability }) {
     ? calendar.participants?.length || 1
     : Math.max(allParticipants.length, 1);
 
-  console.log('AvailabilityView Debug:', {
-    calendarParticipants: calendar.participants,
-    participantsType: calendar.participantsType,
-    allUnavailability,
-    allParticipants,
-    totalPeople
-  });
 
   return (
     <div className="availability-view">
