@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "netlify-dev": "netlify dev",
     "serve": "npx serve public -l 8888",
-    "start": "cd public && python3 -m http.server 8888",
+    "start": "python3 scripts/local-dev-server.py --port 8888",
+    "start:plain": "cd public && python3 -m http.server 8888",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"

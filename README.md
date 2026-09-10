@@ -52,7 +52,8 @@ A reverse-availability trip planner for coordinating group events. Instead of ma
 
 | Command | Description |
 |---------|-------------|
-| `npm start` | Start local server (Python http.server) |
+| `npm start` | Start local server with `/c/:calendarId` route rewrite support |
+| `npm run start:plain` | Start plain Python http.server (no route rewrites) |
 | `npm run dev` | Start with Netlify CLI (if installed) |
 | `npm test` | Run all tests |
 | `npm run test:watch` | Run tests in watch mode |

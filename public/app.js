@@ -7,20 +7,11 @@ const PROD_SITE_URL = 'https://reverse-date-picker.netlify.app';
 async function fetchFunction(path, options = {}) {
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-    if (!isLocalhost) {
-        return fetch(path, options);
+    if (isLocalhost) {
+        return fetch(`${PROD_SITE_URL}${path}`, options);
     }
 
-    try {
-        const localResponse = await fetch(path, options);
-        if (localResponse.status !== 404) {
-            return localResponse;
-        }
-    } catch (error) {
-        // Fall back to production function endpoint when local routing is unavailable.
-    }
-
-    return fetch(`${PROD_SITE_URL}${path}`, options);
+    return fetch(path, options);
 }
 
 // ===== TAGS INPUT CLASS =====
@@ -420,7 +411,12 @@ async function loadUserCalendars() {
     const calendarsList = document.getElementById('calendars-list');
     const noCalendars = document.getElementById('no-calendars');
 
-    calendarsList.innerHTML = '<div class="loading-spinner">Loading your calendars...</div>';
+    calendarsList.innerHTML = `
+        <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p class="loading-message">Loading your calendars...</p>
+        </div>
+    `;
     noCalendars.classList.add('hidden');
 
     try {

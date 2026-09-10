@@ -20,10 +20,20 @@
     color: white;
 }
 
+.btn-primary:visited {
+    color: white;
+}
+
 .btn-primary:hover:not(:disabled) {
     background: var(--primary-dark);
+    color: white;
     transform: translateY(-1px);
     box-shadow: var(--shadow);
+}
+
+.btn-primary:focus,
+.btn-primary:active {
+    color: white;
 }
 
 .btn-secondary {

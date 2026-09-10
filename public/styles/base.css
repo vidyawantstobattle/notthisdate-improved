@@ -21,6 +21,20 @@ body {
     min-height: 100vh;
 }
 
+.app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
 a {
     color: var(--primary-color);
     text-decoration: none;
