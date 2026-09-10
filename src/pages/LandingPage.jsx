@@ -80,17 +80,17 @@ function LandingPage() {
         <h2>Why NotThisDate?</h2>
         <div className="features-grid">
           <div className="feature-card">
-            <div className="feature-icon icon-swap" aria-hidden="true"></div>
+            <div className="feature-icon">🚫</div>
             <h3>Reverse Logic</h3>
             <p>Mark when you're NOT available instead of when you are. Faster and more intuitive.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon icon-dot" aria-hidden="true"></div>
+            <div className="feature-icon">📊</div>
             <h3>Visual Results</h3>
             <p>See at a glance which dates work for everyone with color-coded availability.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon icon-share" aria-hidden="true"></div>
+            <div className="feature-icon">🔗</div>
             <h3>Easy Sharing</h3>
             <p>Share a simple link. No signups required for participants to submit dates.</p>
           </div>
