@@ -2,6 +2,26 @@
 const netlifyIdentity = window.netlifyIdentity;
 let currentUser = null;
 let participantsTagsInput = null;
+const PROD_SITE_URL = 'https://reverse-date-picker.netlify.app';
+
+async function fetchFunction(path, options = {}) {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    if (!isLocalhost) {
+        return fetch(path, options);
+    }
+
+    try {
+        const localResponse = await fetch(path, options);
+        if (localResponse.status !== 404) {
+            return localResponse;
+        }
+    } catch (error) {
+        // Fall back to production function endpoint when local routing is unavailable.
+    }
+
+    return fetch(`${PROD_SITE_URL}${path}`, options);
+}
 
 // ===== TAGS INPUT CLASS =====
 class TagsInput {
@@ -405,7 +425,7 @@ async function loadUserCalendars() {
 
     try {
         const headers = await getAuthHeaders();
-        const response = await fetch('/.netlify/functions/get-calendars', { headers });
+        const response = await fetchFunction('/.netlify/functions/get-calendars', { headers });
 
         if (!response.ok) throw new Error('Failed to load calendars');
 
@@ -514,7 +534,7 @@ async function handleCreateCalendar(e) {
 
     try {
         const headers = await getAuthHeaders();
-        const response = await fetch('/.netlify/functions/create-calendar', {
+        const response = await fetchFunction('/.netlify/functions/create-calendar', {
             method: 'POST',
             headers,
             body: JSON.stringify({
@@ -621,7 +641,7 @@ async function deleteCalendar(calendarId) {
 
     try {
         const headers = await getAuthHeaders();
-        const response = await fetch(`/.netlify/functions/delete-calendar?id=${calendarId}`, {
+        const response = await fetchFunction(`/.netlify/functions/delete-calendar?id=${calendarId}`, {
             method: 'DELETE',
             headers
         });

@@ -8,6 +8,26 @@ let userSubmittedDates = [];
 let flatpickrInstance = null;
 let allUnavailability = {};
 let currentParticipant = '';
+const PROD_SITE_URL = 'https://reverse-date-picker.netlify.app';
+
+async function fetchFunction(path, options = {}) {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    if (!isLocalhost) {
+        return fetch(path, options);
+    }
+
+    try {
+        const localResponse = await fetch(path, options);
+        if (localResponse.status !== 404) {
+            return localResponse;
+        }
+    } catch (error) {
+        // Fall back to production function endpoint when local routing is unavailable.
+    }
+
+    return fetch(`${PROD_SITE_URL}${path}`, options);
+}
 
 // Get calendar ID from URL
 function getCalendarId() {
@@ -42,7 +62,7 @@ async function loadCalendar(calendarId) {
     console.log('Loading calendar with ID:', calendarId);
 
     try {
-        const response = await fetch(`/.netlify/functions/get-calendar?id=${calendarId}`);
+        const response = await fetchFunction(`/.netlify/functions/get-calendar?id=${calendarId}`);
         console.log('Response status:', response.status);
 
         if (!response.ok) {
@@ -733,7 +753,7 @@ async function submitUnavailability() {
     const submittedDates = [...selectedDates];
 
     try {
-        const response = await fetch(`/.netlify/functions/submit-unavailability?calendarId=${encodeURIComponent(calendarId)}`, {
+        const response = await fetchFunction(`/.netlify/functions/submit-unavailability?calendarId=${encodeURIComponent(calendarId)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -814,7 +834,7 @@ async function resetUserDates() {
     resetBtn.textContent = 'Resetting...';
 
     try {
-        const response = await fetch(`/.netlify/functions/reset-unavailability?calendarId=${encodeURIComponent(calendarId)}&participant=${encodeURIComponent(currentParticipant)}`, {
+        const response = await fetchFunction(`/.netlify/functions/reset-unavailability?calendarId=${encodeURIComponent(calendarId)}&participant=${encodeURIComponent(currentParticipant)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -859,7 +879,7 @@ async function loadUserSubmissions() {
     }
 
     try {
-        const response = await fetch(`/.netlify/functions/get-user-submissions?calendarId=${calendarData.id}&participant=${encodeURIComponent(currentParticipant)}`);
+        const response = await fetchFunction(`/.netlify/functions/get-user-submissions?calendarId=${calendarData.id}&participant=${encodeURIComponent(currentParticipant)}`);
         const data = await response.json();
 
         userSubmittedDates = [];
@@ -910,7 +930,7 @@ async function loadUserSubmissions() {
 // Load all unavailability
 async function loadAllUnavailability() {
     try {
-        const response = await fetch(`/.netlify/functions/get-unavailability?calendarId=${calendarData.id}`);
+        const response = await fetchFunction(`/.netlify/functions/get-unavailability?calendarId=${calendarData.id}`);
         const data = await response.json();
 
         // Transform from participant-based to date-based structure

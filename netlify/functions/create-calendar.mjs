@@ -10,7 +10,7 @@ export default async (request, context) => {
     };
 
     if (request.method === 'OPTIONS') {
-        return new Response('', { status: 204, headers });
+        return new Response(null, { status: 204, headers });
     }
 
     if (request.method !== 'POST') {

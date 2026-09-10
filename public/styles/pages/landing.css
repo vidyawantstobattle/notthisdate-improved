@@ -185,18 +185,6 @@
     --icon-mask: url('/images/swap_outline.svg');
 }
 
-.icon-settings {
-    --icon-mask: url('/images/setting_outline.svg');
-    --icon-accent: var(--secondary-color);
-    --icon-bg: var(--bg-primary);
-}
-
-.icon-star {
-    --icon-mask: url('/images/star_outline.svg');
-    --icon-accent: var(--warning-color);
-    --icon-bg: #fff7e8;
-}
-
 .icon-happy {
     --icon-mask: url('/images/Smileys_Happy_Outline.svg');
     --icon-accent: var(--success-color);
@@ -285,6 +273,66 @@
 }
 
 .benefit-card p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.65;
+}
+
+/* ===== USE CASES SECTION ===== */
+.use-cases-section {
+    padding: 4rem 1rem;
+}
+
+.use-cases-section h2 {
+    text-align: center;
+    font-size: 1.75rem;
+    color: var(--secondary-color);
+    margin-bottom: 3rem;
+    letter-spacing: -0.01em;
+}
+
+.use-cases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.use-case {
+    background: var(--bg-white);
+    padding: 1.75rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    transition: all 0.15s ease;
+}
+
+.use-case:hover {
+    box-shadow: var(--shadow);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.use-case-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1rem;
+    border-radius: 50%;
+    background: var(--primary-bg);
+    font-size: 1.25rem;
+}
+
+.use-case h3 {
+    color: var(--secondary-color);
+    margin-bottom: 0.75rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.use-case p {
     color: var(--text-secondary);
     font-size: 0.95rem;
     line-height: 1.65;
