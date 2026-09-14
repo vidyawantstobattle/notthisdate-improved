@@ -362,19 +362,16 @@ function setupEventListeners() {
 // Set default dates for the form
 function setDefaultDates() {
     const today = new Date();
-    const nextMonth = new Date(today);
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-    const endDate = new Date(today);
-    endDate.setMonth(endDate.getMonth() + 2);
+    const oneMonthLater = new Date(today);
+    oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
 
     const formatDate = (date) => date.toISOString().split('T')[0];
 
     const startInput = document.getElementById('start-date');
     const endInput = document.getElementById('end-date');
 
-    if (startInput) startInput.value = formatDate(nextMonth);
-    if (endInput) endInput.value = formatDate(endDate);
+    if (startInput) startInput.value = formatDate(today);
+    if (endInput) endInput.value = formatDate(oneMonthLater);
 
     // Set min date to today
     if (startInput) startInput.min = formatDate(today);
@@ -457,8 +454,8 @@ function renderCalendars(calendars) {
 
         return `
             <div class="calendar-card">
-                <h3>${escapeHtml(cal.name)}</h3>
-                ${cal.description ? `<p class="calendar-card-description">${escapeHtml(cal.description)}</p>` : ''}
+                <h3 title="${escapeHtml(cal.name)}">${escapeHtml(cal.name)}</h3>
+                ${cal.description ? `<p class="calendar-card-description" title="${escapeHtml(cal.description)}">${escapeHtml(cal.description)}</p>` : ''}
                 <div class="calendar-card-meta">
                     <span>📅 ${dateRange}</span>
                     <span>👥 ${participantsText}</span>
