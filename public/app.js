@@ -455,7 +455,7 @@ function renderCalendars(calendars) {
         return `
             <div class="calendar-card">
                 <h3 title="${escapeHtml(cal.name)}">${escapeHtml(cal.name)}</h3>
-                ${cal.description ? `<p class="calendar-card-description" title="${escapeHtml(cal.description)}">${escapeHtml(cal.description)}</p>` : ''}
+                <p class="calendar-card-description" title="${escapeHtml(cal.description || '')}">${escapeHtml(cal.description || '')}</p>
                 <div class="calendar-card-meta">
                     <span>📅 ${dateRange}</span>
                     <span>👥 ${participantsText}</span>
