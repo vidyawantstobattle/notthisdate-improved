@@ -68,6 +68,45 @@
     border-color: var(--primary-color);
 }
 
+.calendar-card-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.calendar-card-heading h3 {
+    flex: 1;
+    min-width: 0;
+}
+
+.calendar-card-edit-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.calendar-card-edit-btn:hover {
+    opacity: 1;
+    background: var(--primary-bg);
+    border-color: var(--primary-color);
+}
+
+.calendar-card-edit-btn img {
+    width: 16px;
+    height: 16px;
+}
+
 .calendar-card h3 {
     color: var(--secondary-color);
     margin-bottom: 0.5rem;

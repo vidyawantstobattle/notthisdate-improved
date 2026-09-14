@@ -38,7 +38,7 @@ export default async (request, context) => {
         });
 
         try {
-            const calendar = await calendarStore.get(calendarId, { type: 'json' });
+            const calendar = await calendarStore.get(calendarId, { type: 'json', consistency: 'strong' });
             if (!calendar) {
                 return new Response(JSON.stringify({ error: 'Calendar not found' }), { status: 404, headers });
             }

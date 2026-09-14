@@ -305,6 +305,16 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="blocked-date-input" data-i18n="dashboard.createModal.blockedDatesLabel">Blocked dates (optional)</label>
+                            <div class="blocked-dates-input-row">
+                                <input type="date" id="blocked-date-input">
+                                <button type="button" id="add-blocked-date-btn" class="btn btn-outline btn-small" data-i18n="dashboard.createModal.addBlockedDate">Add</button>
+                            </div>
+                            <div id="blocked-dates-list" class="blocked-dates-list"></div>
+                            <p class="form-hint" data-i18n="dashboard.createModal.blockedDatesHint">Dates nobody can pick — they're shown as unavailable for everyone.</p>
+                        </div>
+
+                        <div class="form-group">
                             <label data-i18n="dashboard.createModal.participantsLabel">Participants</label>
                             <div class="participants-options">
                                 <label class="radio-option">
@@ -380,6 +390,27 @@
                     <div class="modal-footer">
                         <button class="btn btn-outline" data-close-confirm data-i18n="common.cancel">Cancel</button>
                         <button id="confirm-modal-confirm-btn" class="btn btn-secondary" data-i18n="common.delete">Delete</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Participants Modal -->
+            <div id="edit-participants-modal" class="modal hidden">
+                <div class="modal-backdrop" data-close-participants></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 data-i18n="dashboard.editParticipants.title">Edit Participants</h2>
+                        <button class="modal-close" data-close-participants>&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="form-hint" data-i18n="dashboard.editParticipants.desc">Add or remove people who can submit dates for this calendar.</p>
+                        <div id="edit-participants-tags"></div>
+                        <p class="form-hint" data-i18n="dashboard.editParticipants.warning">Removing someone also deletes the dates they already submitted.</p>
+                        <div id="edit-participants-error" class="status-message error hidden"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" data-close-participants data-i18n="common.cancel">Cancel</button>
+                        <button id="save-participants-btn" class="btn btn-primary" data-i18n="common.save">Save</button>
                     </div>
                 </div>
             </div>

@@ -10,6 +10,7 @@
     "dashboard.card.open": "Open",
     "dashboard.card.shareLink": "Share Link",
     "dashboard.card.delete": "Delete",
+    "dashboard.card.editParticipants": "Edit participants",
     "dashboard.card.joined": "{count} joined",
     "dashboard.card.submitted": "{submitted}/{total} submitted",
     "dashboard.card.openEnded": "Open-ended",
@@ -32,6 +33,11 @@
     "dashboard.createModal.openEnded": "Open-ended (next 6 months)",
     "dashboard.createModal.startDate": "Start Date",
     "dashboard.createModal.endDate": "End Date",
+    "dashboard.createModal.blockedDatesLabel": "Blocked dates (optional)",
+    "dashboard.createModal.addBlockedDate": "Add",
+    "dashboard.createModal.blockedDatesHint": "Dates nobody can pick — they're shown as unavailable for everyone.",
+    "dashboard.createModal.removeBlockedDate": "Remove {date}",
+    "dashboard.createModal.errorBlockedOutOfRange": "Blocked dates must fall inside the calendar's date range.",
     "dashboard.createModal.participantsLabel": "Participants",
     "dashboard.createModal.specificPeople": "Specific people",
     "dashboard.createModal.anyoneWithLink": "Anyone with the link",
@@ -57,5 +63,12 @@
     "dashboard.shareModal.openAccessTitle": "🔗 Open Access",
     "dashboard.shareModal.openAccessDesc": "Anyone with this link can join and submit their unavailable dates. They just need to enter their name - no email verification required.",
     "dashboard.shareModal.definedTitle": "👥 Invite Your Participants",
-    "dashboard.shareModal.definedDesc": "Share this link with: <strong>{names}</strong>. They'll select their name from a dropdown to submit their unavailable dates - no account needed!"
+    "dashboard.shareModal.definedDesc": "Share this link with: <strong>{names}</strong>. They'll select their name from a dropdown to submit their unavailable dates - no account needed!",
+
+    "dashboard.editParticipants.title": "Edit Participants",
+    "dashboard.editParticipants.desc": "Add or remove people who can submit dates for this calendar.",
+    "dashboard.editParticipants.warning": "Removing someone also deletes the dates they already submitted.",
+    "dashboard.editParticipants.errorEmpty": "Add at least one participant.",
+    "dashboard.editParticipants.saved": "Participants updated.",
+    "dashboard.editParticipants.saveFailed": "Could not update participants. Please try again."
 }

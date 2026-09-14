@@ -40,7 +40,7 @@ export default async (request, context) => {
 
     try {
         const body = await request.json();
-        const { name, description, dateRangeType, startDate, endDate, participantsType, participants, requireEmailVerification } = body;
+        const { name, description, dateRangeType, startDate, endDate, participantsType, participants, requireEmailVerification, blockedDates } = body;
 
         if (!name || !name.trim()) {
             return new Response(JSON.stringify({ error: 'Calendar name is required' }), { status: 400, headers });
@@ -54,7 +54,9 @@ export default async (request, context) => {
 
         let userCalendars = [];
         try {
-            const existing = await userStore.get(userId, { type: 'json' });
+            // Strong consistency: an eventually-consistent read here can return a list that
+            // still contains just-deleted calendars, which would resurrect them on write.
+            const existing = await userStore.get(userId, { type: 'json', consistency: 'strong' });
             if (existing) userCalendars = existing;
         } catch (e) {
             console.log(`No existing calendars for user ${userId}`);
@@ -71,6 +73,13 @@ export default async (request, context) => {
         // Generate unique calendar ID
         const calendarId = randomUUID().split('-')[0] + randomUUID().split('-')[1];
 
+        const safeBlockedDates = Array.isArray(blockedDates)
+            ? Array.from(new Set(
+                blockedDates.filter(d => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)
+                    && (!startDate || d >= startDate) && (!endDate || d <= endDate))
+            )).sort()
+            : [];
+
         const calendar = {
             id: calendarId,
             name: name.trim(),
@@ -80,6 +89,7 @@ export default async (request, context) => {
             endDate,
             participantsType,
             participants: participants || [],
+            blockedDates: safeBlockedDates,
             requireEmailVerification: participantsType === 'open' ? (requireEmailVerification || false) : false,
             ownerId: userId,
             ownerEmail: userEmail,

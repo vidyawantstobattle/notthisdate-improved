@@ -46,19 +46,29 @@ export default async (request, context) => {
 
         let userCalendarRefs = [];
         try {
-            const existing = await userStore.get(userId, { type: 'json' });
+            const existing = await userStore.get(userId, { type: 'json', consistency: 'strong' });
             if (existing) userCalendarRefs = existing;
         } catch (e) {}
 
         const calendars = [];
+        const liveRefs = [];
         for (const ref of userCalendarRefs) {
             try {
-                const cal = await calendarStore.get(ref.id, { type: 'json' });
+                const cal = await calendarStore.get(ref.id, { type: 'json', consistency: 'strong' });
                 if (cal) {
                     const { unavailability, participantSubmissions, ...calendarInfo } = cal;
                     calendarInfo.submittedParticipantsCount = unavailability ? Object.keys(unavailability).length : 0;
                     calendars.push(calendarInfo);
+                    liveRefs.push(ref);
                 }
+            } catch (e) {}
+        }
+
+        // Self-heal: drop references to calendars that no longer exist so a previously
+        // corrupted index doesn't keep showing deleted calendars.
+        if (liveRefs.length !== userCalendarRefs.length) {
+            try {
+                await userStore.setJSON(userId, liveRefs);
             } catch (e) {}
         }
 

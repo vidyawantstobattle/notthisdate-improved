@@ -118,6 +118,62 @@
     font-size: 0.85rem;
 }
 
+/* ===== BLOCKED DATES INPUT ===== */
+.blocked-dates-input-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.blocked-dates-input-row input[type="date"] {
+    flex: 1;
+    min-width: 0;
+}
+
+.blocked-dates-input-row .btn {
+    flex-shrink: 0;
+}
+
+.blocked-dates-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+
+.blocked-dates-list:empty {
+    margin-top: 0;
+}
+
+.blocked-date-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+}
+
+.blocked-date-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s ease;
+}
+
+.blocked-date-remove:hover {
+    color: var(--danger-color);
+}
+
 .form-actions {
     display: flex;
     gap: 1rem;
@@ -293,23 +349,65 @@
     font-size: 0.95rem;
 }
 
+.participant-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.participant-select-wrapper::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    width: 12px;
+    height: 8px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    background: var(--primary-color);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transition: transform 0.15s ease;
+}
+
+.participant-select-wrapper:focus-within::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+
 .participant-select {
     width: 100%;
-    padding: 0.75rem 1rem;
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0.85rem 2.75rem 0.85rem 1rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     font-size: 1rem;
+    font-weight: 500;
     font-family: var(--font-family);
     color: var(--text-primary);
-    background: var(--bg-white);
+    background: linear-gradient(180deg, var(--color-white) 0%, var(--bg-primary) 100%);
+    box-shadow: var(--shadow-sm);
     cursor: pointer;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.participant-select:hover {
+    border-color: var(--primary-color);
+}
+
+/* Placeholder option is still selected */
+.participant-select:has(option[value=""]:checked) {
+    color: var(--text-muted);
 }
 
 .participant-select:focus {
     outline: none;
     border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.12);
+}
+
+.participant-select option {
+    color: var(--text-primary);
+    background: var(--bg-white);
+    font-weight: 500;
 }
 
 .name-input {

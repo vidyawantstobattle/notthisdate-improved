@@ -15,5 +15,7 @@
     "common.networkError": "Network error. Please try again.",
     "common.linkCopied": "Link copied to clipboard!",
     "common.areYouSure": "Are you sure?",
-    "common.confirm": "Confirm"
+    "common.confirm": "Confirm",
+    "common.save": "Save",
+    "common.saving": "Saving..."
 }

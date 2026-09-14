@@ -22,6 +22,10 @@ const I18N_SECTIONS = [
 const translations = { en: {}, nl: {}, mr: {} };
 let currentLang = localStorage.getItem('ntd-lang') || 'en';
 let i18nLoaded = false;
+let resolveReady;
+// Resolves once every locale file has loaded, so callers can await it before
+// calling t() synchronously.
+const readyPromise = new Promise(resolve => { resolveReady = resolve; });
 
 async function loadLocale(lang) {
     const sections = await Promise.all(
@@ -37,6 +41,7 @@ async function loadLocale(lang) {
 async function loadAllLocales() {
     await Promise.all(I18N_LANGUAGES.map(loadLocale));
     i18nLoaded = true;
+    resolveReady();
 }
 
 // Looks up `key` in the active language, falling back to English then the key itself.
@@ -114,6 +119,7 @@ window.i18n = {
     t,
     setLanguage,
     getCurrentLang: () => currentLang,
-    ready: () => i18nLoaded
+    ready: () => i18nLoaded,
+    whenReady: () => readyPromise
 };
 

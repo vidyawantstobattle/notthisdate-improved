@@ -9,6 +9,10 @@ let datePickerViewStart = null;
 let isDatePickerInitialized = false;
 let isDatePickerResizeBound = false;
 let allUnavailability = {};
+let submittedParticipants = [];
+// Bumped per request so a slow earlier response can't overwrite a newer one.
+let userSubmissionsRequestId = 0;
+let allUnavailabilityRequestId = 0;
 let currentParticipant = '';
 let resolvedParticipantKey = '';
 const PROD_SITE_URL = 'https://reverse-date-picker.netlify.app';
@@ -33,6 +37,9 @@ function getCalendarId() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+    // Locales must be loaded before any synchronous t() call during render.
+    await window.i18n.whenReady();
+
     // Ensure proper initial state
     const loadingState = document.getElementById('loading-state');
     const errorState = document.getElementById('error-state');
@@ -261,13 +268,18 @@ function setupParticipantInput() {
         nameEntryStep?.classList.add('hidden');
         dateSelectionStep?.classList.remove('hidden');
 
+        const selectWrapper = document.createElement('div');
+        selectWrapper.className = 'participant-select-wrapper';
+
         const select = document.createElement('select');
         select.id = 'participant-select';
+        select.className = 'participant-select';
         select.innerHTML = `
             <option value="">${window.i18n.t('calendarSubmit.selectNamePlaceholder')}</option>
             ${calendarData.participants.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('')}
         `;
-        container.appendChild(select);
+        selectWrapper.appendChild(select);
+        container.appendChild(selectWrapper);
 
         // Add helpful hint
         const hint = document.createElement('p');
@@ -276,11 +288,11 @@ function setupParticipantInput() {
         container.appendChild(hint);
 
         // Add change listener
-        select.addEventListener('change', (e) => {
+        select.addEventListener('change', async (e) => {
             currentParticipant = e.target.value;
             updateSubmitButton();
             if (currentParticipant) {
-                loadUserSubmissions();
+                await loadUserSubmissions();
             }
         });
     } else if (calendarData.requireEmailVerification) {
@@ -331,7 +343,7 @@ function setupNameEntry() {
     confirmBtn?.addEventListener('click', confirmName);
 }
 
-function confirmName() {
+async function confirmName() {
     const nameInput = document.getElementById('participant-name-input');
     const name = nameInput.value.trim();
 
@@ -365,7 +377,7 @@ function confirmName() {
 
     // Update submit button and load previous submissions
     updateSubmitButton();
-    loadUserSubmissions();
+    await loadUserSubmissions();
 }
 
 // Email verification flow for open calendars
@@ -456,7 +468,7 @@ function verifyCode() {
     }
 }
 
-function showVerifiedForm(name, email) {
+async function showVerifiedForm(name, email) {
     const verificationSection = document.getElementById('email-verification-section');
     const mainFormSection = document.getElementById('main-form-section');
     const container = document.getElementById('participant-input-container');
@@ -478,7 +490,7 @@ function showVerifiedForm(name, email) {
     // Set current participant
     currentParticipant = name;
     updateSubmitButton();
-    loadUserSubmissions();
+    await loadUserSubmissions();
 }
 
 function showVerificationError(message) {
@@ -504,7 +516,7 @@ function getVerifiedUser() {
 function initTabs() {
     const tabBtns = document.querySelectorAll('.tab-btn');
     tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             const tabId = btn.dataset.tab;
 
             tabBtns.forEach(b => b.classList.remove('active'));
@@ -519,7 +531,7 @@ function initTabs() {
             activeTab.classList.remove('hidden');
 
             if (tabId === 'view') {
-                loadAllUnavailability();
+                await loadAllUnavailability();
             }
         });
     });
@@ -680,9 +692,15 @@ function renderDatePickerMonth(monthDate, rangeStart, rangeEnd) {
         const classNames = ['ntd-day'];
         const attributes = ['type="button"'];
 
+        const isBlocked = (calendarData.blockedDates || []).includes(dateStr);
+
         if (!isInRange) {
             classNames.push('is-out-of-range');
             attributes.push('disabled');
+        } else if (isBlocked) {
+            classNames.push('is-blocked');
+            attributes.push('disabled');
+            attributes.push(`title="${window.i18n.t('calendarView.blocked.tooltip')}"`);
         } else if (isSubmitted) {
             classNames.push('is-submitted');
             attributes.push('disabled');
@@ -747,6 +765,7 @@ function handleDatePickerClick(event) {
 }
 
 function toggleDateSelection(dateStr) {
+    if ((calendarData.blockedDates || []).includes(dateStr)) return;
     if (!dateStr) return;
 
     if (selectedDates.includes(dateStr)) {
@@ -824,19 +843,8 @@ function addDateRange(start, end) {
 
 // Form handlers
 function initFormHandlers() {
-    const participantEl = document.getElementById('participant-select') || document.getElementById('participant-input');
-
-    participantEl?.addEventListener('change', () => {
-        currentParticipant = participantEl.value.trim();
-        updateSubmitButton();
-        loadUserSubmissions();
-    });
-
-    participantEl?.addEventListener('input', () => {
-        currentParticipant = participantEl.value.trim();
-        updateSubmitButton();
-    });
-
+    // The participant <select> gets its own change listener in setupParticipantInput(),
+    // so it must not be wired up again here.
     document.getElementById('submit-btn')?.addEventListener('click', submitUnavailability);
     document.getElementById('reset-btn')?.addEventListener('click', resetUserDates);
 }
@@ -957,6 +965,9 @@ async function submitUnavailability() {
 
         if (response.ok) {
             const participantKey = result.participant || currentParticipant;
+            if (!submittedParticipants.includes(participantKey)) {
+                submittedParticipants.push(participantKey);
+            }
             const message = selectedDates.length === 0
                 ? (userSubmittedDates.length > 0
                     ? window.i18n.t('calendarSubmit.successNoNewDates')
@@ -994,6 +1005,7 @@ async function submitUnavailability() {
 
             // Re-render availability calendar to show updated counts
             renderAvailabilityCalendar();
+            renderPendingParticipants();
 
             // Refresh from backend, keeping the dates the server just confirmed in case
             // the immediate read-back is still stale.
@@ -1042,9 +1054,12 @@ async function resetUserDates() {
         if (response.ok) {
             showStatus('success', window.i18n.t('calendarSubmit.successReset'));
             selectedDates = [];
+            submittedParticipants = submittedParticipants.filter(
+                name => normalizeParticipantName(name) !== normalizeParticipantName(participantForReset)
+            );
             updateSelectedDatesUI();
-            loadUserSubmissions();
-            loadAllUnavailability();
+            await loadUserSubmissions();
+            await loadAllUnavailability();
         } else {
             showStatus('error', window.i18n.t('calendarSubmit.errorResetFailed'));
         }
@@ -1071,6 +1086,9 @@ function showStatus(type, message) {
 // `confirmedDates` are dates the server just acknowledged; they're kept even if the
 // immediate read-back hasn't caught up yet.
 async function loadUserSubmissions(confirmedDates = []) {
+    const requestId = ++userSubmissionsRequestId;
+    const requestedParticipant = currentParticipant;
+
     if (!currentParticipant) {
         userSubmittedDates = [];
         selectedDates = [];
@@ -1083,21 +1101,24 @@ async function loadUserSubmissions(confirmedDates = []) {
     try {
         const response = await fetchFunction(`/.netlify/functions/get-user-submissions?calendarId=${calendarData.id}&participant=${encodeURIComponent(currentParticipant)}`);
         const data = await response.json();
-        let submissions = normalizeSubmissions(data.submissions, currentParticipant);
+        let submissions = normalizeSubmissions(data.submissions, requestedParticipant);
 
         if (submissions.length === 0) {
             const allResponse = await fetchFunction(`/.netlify/functions/get-user-submissions?calendarId=${calendarData.id}`);
             const allData = await allResponse.json();
             const allSubmissions = normalizeSubmissions(allData.submissions);
-            const participantQuery = normalizeParticipantName(currentParticipant);
+            const participantQuery = normalizeParticipantName(requestedParticipant);
             const matches = allSubmissions.filter(sub => normalizeParticipantName(sub.participantName || '') === participantQuery);
 
             if (matches.length > 0) {
-                submissions = [mergeSubmissionsByParticipant(matches, currentParticipant)];
+                submissions = [mergeSubmissionsByParticipant(matches, requestedParticipant)];
             }
         }
 
-        resolvedParticipantKey = submissions[0]?.participantName || currentParticipant;
+        // A newer request (or a participant switch) superseded this one.
+        if (requestId !== userSubmissionsRequestId || requestedParticipant !== currentParticipant) return;
+
+        resolvedParticipantKey = submissions[0]?.participantName || requestedParticipant;
 
         userSubmittedDates = [...confirmedDates];
         if (submissions.length > 0) {
@@ -1117,8 +1138,9 @@ async function loadUserSubmissions(confirmedDates = []) {
         refreshDatePicker();
     } catch (error) {
         console.error('Failed to load submissions:', error);
+        if (requestId !== userSubmissionsRequestId) return;
         userSubmittedDates = [...confirmedDates];
-        resolvedParticipantKey = resolvedParticipantKey || currentParticipant;
+        resolvedParticipantKey = resolvedParticipantKey || requestedParticipant;
         updateSelectedDatesUI();
         refreshDatePicker();
     }

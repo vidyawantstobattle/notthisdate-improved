@@ -55,7 +55,7 @@ export default async (request, context) => {
         // Get calendar to verify ownership
         let calendar;
         try {
-            calendar = await calendarStore.get(calendarId, { type: 'json' });
+            calendar = await calendarStore.get(calendarId, { type: 'json', consistency: 'strong' });
             if (!calendar) {
                 return new Response(JSON.stringify({ error: 'Calendar not found' }), { status: 404, headers });
             }
@@ -74,7 +74,7 @@ export default async (request, context) => {
         // Remove from user's calendar list
         try {
             let userCalendars = [];
-            const existing = await userStore.get(userId, { type: 'json' });
+            const existing = await userStore.get(userId, { type: 'json', consistency: 'strong' });
             if (existing) {
                 userCalendars = existing.filter(cal => cal.id !== calendarId);
                 await userStore.setJSON(userId, userCalendars);

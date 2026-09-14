@@ -12,5 +12,11 @@
     "calendarView.dateDetails.unavailableCount": "{count} unavailable:",
     "calendarView.dateDetails.availableCount": "{count} available:",
     "calendarView.invalidDateRange": "Invalid calendar date range",
-    "calendarView.dateTitleUnavailable": "{count} unavailable"
+    "calendarView.dateTitleUnavailable": "{count} unavailable",
+
+    "calendarView.pending.title": "Waiting On",
+    "calendarView.pending.desc": "{count} of {total} participants haven't submitted their dates yet:",
+    "calendarView.pending.allSubmitted": "Everyone has submitted their dates.",
+    "calendarView.blocked.title": "Blocked dates",
+    "calendarView.blocked.tooltip": "Blocked by the organiser"
 }

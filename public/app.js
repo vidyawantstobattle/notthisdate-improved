@@ -5,6 +5,8 @@ let participantsTagsInput = null;
 const PROD_SITE_URL = 'https://reverse-date-picker.netlify.app';
 const MAX_CALENDARS_PER_USER = 10;
 let userCalendarCount = 0;
+let cachedCalendars = [];
+let blockedDates = [];
 
 async function fetchFunction(path, options = {}) {
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -288,7 +290,9 @@ function updateUI() {
 }
 
 // ===== EVENT LISTENERS =====
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Locales must be loaded before any synchronous t() call below.
+    await window.i18n.whenReady();
     initAuth();
     setupEventListeners();
     setDefaultDates();
@@ -359,6 +363,53 @@ function setupEventListeners() {
             }
         });
     });
+
+    // Blocked dates
+    document.getElementById('add-blocked-date-btn')?.addEventListener('click', addBlockedDate);
+    document.getElementById('blocked-date-input')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addBlockedDate();
+        }
+    });
+}
+
+// ===== BLOCKED DATES =====
+function addBlockedDate() {
+    const input = document.getElementById('blocked-date-input');
+    const value = input?.value;
+
+    if (!value || blockedDates.includes(value)) {
+        if (input) input.value = '';
+        return;
+    }
+
+    blockedDates.push(value);
+    blockedDates.sort();
+    input.value = '';
+    renderBlockedDates();
+}
+
+function removeBlockedDate(dateStr) {
+    blockedDates = blockedDates.filter(d => d !== dateStr);
+    renderBlockedDates();
+}
+
+function renderBlockedDates() {
+    const container = document.getElementById('blocked-dates-list');
+    if (!container) return;
+
+    container.innerHTML = blockedDates.map(dateStr => `
+        <span class="blocked-date-tag">
+            ${formatDisplayDate(dateStr)}
+            <button type="button" class="blocked-date-remove" data-date="${dateStr}"
+                aria-label="${window.i18n.t('dashboard.createModal.removeBlockedDate', { date: formatDisplayDate(dateStr) })}">×</button>
+        </span>
+    `).join('');
+
+    container.querySelectorAll('.blocked-date-remove').forEach(btn => {
+        btn.addEventListener('click', () => removeBlockedDate(btn.dataset.date));
+    });
 }
 
 // Set default dates for the form
@@ -378,6 +429,9 @@ function setDefaultDates() {
     // Set min date to today
     if (startInput) startInput.min = formatDate(today);
     if (endInput) endInput.min = formatDate(today);
+
+    const blockedInput = document.getElementById('blocked-date-input');
+    if (blockedInput) blockedInput.min = formatDate(today);
 }
 
 // ===== MODAL FUNCTIONS =====
@@ -398,6 +452,8 @@ function closeCreateModal() {
     if (participantsTagsInput) {
         participantsTagsInput.clear();
     }
+    blockedDates = [];
+    renderBlockedDates();
     setDefaultDates();
 }
 
@@ -418,7 +474,7 @@ async function loadUserCalendars() {
     calendarsList.innerHTML = `
         <div class="loading-state">
             <div class="loading-spinner"></div>
-            <p class="loading-message">${window.i18n.t('dashboard.loading')}</p>
+            <p class="loading-message" data-i18n="dashboard.loading">Loading your calendars...</p>
         </div>
     `;
     noCalendars.classList.add('hidden');
@@ -430,10 +486,11 @@ async function loadUserCalendars() {
         if (!response.ok) throw new Error('Failed to load calendars');
 
         const data = await response.json();
-        userCalendarCount = data.calendars?.length || 0;
+        cachedCalendars = data.calendars || [];
+        userCalendarCount = cachedCalendars.length;
 
-        if (data.calendars && data.calendars.length > 0) {
-            renderCalendars(data.calendars);
+        if (cachedCalendars.length > 0) {
+            renderCalendars(cachedCalendars);
         } else {
             calendarsList.innerHTML = '';
             noCalendars.classList.remove('hidden');
@@ -462,7 +519,16 @@ function renderCalendars(calendars) {
 
         return `
             <div class="calendar-card">
-                <h3 title="${escapeHtml(cal.name)}">${escapeHtml(cal.name)}</h3>
+                <div class="calendar-card-heading">
+                    <h3 title="${escapeHtml(cal.name)}">${escapeHtml(cal.name)}</h3>
+                    ${cal.participantsType === 'defined' ? `
+                        <button type="button" class="calendar-card-edit-btn" onclick="openEditParticipantsModal('${cal.id}')"
+                            title="${window.i18n.t('dashboard.card.editParticipants')}"
+                            aria-label="${window.i18n.t('dashboard.card.editParticipants')}">
+                            <img src="/images/setting_outline.svg" alt="">
+                        </button>
+                    ` : ''}
+                </div>
                 <p class="calendar-card-description" title="${escapeHtml(cal.description || '')}">${escapeHtml(cal.description || '')}</p>
                 <div class="calendar-card-meta">
                     <span>📅 ${dateRange}</span>
@@ -541,6 +607,14 @@ async function handleCreateCalendar(e) {
         requireEmailVerification = document.getElementById('require-email-verification')?.checked || false;
     }
 
+    const outOfRangeBlocked = blockedDates.some(d => d < startDate || d > endDate);
+    if (outOfRangeBlocked) {
+        showToast(window.i18n.t('dashboard.createModal.errorBlockedOutOfRange'));
+        submitBtn.disabled = false;
+        submitBtn.textContent = window.i18n.t('dashboard.createModal.submit');
+        return;
+    }
+
     try {
         const headers = await getAuthHeaders();
         const response = await fetchFunction('/.netlify/functions/create-calendar', {
@@ -554,7 +628,8 @@ async function handleCreateCalendar(e) {
                 endDate,
                 participantsType,
                 participants,
-                requireEmailVerification
+                requireEmailVerification,
+                blockedDates
             })
         });
 
@@ -565,7 +640,13 @@ async function handleCreateCalendar(e) {
 
         const data = await response.json();
         closeCreateModal();
-        loadUserCalendars();
+
+        // Append (matching backend order) instead of re-fetching: Netlify Blobs reads
+        // immediately after a write can be stale and miss the calendar we just created.
+        cachedCalendars = [...cachedCalendars, { ...data.calendar, submittedParticipantsCount: 0 }];
+        userCalendarCount = cachedCalendars.length;
+        document.getElementById('no-calendars')?.classList.add('hidden');
+        renderCalendars(cachedCalendars);
 
         // Show share modal with the link
         showShareModal(data.calendar);
@@ -643,6 +724,93 @@ function closeShareModal() {
     document.body.style.overflow = '';
 }
 
+// ===== EDIT PARTICIPANTS MODAL =====
+let editParticipantsTagsInput = null;
+let editingCalendarId = null;
+
+function openEditParticipantsModal(calendarId) {
+    const calendar = cachedCalendars.find(cal => cal.id === calendarId);
+    if (!calendar) return;
+
+    editingCalendarId = calendarId;
+
+    const modal = document.getElementById('edit-participants-modal');
+    const errorDiv = document.getElementById('edit-participants-error');
+    const container = document.getElementById('edit-participants-tags');
+
+    errorDiv.classList.add('hidden');
+    errorDiv.textContent = '';
+    container.innerHTML = '';
+
+    editParticipantsTagsInput = new TagsInput(container, {
+        initialTags: [...(calendar.participants || [])]
+    });
+
+    const close = () => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        editingCalendarId = null;
+    };
+
+    modal.querySelectorAll('[data-close-participants]').forEach(el => {
+        el.onclick = close;
+    });
+
+    document.getElementById('save-participants-btn').onclick = () => saveParticipants(close);
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+async function saveParticipants(close) {
+    const saveBtn = document.getElementById('save-participants-btn');
+    const errorDiv = document.getElementById('edit-participants-error');
+    const participants = editParticipantsTagsInput ? editParticipantsTagsInput.getTags() : [];
+    const calendarId = editingCalendarId;
+
+    if (participants.length === 0) {
+        errorDiv.textContent = window.i18n.t('dashboard.editParticipants.errorEmpty');
+        errorDiv.classList.remove('hidden');
+        return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = window.i18n.t('common.saving');
+    errorDiv.classList.add('hidden');
+
+    try {
+        const headers = await getAuthHeaders();
+        const response = await fetchFunction(`/.netlify/functions/update-participants?id=${encodeURIComponent(calendarId)}`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ participants })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to update participants');
+        }
+
+        // Update the cached card in place rather than re-fetching, since an immediate
+        // re-read can still return the previous participant list.
+        cachedCalendars = cachedCalendars.map(cal => (
+            cal.id === calendarId ? { ...cal, participants: result.participants } : cal
+        ));
+        renderCalendars(cachedCalendars);
+
+        close();
+        showToast(window.i18n.t('dashboard.editParticipants.saved'));
+    } catch (error) {
+        console.error('Error updating participants:', error);
+        errorDiv.textContent = error.message || window.i18n.t('dashboard.editParticipants.saveFailed');
+        errorDiv.classList.remove('hidden');
+    }
+
+    saveBtn.disabled = false;
+    saveBtn.textContent = window.i18n.t('common.save');
+}
+
 // ===== CONFIRM MODAL =====
 function showConfirmModal({ title = window.i18n.t('common.areYouSure'), message = '', confirmLabel = window.i18n.t('common.confirm'), onConfirm }) {
     const modal = document.getElementById('confirm-modal');
@@ -689,8 +857,16 @@ async function performDeleteCalendar(calendarId) {
 
         if (!response.ok) throw new Error('Failed to delete calendar');
 
-        // Refresh the calendar list
-        await loadUserCalendars();
+        // Remove it directly instead of re-fetching, for the same reason as create:
+        // an immediate re-read can still return the just-deleted calendar.
+        cachedCalendars = cachedCalendars.filter(cal => cal.id !== calendarId);
+        userCalendarCount = cachedCalendars.length;
+        if (cachedCalendars.length > 0) {
+            renderCalendars(cachedCalendars);
+        } else {
+            document.getElementById('calendars-list').innerHTML = '';
+            document.getElementById('no-calendars')?.classList.remove('hidden');
+        }
         showToast(window.i18n.t('dashboard.toast.deleted'));
     } catch (error) {
         console.error('Error deleting calendar:', error);
@@ -745,4 +921,5 @@ function escapeHtml(text) {
 // Make functions available globally for onclick handlers
 window.copyShareLink = copyShareLink;
 window.deleteCalendar = deleteCalendar;
+window.openEditParticipantsModal = openEditParticipantsModal;
 

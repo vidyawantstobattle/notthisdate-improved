@@ -690,6 +690,20 @@
     color: var(--danger-color);
 }
 
+.ntd-day.is-blocked {
+    background: repeating-linear-gradient(
+        45deg,
+        var(--bg-primary),
+        var(--bg-primary) 4px,
+        var(--border-color) 4px,
+        var(--border-color) 8px
+    );
+    color: var(--text-muted);
+    border-color: var(--border-color);
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
 .ntd-day.is-pending.range-start,
 .ntd-day.is-submitted.range-start {
     border-radius: var(--radius-sm) 0 0 var(--radius-sm);
@@ -1209,6 +1223,116 @@
     height: 16px;
     transform: translateY(-50%);
     background: no-repeat center / contain url('/images/Smileys_Happy_Outline.svg');
+}
+
+/* ===== BLOCKED DATES ===== */
+#availability-calendar .calendar-day.is-blocked {
+    position: relative;
+    background: repeating-linear-gradient(
+        45deg,
+        var(--bg-primary),
+        var(--bg-primary) 4px,
+        var(--border-color) 4px,
+        var(--border-color) 8px
+    );
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+#availability-calendar .calendar-day.is-blocked .day-number {
+    text-decoration: line-through;
+}
+
+#availability-calendar .calendar-day.is-blocked .blocked-marker {
+    font-size: 0.5rem;
+    line-height: 1;
+}
+
+#date-details-content .blocked-message {
+    padding: 0.65rem 0.75rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* ===== PENDING PARTICIPANTS ===== */.pending-participants {
+    margin-top: 1.2rem;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.pending-participants.hidden {
+    display: none;
+}
+
+.pending-participants > h3 {
+    color: var(--secondary-color);
+    font-size: 1.05rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#pending-participants-content p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+#pending-participants-content .all-submitted-message {
+    position: relative;
+    padding: 0.6rem 0.75rem 0.6rem 2rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--success-overlay-border);
+    background: var(--success-overlay-light);
+    color: var(--success-dark);
+    font-weight: 600;
+}
+
+#pending-participants-content .all-submitted-message::before {
+    content: "";
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    transform: translateY(-50%);
+    background: no-repeat center / contain url('/images/Smileys_Happy_Outline.svg');
+}
+
+.pending-list {
+    list-style: none;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.pending-list li {
+    position: relative;
+    padding: 0.35rem 0.75rem 0.35rem 1.9rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    background: var(--primary-bg);
+    border: 1px solid var(--primary-overlay-light);
+}
+
+.pending-list li::before {
+    content: "";
+    position: absolute;
+    left: 0.5rem;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    transform: translateY(-50%);
+    background: no-repeat center / contain url('/images/dot_outline.svg');
 }
 
 /* View tab content */

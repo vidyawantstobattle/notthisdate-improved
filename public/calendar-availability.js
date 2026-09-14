@@ -1,15 +1,23 @@
 // ===== CALENDAR AVAILABILITY VIEW =====
 
 async function loadAllUnavailability() {
+    const requestId = ++allUnavailabilityRequestId;
+
     try {
         const response = await fetchFunction(`/.netlify/functions/get-unavailability?calendarId=${calendarData.id}`);
         const data = await response.json();
+
+        // A newer request superseded this one.
+        if (requestId !== allUnavailabilityRequestId) return;
 
         // Transform from participant-based to date-based structure
         // Backend returns: { "participantName": { dates: [...], submittedAt: "..." }, ... }
         // We need: { "2026-06-15": ["person1", "person2"], ... }
         const rawUnavailability = data.unavailability || {};
         allUnavailability = {};
+        // Tracked separately: someone can submit with zero unavailable dates, so they'd
+        // never appear in the date-keyed map.
+        submittedParticipants = Object.keys(rawUnavailability);
 
         Object.entries(rawUnavailability).forEach(([participant, info]) => {
             // Handle both old format (array) and new format (object with dates property)
@@ -25,11 +33,51 @@ async function loadAllUnavailability() {
         });
 
         renderAvailabilityCalendar();
+        renderPendingParticipants();
     } catch (error) {
         console.error('Failed to load unavailability:', error);
+        if (requestId !== allUnavailabilityRequestId) return;
         allUnavailability = {};
+        submittedParticipants = [];
         renderAvailabilityCalendar();
+        renderPendingParticipants();
     }
+}
+
+// Lists defined participants who still owe a submission.
+function renderPendingParticipants() {
+    const panel = document.getElementById('pending-participants');
+    const content = document.getElementById('pending-participants-content');
+
+    if (!panel || !content) return;
+
+    const definedParticipants = calendarData?.participantsType === 'defined'
+        ? (calendarData.participants || [])
+        : [];
+
+    if (definedParticipants.length === 0) {
+        panel.classList.add('hidden');
+        return;
+    }
+
+    const submittedKeys = submittedParticipants.map(name => name.trim().toLowerCase());
+    const pending = definedParticipants.filter(
+        name => !submittedKeys.includes(name.trim().toLowerCase())
+    );
+
+    panel.classList.remove('hidden');
+
+    if (pending.length === 0) {
+        content.innerHTML = `<p class="all-submitted-message">${window.i18n.t('calendarView.pending.allSubmitted')}</p>`;
+        return;
+    }
+
+    content.innerHTML = `
+        <p>${window.i18n.t('calendarView.pending.desc', { count: pending.length, total: definedParticipants.length })}</p>
+        <ul class="pending-list">
+            ${pending.map(name => `<li>${escapeHtml(name)}</li>`).join('')}
+        </ul>
+    `;
 }
 
 function renderAvailabilityCalendar() {
@@ -114,6 +162,18 @@ function renderMonth(container, year, month, rangeStart, rangeEnd) {
         const unavailablePeople = allUnavailability[dateStr] || [];
         const unavailableCount = unavailablePeople.length;
 
+        if ((calendarData.blockedDates || []).includes(dateStr)) {
+            html += `
+                <div class="calendar-day is-blocked"
+                     data-date="${dateStr}"
+                     title="${window.i18n.t('calendarView.blocked.tooltip')}">
+                    <span class="day-number">${day}</span>
+                    <span class="blocked-marker" aria-hidden="true">🚫</span>
+                </div>
+            `;
+            continue;
+        }
+
         const grayness = Math.min(unavailableCount / totalPeople, 1);
         const color = getAvailabilityColor(grayness);
         const textColor = grayness > 0.5 ? '#fff' : '#333';
@@ -177,6 +237,15 @@ function showDateDetails(dateStr) {
     });
 
     let content = `<h4>${dateDisplay}</h4>`;
+
+    if ((calendarData.blockedDates || []).includes(dateStr)) {
+        content += `<p class="blocked-message">${window.i18n.t('calendarView.blocked.tooltip')}</p>`;
+        const detailsEl = document.getElementById('date-details');
+        document.getElementById('date-details-content').innerHTML = content;
+        detailsEl.classList.remove('hidden');
+        detailsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+    }
 
     if (unavailablePeople.length === 0) {
         content += `<p class="available-message">${window.i18n.t('calendarView.dateDetails.everyoneAvailable')}</p>`;
