@@ -15,18 +15,7 @@ let userSubmissionsRequestId = 0;
 let allUnavailabilityRequestId = 0;
 let currentParticipant = '';
 let resolvedParticipantKey = '';
-const PROD_SITE_URL = 'https://reverse-date-picker.netlify.app';
 const DATE_PICKER_WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-async function fetchFunction(path, options = {}) {
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-    if (isLocalhost) {
-        return fetch(`${PROD_SITE_URL}${path}`, options);
-    }
-
-    return fetch(path, options);
-}
 
 // Get calendar ID from URL
 function getCalendarId() {

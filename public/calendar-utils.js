@@ -12,11 +12,6 @@ function formatDateDisplay(dateStr) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function formatDisplayDate(dateStr) {
-    const date = new Date(dateStr + 'T12:00:00');
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
 function groupIntoRanges(dates) {
     if (dates.length === 0) return [];
 
@@ -41,12 +36,6 @@ function groupIntoRanges(dates) {
 
     ranges.push({ start: rangeStart, end: rangeEnd });
     return ranges;
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 function generateVerificationCode() {

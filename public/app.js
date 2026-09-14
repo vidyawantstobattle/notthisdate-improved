@@ -2,21 +2,10 @@
 const netlifyIdentity = window.netlifyIdentity;
 let currentUser = null;
 let participantsTagsInput = null;
-const PROD_SITE_URL = 'https://reverse-date-picker.netlify.app';
 const MAX_CALENDARS_PER_USER = 10;
 let userCalendarCount = 0;
 let cachedCalendars = [];
 let blockedDates = [];
-
-async function fetchFunction(path, options = {}) {
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-    if (isLocalhost) {
-        return fetch(`${PROD_SITE_URL}${path}`, options);
-    }
-
-    return fetch(path, options);
-}
 
 // ===== TAGS INPUT CLASS =====
 class TagsInput {
@@ -39,8 +28,8 @@ class TagsInput {
             const tagEl = document.createElement('span');
             tagEl.className = 'tag';
             tagEl.innerHTML = `
-                ${this.escapeHtml(tag)}
-                <button type="button" class="tag-remove" data-index="${index}" aria-label="${window.i18n.t('dashboard.createModal.removeTag', { tag: this.escapeHtml(tag) })}">×</button>
+                ${escapeHtml(tag)}
+                <button type="button" class="tag-remove" data-index="${index}" aria-label="${window.i18n.t('dashboard.createModal.removeTag', { tag: escapeHtml(tag) })}">×</button>
             `;
             this.container.appendChild(tagEl);
         });
@@ -117,12 +106,6 @@ class TagsInput {
         this.tags = [];
         this.render();
         this.bindEvents();
-    }
-
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
     }
 }
 
@@ -441,13 +424,11 @@ function openCreateModal() {
         return;
     }
 
-    document.getElementById('create-calendar-modal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    openModal('create-calendar-modal');
 }
 
 function closeCreateModal() {
-    document.getElementById('create-calendar-modal').classList.add('hidden');
-    document.body.style.overflow = '';
+    closeModal('create-calendar-modal');
     document.getElementById('create-calendar-form').reset();
     if (participantsTagsInput) {
         participantsTagsInput.clear();
@@ -693,8 +674,7 @@ function showShareModal(calendar) {
         `;
     }
 
-    shareModal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    openModal('share-modal');
 
     // Setup close handlers
     shareModal.querySelectorAll('[data-close-share]').forEach(el => {
@@ -719,9 +699,7 @@ function showShareModal(calendar) {
 }
 
 function closeShareModal() {
-    const shareModal = document.getElementById('share-modal');
-    shareModal.classList.add('hidden');
-    document.body.style.overflow = '';
+    closeModal('share-modal');
 }
 
 // ===== EDIT PARTICIPANTS MODAL =====
@@ -747,8 +725,7 @@ function openEditParticipantsModal(calendarId) {
     });
 
     const close = () => {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
+        closeModal('edit-participants-modal');
         editingCalendarId = null;
     };
 
@@ -758,8 +735,7 @@ function openEditParticipantsModal(calendarId) {
 
     document.getElementById('save-participants-btn').onclick = () => saveParticipants(close);
 
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    openModal('edit-participants-modal');
 }
 
 async function saveParticipants(close) {
@@ -820,10 +796,7 @@ function showConfirmModal({ title = window.i18n.t('common.areYouSure'), message 
     document.getElementById('confirm-modal-message').textContent = message;
     confirmBtn.textContent = confirmLabel;
 
-    const close = () => {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    };
+    const close = () => closeModal('confirm-modal');
 
     modal.querySelectorAll('[data-close-confirm]').forEach(el => {
         el.onclick = close;
@@ -834,8 +807,7 @@ function showConfirmModal({ title = window.i18n.t('common.areYouSure'), message 
         onConfirm?.();
     };
 
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    openModal('confirm-modal');
 }
 
 async function deleteCalendar(calendarId) {
@@ -904,18 +876,6 @@ function copyShareLink(url, calendarId) {
         const row = document.getElementById(`share-link-row-${calendarId}`);
         row?.classList.remove('hidden');
     }
-}
-
-function formatDisplayDate(dateStr) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr + 'T12:00:00');
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 // Make functions available globally for onclick handlers
