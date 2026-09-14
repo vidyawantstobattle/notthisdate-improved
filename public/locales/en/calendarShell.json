@@ -1,0 +1,7 @@
+{
+    "calendarShell.loading": "Loading calendar...",
+    "calendarShell.error.title": "Calendar Not Found",
+    "calendarShell.error.desc": "This calendar may have been deleted or the link is incorrect.",
+    "calendarShell.tabs.submit": "Submit Unavailability",
+    "calendarShell.tabs.view": "View Availability"
+}

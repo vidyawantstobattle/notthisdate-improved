@@ -19,7 +19,7 @@ class TagsInput {
     constructor(container, options = {}) {
         this.container = container;
         this.tags = options.initialTags || [];
-        this.placeholder = options.placeholder || 'Type a name and press Enter';
+        this.placeholder = options.placeholder || window.i18n.t('dashboard.createModal.participantsPlaceholder');
         this.onTagsChange = options.onTagsChange || (() => {});
 
         this.render();
@@ -36,7 +36,7 @@ class TagsInput {
             tagEl.className = 'tag';
             tagEl.innerHTML = `
                 ${this.escapeHtml(tag)}
-                <button type="button" class="tag-remove" data-index="${index}" aria-label="Remove ${tag}">×</button>
+                <button type="button" class="tag-remove" data-index="${index}" aria-label="${window.i18n.t('dashboard.createModal.removeTag', { tag: this.escapeHtml(tag) })}">×</button>
             `;
             this.container.appendChild(tagEl);
         });
@@ -45,7 +45,7 @@ class TagsInput {
         this.input = document.createElement('input');
         this.input.type = 'text';
         this.input.className = 'tags-input';
-        this.input.placeholder = this.tags.length === 0 ? this.placeholder : 'Add another...';
+        this.input.placeholder = this.tags.length === 0 ? this.placeholder : window.i18n.t('dashboard.createModal.addAnotherPlaceholder');
         this.container.appendChild(this.input);
     }
 
@@ -435,7 +435,7 @@ async function loadUserCalendars() {
         }
     } catch (error) {
         console.error('Error loading calendars:', error);
-        calendarsList.innerHTML = '<p class="error-message">Failed to load calendars. Please try again.</p>';
+        calendarsList.innerHTML = `<p class="error-message">${window.i18n.t('dashboard.loadError')}</p>`;
     }
 }
 
@@ -444,14 +444,14 @@ function renderCalendars(calendars) {
 
     calendarsList.innerHTML = calendars.map(cal => {
         const dateRange = cal.dateRangeType === 'open'
-            ? 'Open-ended'
+            ? window.i18n.t('dashboard.card.openEnded')
             : `${formatDisplayDate(cal.startDate)} - ${formatDisplayDate(cal.endDate)}`;
 
         const submittedCount = cal.submittedParticipantsCount || 0;
         const totalParticipants = Math.max(cal.participants?.length || 0, submittedCount);
         const participantsText = cal.participantsType === 'open'
-            ? `${submittedCount} joined`
-            : `${submittedCount}/${totalParticipants} submitted`;
+            ? window.i18n.t('dashboard.card.joined', { count: submittedCount })
+            : window.i18n.t('dashboard.card.submitted', { submitted: submittedCount, total: totalParticipants });
 
         const shareUrl = `${window.location.origin}/c/${cal.id}`;
 
@@ -464,9 +464,9 @@ function renderCalendars(calendars) {
                     <span>👥 ${participantsText}</span>
                 </div>
                 <div class="calendar-card-actions">
-                    <a href="/c/${cal.id}" class="btn btn-primary btn-small">Open</a>
-                    <button class="btn btn-outline btn-small" onclick="copyShareLink('${shareUrl}', '${cal.id}')">Share Link</button>
-                    <button class="btn btn-outline btn-small" onclick="deleteCalendar('${cal.id}')">Delete</button>
+                    <a href="/c/${cal.id}" class="btn btn-primary btn-small">${window.i18n.t('dashboard.card.open')}</a>
+                    <button class="btn btn-outline btn-small" onclick="copyShareLink('${shareUrl}', '${cal.id}')">${window.i18n.t('dashboard.card.shareLink')}</button>
+                    <button class="btn btn-outline btn-small" onclick="deleteCalendar('${cal.id}')">${window.i18n.t('dashboard.card.delete')}</button>
                 </div>
                 <div class="share-link-row hidden" id="share-link-row-${cal.id}">
                     <input type="text" class="share-link-input" value="${shareUrl}" readonly onclick="this.select()">
@@ -485,7 +485,7 @@ async function handleCreateCalendar(e) {
     const form = e.target;
     const submitBtn = form.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Creating...';
+    submitBtn.textContent = window.i18n.t('common.creating');
 
     const name = document.getElementById('calendar-name').value.trim();
     const description = document.getElementById('calendar-description').value.trim();
@@ -498,16 +498,16 @@ async function handleCreateCalendar(e) {
         endDate = document.getElementById('end-date').value;
 
         if (!startDate || !endDate) {
-            alert('Please select both start and end dates');
+            showToast(window.i18n.t('dashboard.createModal.errorMissingDates'));
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Create Calendar';
+            submitBtn.textContent = window.i18n.t('dashboard.createModal.submit');
             return;
         }
 
         if (new Date(endDate) <= new Date(startDate)) {
-            alert('End date must be after start date');
+            showToast(window.i18n.t('dashboard.createModal.errorEndBeforeStart'));
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Create Calendar';
+            submitBtn.textContent = window.i18n.t('dashboard.createModal.submit');
             return;
         }
     } else {
@@ -526,9 +526,9 @@ async function handleCreateCalendar(e) {
         participants = participantsTagsInput ? participantsTagsInput.getTags() : [];
 
         if (participants.length === 0) {
-            alert('Please add at least one participant');
+            showToast(window.i18n.t('dashboard.createModal.errorNoParticipants'));
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Create Calendar';
+            submitBtn.textContent = window.i18n.t('dashboard.createModal.submit');
             return;
         }
     } else {
@@ -566,11 +566,11 @@ async function handleCreateCalendar(e) {
         showShareModal(data.calendar);
     } catch (error) {
         console.error('Error creating calendar:', error);
-        alert('Failed to create calendar: ' + error.message);
+        showToast(window.i18n.t('dashboard.createModal.errorGeneric', { message: error.message }));
     }
 
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Create Calendar';
+    submitBtn.textContent = window.i18n.t('dashboard.createModal.submit');
 }
 
 // ===== SHARE MODAL =====
@@ -590,20 +590,20 @@ function showShareModal(calendar) {
         participantsInfo.className = 'share-info info-open';
         if (calendar.requireEmailVerification) {
             participantsInfo.innerHTML = `
-                <h4>📧 Email Verification Required</h4>
-                <p>Anyone with this link can join, but they'll need to verify their email address before adding their unavailable dates. This helps prevent spam and ensures everyone is accountable.</p>
+                <h4>${window.i18n.t('dashboard.shareModal.verificationRequiredTitle')}</h4>
+                <p>${window.i18n.t('dashboard.shareModal.verificationRequiredDesc')}</p>
             `;
         } else {
             participantsInfo.innerHTML = `
-                <h4>🔗 Open Access</h4>
-                <p>Anyone with this link can join and submit their unavailable dates. They just need to enter their name - no email verification required.</p>
+                <h4>${window.i18n.t('dashboard.shareModal.openAccessTitle')}</h4>
+                <p>${window.i18n.t('dashboard.shareModal.openAccessDesc')}</p>
             `;
         }
     } else {
         participantsInfo.className = 'share-info info-defined';
         participantsInfo.innerHTML = `
-            <h4>👥 Invite Your Participants</h4>
-            <p>Share this link with: <strong>${calendar.participants.join(', ')}</strong>. They'll select their name from a dropdown to submit their unavailable dates - no account needed!</p>
+            <h4>${window.i18n.t('dashboard.shareModal.definedTitle')}</h4>
+            <p>${window.i18n.t('dashboard.shareModal.definedDesc', { names: escapeHtml(calendar.participants.join(', ')) })}</p>
         `;
     }
 
@@ -639,7 +639,7 @@ function closeShareModal() {
 }
 
 // ===== CONFIRM MODAL =====
-function showConfirmModal({ title = 'Are you sure?', message = '', confirmLabel = 'Confirm', onConfirm }) {
+function showConfirmModal({ title = window.i18n.t('common.areYouSure'), message = '', confirmLabel = window.i18n.t('common.confirm'), onConfirm }) {
     const modal = document.getElementById('confirm-modal');
     const confirmBtn = document.getElementById('confirm-modal-confirm-btn');
 
@@ -667,9 +667,9 @@ function showConfirmModal({ title = 'Are you sure?', message = '', confirmLabel 
 
 async function deleteCalendar(calendarId) {
     showConfirmModal({
-        title: 'Delete this calendar?',
-        message: 'This cannot be undone. All submitted dates will be permanently lost.',
-        confirmLabel: 'Delete',
+        title: window.i18n.t('dashboard.confirmDelete.title'),
+        message: window.i18n.t('dashboard.confirmDelete.message'),
+        confirmLabel: window.i18n.t('dashboard.confirmDelete.confirmLabel'),
         onConfirm: () => performDeleteCalendar(calendarId)
     });
 }
@@ -686,10 +686,10 @@ async function performDeleteCalendar(calendarId) {
 
         // Refresh the calendar list
         await loadUserCalendars();
-        showToast('Calendar deleted.');
+        showToast(window.i18n.t('dashboard.toast.deleted'));
     } catch (error) {
         console.error('Error deleting calendar:', error);
-        showToast('Failed to delete calendar. Please try again.');
+        showToast(window.i18n.t('dashboard.toast.deleteFailed'));
     }
 }
 
@@ -714,9 +714,9 @@ function showToast(message) {
 
 function copyShareLink(url, calendarId) {
     navigator.clipboard.writeText(url).then(() => {
-        showToast('Link copied to clipboard!');
+        showToast(window.i18n.t('common.linkCopied'));
     }).catch(() => {
-        prompt('Copy this link:', url);
+        prompt(window.i18n.t('dashboard.card.copyPrompt'), url);
     });
 
     if (calendarId) {

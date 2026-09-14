@@ -58,9 +58,11 @@
                         <li><a href="/about.html" data-i18n="nav.about">About</a></li>
                     </ul>
                     <div class="language-toggle">
-                        <button class="lang-btn active" data-lang="en">EN</button>
-                        <button class="lang-btn" data-lang="nl">NL</button>
-                        <button class="lang-btn" data-lang="mr">मराठी</button>
+                        <select class="lang-select" aria-label="Select language">
+                            <option value="en">EN</option>
+                            <option value="nl">NL</option>
+                            <option value="mr">मराठी</option>
+                        </select>
                     </div>
                 </nav>
             </div>
@@ -71,15 +73,15 @@
             <!-- Loading State -->
             <div id="loading-state" class="loading-container">
                 <div class="loading-spinner"></div>
-                <p>Loading calendar...</p>
+                <p data-i18n="calendarShell.loading">Loading calendar...</p>
             </div>
 
             <!-- Error State -->
             <div id="error-state" class="error-container hidden">
                 <div class="error-icon">😕</div>
-                <h2>Calendar Not Found</h2>
-                <p>This calendar may have been deleted or the link is incorrect.</p>
-                <a href="/" class="btn btn-primary">Go Home</a>
+                <h2 data-i18n="calendarShell.error.title">Calendar Not Found</h2>
+                <p data-i18n="calendarShell.error.desc">This calendar may have been deleted or the link is incorrect.</p>
+                <a href="/" class="btn btn-primary" data-i18n="common.goHome">Go Home</a>
             </div>
 
             <!-- Calendar Content -->
@@ -95,8 +97,8 @@
 
                 <!-- Tabs -->
                 <nav class="tabs">
-                    <button class="tab-btn active" data-tab="submit">Submit Unavailability</button>
-                    <button class="tab-btn" data-tab="view">View Availability</button>
+                    <button class="tab-btn active" data-tab="submit" data-i18n="calendarShell.tabs.submit">Submit Unavailability</button>
+                    <button class="tab-btn" data-tab="view" data-i18n="calendarShell.tabs.view">View Availability</button>
                 </nav>
 
                 <!-- Submit Tab -->
@@ -105,29 +107,29 @@
                     <div id="email-verification-section" class="verification-section hidden">
                         <div class="verification-card">
                             <div class="verification-icon">📧</div>
-                            <h3>Verify Your Email</h3>
-                            <p>To submit your unavailable dates, please verify your email address first.</p>
+                            <h3 data-i18n="calendarSubmit.verify.title">Verify Your Email</h3>
+                            <p data-i18n="calendarSubmit.verify.desc">To submit your unavailable dates, please verify your email address first.</p>
 
                             <div id="email-step-1" class="verification-step">
                                 <div class="form-group">
-                                    <label for="verification-email">Your Email Address</label>
-                                    <input type="email" id="verification-email" placeholder="you@example.com" required>
+                                    <label for="verification-email" data-i18n="calendarSubmit.verify.emailLabel">Your Email Address</label>
+                                    <input type="email" id="verification-email" placeholder="you@example.com" required data-i18n-placeholder="calendarSubmit.verify.emailPlaceholder">
                                 </div>
                                 <div class="form-group">
-                                    <label for="verification-name">Your Name</label>
-                                    <input type="text" id="verification-name" placeholder="Enter your name" required>
+                                    <label for="verification-name" data-i18n="calendarSubmit.verify.nameLabel">Your Name</label>
+                                    <input type="text" id="verification-name" placeholder="Enter your name" required data-i18n-placeholder="calendarSubmit.verify.namePlaceholder">
                                 </div>
-                                <button id="send-verification-btn" class="btn btn-primary">Send Verification Code</button>
+                                <button id="send-verification-btn" class="btn btn-primary" data-i18n="calendarSubmit.verify.sendCode">Send Verification Code</button>
                             </div>
 
                             <div id="email-step-2" class="verification-step hidden">
-                                <p class="verification-sent-msg">We sent a 6-digit code to <strong id="sent-email-display"></strong></p>
+                                <p class="verification-sent-msg"></p>
                                 <div class="form-group">
-                                    <label for="verification-code">Enter Code</label>
+                                    <label for="verification-code" data-i18n="calendarSubmit.verify.codeLabel">Enter Code</label>
                                     <input type="text" id="verification-code" placeholder="000000" maxlength="6" pattern="[0-9]{6}">
                                 </div>
-                                <button id="verify-code-btn" class="btn btn-primary">Verify & Continue</button>
-                                <button id="resend-code-btn" class="btn btn-outline btn-small">Resend Code</button>
+                                <button id="verify-code-btn" class="btn btn-primary" data-i18n="calendarSubmit.verify.verifyContinue">Verify & Continue</button>
+                                <button id="resend-code-btn" class="btn btn-outline btn-small" data-i18n="calendarSubmit.verify.resendCode">Resend Code</button>
                             </div>
 
                             <div id="verification-error" class="status-message error hidden"></div>
@@ -140,56 +142,56 @@
                         <div id="name-entry-step" class="name-entry-section">
                             <div class="name-entry-card">
                                 <div class="name-entry-icon">👋</div>
-                                <h3>Welcome! What's your name?</h3>
-                                <p>Enter your name to submit your unavailable dates.</p>
+                                <h3 data-i18n="calendarSubmit.welcome.title">Welcome! What's your name?</h3>
+                                <p data-i18n="calendarSubmit.welcome.desc">Enter your name to submit your unavailable dates.</p>
                                 <div class="form-group">
-                                    <label for="participant-name-input">Your Name</label>
-                                    <input type="text" id="participant-name-input" placeholder="Enter your name" required>
+                                    <label for="participant-name-input" data-i18n="calendarSubmit.welcome.nameLabel">Your Name</label>
+                                    <input type="text" id="participant-name-input" placeholder="Enter your name" required data-i18n-placeholder="calendarSubmit.welcome.namePlaceholder">
                                 </div>
-                                <button id="confirm-name-btn" class="btn btn-primary" disabled>Continue</button>
+                                <button id="confirm-name-btn" class="btn btn-primary" disabled data-i18n="calendarSubmit.welcome.continue">Continue</button>
                             </div>
                         </div>
 
                         <!-- Step 2: Date Selection (hidden until name is confirmed) -->
                         <div id="date-selection-step" class="hidden">
                             <div class="form-group">
-                                <label>Your Name</label>
+                                <label data-i18n="calendarSubmit.yourName">Your Name</label>
                                 <div id="participant-input-container">
                                     <!-- Shows confirmed name or dropdown for defined participants -->
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label>Select dates you are <strong>NOT</strong> available</label>
-                                <p class="hint">Click on dates to select/deselect them. Click multiple dates to mark them all as unavailable.</p>
+                                <label data-i18n="calendarSubmit.selectDatesLabel">Select dates you are <strong>NOT</strong> available</label>
+                                <p class="hint" data-i18n="calendarSubmit.selectDatesHint">Click on dates to select/deselect them. Click multiple dates to mark them all as unavailable.</p>
                                 <div id="date-picker-container">
                                     <div id="date-picker" class="ntd-picker-root" role="application" aria-label="Date picker for unavailable dates"></div>
                                 </div>
                                 <div class="date-selection-legend">
                                     <div class="legend-item">
                                         <span class="legend-color pending"></span>
-                                        <span>Pending (not yet submitted)</span>
+                                        <span data-i18n="calendarSubmit.legend.pending">Pending (not yet submitted)</span>
                                     </div>
                                     <div class="legend-item">
                                         <span class="legend-color submitted"></span>
-                                        <span>Submitted</span>
+                                        <span data-i18n="calendarSubmit.legend.submitted">Submitted</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="selected-dates-section">
-                                <h3>Your Unavailable Dates:</h3>
+                                <h3 data-i18n="calendarSubmit.yourUnavailableDates">Your Unavailable Dates:</h3>
                                 <div id="selected-dates-list" class="dates-list">
-                                    <p class="empty-message">No dates selected yet</p>
+                                    <p class="empty-message" data-i18n="calendarSubmit.noDatesSelected">No dates selected yet</p>
                                 </div>
                             </div>
 
                             <div class="button-group">
-                                <button id="submit-btn" class="btn btn-primary" disabled>Submit Unavailability</button>
-                                <button id="reset-btn" class="btn btn-secondary">Reset My Dates</button>
+                                <button id="submit-btn" class="btn btn-primary" disabled data-i18n="calendarSubmit.submitBtn">Submit Unavailability</button>
+                                <button id="reset-btn" class="btn btn-secondary" data-i18n="calendarSubmit.resetBtn">Reset My Dates</button>
                             </div>
 
-                            <p class="form-hint">💡 No pending dates selected? New users are marked available for all dates.</p>
+                            <p class="form-hint" data-i18n="calendarSubmit.formHint">💡 No pending dates selected? New users are marked available for all dates.</p>
 
                             <div id="submit-status" class="status-message"></div>
                         </div>
@@ -199,30 +201,30 @@
                 <!-- View Tab -->
                 <div id="view-tab" class="tab-content hidden">
                     <div class="legend">
-                        <h3>Legend</h3>
+                        <h3 data-i18n="calendarView.legend.title">Legend</h3>
                         <div class="legend-items">
                             <div class="legend-item">
                                 <span class="legend-color" style="background: #4ade80;"></span>
-                                <span>Everyone available</span>
+                                <span data-i18n="calendarView.legend.everyoneAvailable">Everyone available</span>
                             </div>
                             <div class="legend-item">
                                 <span class="legend-color" style="background: #a0a0a0;"></span>
-                                <span>Some unavailable</span>
+                                <span data-i18n="calendarView.legend.someUnavailable">Some unavailable</span>
                             </div>
                             <div class="legend-item">
                                 <span class="legend-color" style="background: #404040;"></span>
-                                <span>Many unavailable</span>
+                                <span data-i18n="calendarView.legend.manyUnavailable">Many unavailable</span>
                             </div>
                             <div class="legend-item">
                                 <span class="legend-color" style="background: #1a1a1a;"></span>
-                                <span>All unavailable</span>
+                                <span data-i18n="calendarView.legend.allUnavailable">All unavailable</span>
                             </div>
                             <div class="legend-item">
                                 <span class="legend-color blocked-legend">🚫</span>
-                                <span>Blocked (event)</span>
+                                <span data-i18n="calendarView.legend.blocked">Blocked (event)</span>
                             </div>
                         </div>
-                        <p class="legend-note">💡 Click on any date to see who's unavailable</p>
+                        <p class="legend-note" data-i18n="calendarView.legend.note">💡 Click on any date to see who's unavailable</p>
                     </div>
 
                     <div id="availability-calendar" class="calendar-container">
@@ -230,7 +232,7 @@
                     </div>
 
                     <div id="date-details" class="date-details hidden">
-                        <h3>Date Details</h3>
+                        <h3 data-i18n="calendarView.dateDetails.title">Date Details</h3>
                         <div id="date-details-content"></div>
                     </div>
                 </div>
@@ -270,7 +272,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© 2026 NotThisDate. <span data-i18n="footer.madeWith">Made with ❤️ for easier group planning.</span></p>
+                <p><span data-i18n="footer.copyright">© 2026 NotThisDate.</span> <span data-i18n="footer.madeWith">Made with ❤️ for easier group planning.</span></p>
             </div>
         </footer>
     </div>

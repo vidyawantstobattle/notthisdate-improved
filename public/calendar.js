@@ -264,7 +264,7 @@ function setupParticipantInput() {
         const select = document.createElement('select');
         select.id = 'participant-select';
         select.innerHTML = `
-            <option value="">Select your name...</option>
+            <option value="">${window.i18n.t('calendarSubmit.selectNamePlaceholder')}</option>
             ${calendarData.participants.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('')}
         `;
         container.appendChild(select);
@@ -272,7 +272,7 @@ function setupParticipantInput() {
         // Add helpful hint
         const hint = document.createElement('p');
         hint.className = 'form-hint';
-        hint.textContent = 'Select your name from the list to submit your unavailable dates.';
+        hint.textContent = window.i18n.t('calendarSubmit.selectNameHint');
         container.appendChild(hint);
 
         // Add change listener
@@ -348,7 +348,7 @@ function confirmName() {
     container.innerHTML = `
         <div class="confirmed-name-display">
             <span class="confirmed-name">${escapeHtml(name)}</span>
-            <button type="button" class="change-name-btn" title="Change name">✎</button>
+            <button type="button" class="change-name-btn" title="${window.i18n.t('calendarSubmit.verify.changeName')}">✎</button>
         </div>
     `;
 
@@ -393,17 +393,17 @@ async function sendVerificationCode() {
     verificationName = nameInput.value.trim();
 
     if (!verificationEmail || !verificationName) {
-        showVerificationError('Please enter both your email and name.');
+        showVerificationError(window.i18n.t('calendarSubmit.verify.errorMissingFields'));
         return;
     }
 
     if (!isValidEmail(verificationEmail)) {
-        showVerificationError('Please enter a valid email address.');
+        showVerificationError(window.i18n.t('calendarSubmit.verify.errorInvalidEmail'));
         return;
     }
 
     sendBtn.disabled = true;
-    sendBtn.textContent = 'Sending...';
+    sendBtn.textContent = window.i18n.t('common.sending');
     errorDiv.classList.add('hidden');
 
     try {
@@ -424,20 +424,20 @@ async function sendVerificationCode() {
         // Show step 2
         document.getElementById('email-step-1').classList.add('hidden');
         document.getElementById('email-step-2').classList.remove('hidden');
-        document.getElementById('sent-email-display').textContent = verificationEmail;
+        document.querySelector('.verification-sent-msg').innerHTML = window.i18n.t('calendarSubmit.verify.sentMsg', { email: `<strong>${escapeHtml(verificationEmail)}</strong>` });
 
         // Show a hint for demo purposes
-        showVerificationError(`Demo mode: Your code is ${verificationCode}`);
+        showVerificationError(window.i18n.t('calendarSubmit.verify.demoModeCode', { code: verificationCode }));
         errorDiv.classList.remove('error');
         errorDiv.style.color = 'var(--primary-color)';
         errorDiv.style.background = 'var(--primary-bg)';
 
     } catch (error) {
-        showVerificationError('Failed to send verification code. Please try again.');
+        showVerificationError(window.i18n.t('calendarSubmit.verify.errorSendFailed'));
     }
 
     sendBtn.disabled = false;
-    sendBtn.textContent = 'Send Verification Code';
+    sendBtn.textContent = window.i18n.t('calendarSubmit.verify.sendCode');
 }
 
 function verifyCode() {
@@ -450,7 +450,7 @@ function verifyCode() {
         storeVerifiedUser(verificationName, verificationEmail);
         showVerifiedForm(verificationName, verificationEmail);
     } else {
-        showVerificationError('Invalid code. Please try again.');
+        showVerificationError(window.i18n.t('calendarSubmit.verify.errorInvalidCode'));
         codeInput.value = '';
         codeInput.focus();
     }
@@ -636,11 +636,11 @@ function renderDatePicker() {
     container.innerHTML = `
         <div class="ntd-picker-shell">
             <div class="ntd-picker-toolbar">
-                <button type="button" class="ntd-nav-btn" data-nav="prev" aria-label="Show previous month" ${canGoPrev ? '' : 'disabled'}>
+                <button type="button" class="ntd-nav-btn" data-nav="prev" aria-label="${window.i18n.t('calendarSubmit.showPrevMonth')}" ${canGoPrev ? '' : 'disabled'}>
                     <span aria-hidden="true">&lsaquo;</span>
                 </button>
                 <div class="ntd-picker-range-label">${rangeLabel}</div>
-                <button type="button" class="ntd-nav-btn" data-nav="next" aria-label="Show next month" ${canGoNext ? '' : 'disabled'}>
+                <button type="button" class="ntd-nav-btn" data-nav="next" aria-label="${window.i18n.t('calendarSubmit.showNextMonth')}" ${canGoNext ? '' : 'disabled'}>
                     <span aria-hidden="true">&rsaquo;</span>
                 </button>
             </div>
@@ -686,7 +686,7 @@ function renderDatePickerMonth(monthDate, rangeStart, rangeEnd) {
         } else if (isSubmitted) {
             classNames.push('is-submitted');
             attributes.push('disabled');
-            attributes.push('title="Already submitted"');
+            attributes.push(`title="${window.i18n.t('calendarSubmit.rangeTitleSubmitted')}"`);
         } else if (isPending) {
             classNames.push('is-pending');
             attributes.push('data-date="' + dateStr + '"');
@@ -706,11 +706,11 @@ function renderDatePickerMonth(monthDate, rangeStart, rangeEnd) {
 
         if (!attributes.some(attr => attr.startsWith('title='))) {
             if (!isInRange) {
-                attributes.push('title="Outside event date range"');
+                attributes.push(`title="${window.i18n.t('calendarSubmit.titleOutsideRange')}"`);
             } else if (isPending) {
-                attributes.push('title="Pending selection"');
+                attributes.push(`title="${window.i18n.t('calendarSubmit.rangeTitlePending')}"`);
             } else {
-                attributes.push('title="Click to mark unavailable"');
+                attributes.push(`title="${window.i18n.t('calendarSubmit.titleClickToMark')}"`);
             }
         }
 
@@ -855,7 +855,7 @@ function updateSelectedDatesUI() {
     const pendingRanges = groupIntoRanges(selectedDates);
 
     if (submittedRanges.length === 0 && pendingRanges.length === 0) {
-        container.innerHTML = '<p class="empty-message">No dates selected yet</p>';
+        container.innerHTML = `<p class="empty-message">${window.i18n.t('calendarSubmit.noDatesSelected')}</p>`;
         return;
     }
 
@@ -865,7 +865,7 @@ function updateSelectedDatesUI() {
             : `${formatDateDisplay(range.start)} - ${formatDateDisplay(range.end)}`;
 
         return `
-            <span class="date-tag date-tag-submitted" title="Previously submitted">
+            <span class="date-tag date-tag-submitted" title="${window.i18n.t('calendarSubmit.dateTagSubmittedTitle')}">
                 ${displayText}
             </span>
         `;
@@ -877,7 +877,7 @@ function updateSelectedDatesUI() {
             : `${formatDateDisplay(range.start)} - ${formatDateDisplay(range.end)}`;
 
         return `
-            <span class="date-tag date-tag-pending" title="Pending submission">
+            <span class="date-tag date-tag-pending" title="${window.i18n.t('calendarSubmit.dateTagPendingTitle')}">
                 ${displayText}
                 <span class="remove-btn" data-range-index="${index}">&times;</span>
             </span>
@@ -887,13 +887,13 @@ function updateSelectedDatesUI() {
     container.innerHTML = `
         ${pendingHtml ? `
             <div class="dates-group">
-                <p class="dates-group-label">Pending</p>
+                <p class="dates-group-label">${window.i18n.t('calendarSubmit.pendingGroupLabel')}</p>
                 <div class="dates-chip-row">${pendingHtml}</div>
             </div>
         ` : ''}
         ${submittedHtml ? `
             <div class="dates-group">
-                <p class="dates-group-label">Submitted</p>
+                <p class="dates-group-label">${window.i18n.t('calendarSubmit.submittedGroupLabel')}</p>
                 <div class="dates-chip-row">${submittedHtml}</div>
             </div>
         ` : ''}
@@ -928,13 +928,13 @@ async function submitUnavailability() {
     const calendarId = calendarData.id || getCalendarId();
 
     if (!calendarId) {
-        showStatus('error', 'Calendar ID not found. Please refresh the page.');
+        showStatus('error', window.i18n.t('calendarSubmit.errorCalendarIdMissing'));
         return;
     }
 
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
+    submitBtn.textContent = window.i18n.t('common.submitting');
 
     // Always submit the union so existing submitted dates are preserved.
     const submittedDates = [...selectedDates];
@@ -959,9 +959,9 @@ async function submitUnavailability() {
             const participantKey = result.participant || currentParticipant;
             const message = selectedDates.length === 0
                 ? (userSubmittedDates.length > 0
-                    ? 'No new dates selected. Existing unavailable dates are unchanged.'
-                    : 'Recorded! You\'re available for all dates! 🎉')
-                : 'Your unavailability has been recorded!';
+                    ? window.i18n.t('calendarSubmit.successNoNewDates')
+                    : window.i18n.t('calendarSubmit.successAllAvailable'))
+                : window.i18n.t('calendarSubmit.successSubmitted');
             showStatus('success', message);
 
             // Move submitted dates to userSubmittedDates (for solid highlighting)
@@ -998,38 +998,38 @@ async function submitUnavailability() {
             // Refresh user submission state from backend
             loadUserSubmissions();
         } else {
-            showStatus('error', result.error || 'Failed to submit');
+            showStatus('error', result.error || window.i18n.t('calendarSubmit.errorSubmitFailed'));
         }
     } catch (error) {
-        showStatus('error', 'Network error. Please try again.');
+        showStatus('error', window.i18n.t('common.networkError'));
         console.error(error);
     }
 
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Submit Unavailability';
+    submitBtn.textContent = window.i18n.t('calendarSubmit.submitBtn');
     updateSubmitButton();
 }
 
 async function resetUserDates() {
     if (!currentParticipant) {
-        showStatus('error', 'Please enter your name first');
+        showStatus('error', window.i18n.t('calendarSubmit.errorEnterName'));
         return;
     }
 
-    if (!confirm('Are you sure you want to reset all your unavailable dates?')) {
+    if (!confirm(window.i18n.t('calendarSubmit.confirmReset'))) {
         return;
     }
 
     const calendarId = calendarData.id || getCalendarId();
 
     if (!calendarId) {
-        showStatus('error', 'Calendar ID not found. Please refresh the page.');
+        showStatus('error', window.i18n.t('calendarSubmit.errorCalendarIdMissing'));
         return;
     }
 
     const resetBtn = document.getElementById('reset-btn');
     resetBtn.disabled = true;
-    resetBtn.textContent = 'Resetting...';
+    resetBtn.textContent = window.i18n.t('common.resetting');
 
     try {
         const participantForReset = resolvedParticipantKey || currentParticipant;
@@ -1039,21 +1039,21 @@ async function resetUserDates() {
         });
 
         if (response.ok) {
-            showStatus('success', 'Your dates have been reset!');
+            showStatus('success', window.i18n.t('calendarSubmit.successReset'));
             selectedDates = [];
             updateSelectedDatesUI();
             loadUserSubmissions();
             loadAllUnavailability();
         } else {
-            showStatus('error', 'Failed to reset');
+            showStatus('error', window.i18n.t('calendarSubmit.errorResetFailed'));
         }
     } catch (error) {
-        showStatus('error', 'Network error. Please try again.');
+        showStatus('error', window.i18n.t('common.networkError'));
         console.error(error);
     }
 
     resetBtn.disabled = false;
-    resetBtn.textContent = 'Reset My Dates';
+    resetBtn.textContent = window.i18n.t('calendarSubmit.resetBtn');
 }
 
 function showStatus(type, message) {

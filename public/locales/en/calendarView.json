@@ -1,0 +1,16 @@
+{
+    "calendarView.legend.title": "Legend",
+    "calendarView.legend.everyoneAvailable": "Everyone available",
+    "calendarView.legend.someUnavailable": "Some unavailable",
+    "calendarView.legend.manyUnavailable": "Many unavailable",
+    "calendarView.legend.allUnavailable": "All unavailable",
+    "calendarView.legend.blocked": "Blocked (event)",
+    "calendarView.legend.note": "💡 Click on any date to see who's unavailable",
+
+    "calendarView.dateDetails.title": "Date Details",
+    "calendarView.dateDetails.everyoneAvailable": "🎉 Everyone is available on this date!",
+    "calendarView.dateDetails.unavailableCount": "{count} unavailable:",
+    "calendarView.dateDetails.availableCount": "{count} available:",
+    "calendarView.invalidDateRange": "Invalid calendar date range",
+    "calendarView.dateTitleUnavailable": "{count} unavailable"
+}

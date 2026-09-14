@@ -72,13 +72,15 @@
                 </a>
                 <nav class="header-nav">
                     <ul class="nav-links">
-                        <li><a href="#how-it-works" data-i18n="footer.howItWorks">How It Works</a></li>
-                        <li><a href="./about.html" data-i18n="footer.about">About</a></li>
+                        <li><a href="#how-it-works" data-i18n="nav.howItWorks">How It Works</a></li>
+                        <li><a href="./about.html" data-i18n="nav.about">About</a></li>
                     </ul>
                     <div class="language-toggle">
-                        <button class="lang-btn active" data-lang="en">EN</button>
-                        <button class="lang-btn" data-lang="nl">NL</button>
-                        <button class="lang-btn" data-lang="mr">मराठी</button>
+                        <select class="lang-select" aria-label="Select language">
+                            <option value="en">EN</option>
+                            <option value="nl">NL</option>
+                            <option value="mr">मराठी</option>
+                        </select>
                     </div>
                     <div id="auth-section">
                         <button id="login-btn" class="btn btn-primary btn-small" data-i18n="nav.login">Login</button>
@@ -97,20 +99,20 @@
             <section id="landing-page" class="page">
                 <div class="hero">
                     <div class="hero-content">
-                        <h1>Free Group Scheduling Tool - Better Alternative to Doodle, Datumprikker & WhenIsGood</h1>
-                        <p class="hero-subtitle">
+                        <h1 data-i18n="landing.hero.title">Free Group Scheduling Tool - Better Alternative to Doodle, Datumprikker & WhenIsGood</h1>
+                        <p class="hero-subtitle" data-i18n="landing.hero.subtitle">
                             Coordinate group availability the easy way. Mark when you're <strong>NOT available</strong>
                             and instantly find the perfect dates for trips, meetings, parties, and events.
                             <strong>No signup required</strong> for participants!
                         </p>
                         <div class="hero-actions">
-                            <button id="hero-login-btn" class="btn btn-primary btn-large">Get Started - It's Free</button>
-                            <a href="#how-it-works" class="btn btn-outline btn-large">Learn More</a>
+                            <button id="hero-login-btn" class="btn btn-primary btn-large" data-i18n="common.getStarted">Get Started - It's Free</button>
+                            <a href="#how-it-works" class="btn btn-outline btn-large" data-i18n="landing.hero.ctaSecondary">Learn More</a>
                         </div>
                     </div>
                     <div class="hero-illustration">
                         <!-- Placeholder for hero image - replace src with actual image -->
-                        <div class="illustration-placeholder" aria-label="Illustration showing group calendar planning">
+                        <div class="illustration-placeholder" aria-label="Illustration showing group calendar planning" data-i18n-aria-label="landing.hero.illustrationAlt">
                             <svg viewBox="0 0 400 300">
                                 <!-- Calendar base -->
                                 <rect x="80" y="60" width="240" height="180" rx="12" fill="#fff" stroke="#e6e9ec" stroke-width="2"/>
@@ -163,76 +165,71 @@
                 </div>
 
                 <section id="how-it-works" class="features-section">
-                    <h2>How NotThisDate Works - Simple Group Scheduling in 3 Steps</h2>
+                    <h2 data-i18n="landing.howItWorks.title">How NotThisDate Works - Simple Group Scheduling in 3 Steps</h2>
                     <div class="features-grid">
                         <div class="feature-card">
                             <div class="feature-icon icon-calendar" aria-hidden="true"></div>
-                            <h3>1. Create a Calendar</h3>
-                            <p>Set up your date range and add participants. Share a simple link - no signups required for your group members.</p>
+                            <h3 data-i18n="landing.howItWorks.step1.title">1. Create a Calendar</h3>
+                            <p data-i18n="landing.howItWorks.step1.desc">Set up your date range and add participants. Share a simple link - no signups required for your group members.</p>
                         </div>
                         <div class="feature-card">
                             <div class="feature-icon icon-unhappy" aria-hidden="true"></div>
-                            <h3>2. Mark Unavailable Dates</h3>
-                            <p>Everyone marks when they <strong>CAN'T</strong> make it. It's faster than traditional availability polls - no more back-and-forth messaging.</p>
+                            <h3 data-i18n="landing.howItWorks.step2.title">2. Mark Unavailable Dates</h3>
+                            <p data-i18n="landing.howItWorks.step2.desc">Everyone marks when they <strong>CAN'T</strong> make it. It's faster than traditional availability polls - no more back-and-forth messaging.</p>
                         </div>
                         <div class="feature-card">
                             <div class="feature-icon icon-search" aria-hidden="true"></div>
-                            <h3>3. Find the Best Date</h3>
-                            <p>Our visual availability heatmap instantly shows which dates work for everyone. Green means everyone's available!</p>
+                            <h3 data-i18n="landing.howItWorks.step3.title">3. Find the Best Date</h3>
+                            <p data-i18n="landing.howItWorks.step3.desc">Our visual availability heatmap instantly shows which dates work for everyone. Green means everyone's available!</p>
                         </div>
                     </div>
                 </section>
 
                 <!-- Why Choose NotThisDate Section -->
                 <section class="benefits-section">
-                    <h2>Why Choose NotThisDate Over Others?</h2>
+                    <h2 data-i18n="landing.benefits.title">Why Choose NotThisDate Over Others?</h2>
                     <div class="benefits-grid">
                         <div class="benefit-card">
                             <div class="benefit-icon icon-swap" aria-hidden="true"></div>
-                            <h3>Reverse Scheduling Logic</h3>
-                            <p>Instead of marking when you're available, mark when you're <strong>NOT</strong> available. It's faster and more intuitive for group trip planning.</p>
+                            <h3 data-i18n="landing.benefits.reverse.title">Reverse Scheduling Logic</h3>
+                            <p data-i18n="landing.benefits.reverse.desc">Instead of marking when you're available, mark when you're <strong>NOT</strong> available. It's faster and more intuitive for group trip planning.</p>
                         </div>
                         <div class="benefit-card">
                             <div class="benefit-icon icon-happy" aria-hidden="true"></div>
-                            <h3>No Account Required</h3>
-                            <p>Participants can submit their availability without creating an account. Just click the link and mark your dates.</p>
-                        </div>
-                        <div class="benefit-card">
-                            <div class="benefit-icon icon-sort" aria-hidden="true"></div>
-                            <h3>Clean, Modern Design</h3>
-                            <p>Beautiful Stripe-inspired interface that's easy to use on desktop and mobile devices.</p>
+                            <h3 data-i18n="landing.benefits.noAccount.title">No Account Required</h3>
+                            <p data-i18n="landing.benefits.noAccount.desc">Participants can submit their availability without creating an account. Just click the link and mark your dates.</p>
                         </div>
                         <div class="benefit-card">
                             <div class="benefit-icon icon-dot" aria-hidden="true"></div>
-                            <h3>Visual Heatmap</h3>
-                            <p>Instantly see group availability with color-coded dates. Darker means more people are unavailable.</p>
+                            <h3 data-i18n="landing.benefits.heatmap.title">Visual Heatmap</h3>
+                            <p data-i18n="landing.benefits.heatmap.desc">Instantly see group availability with color-coded dates. Darker means more people are unavailable.</p>
                         </div>
                     </div>
                 </section>
 
                 <!-- Use Cases Section -->
                 <section class="use-cases-section">
-                    <h2>Perfect For Any Group Event</h2>
+                    <h2 data-i18n="landing.useCases.title">Perfect For Any Group Event</h2>
                     <div class="use-cases-grid">
                         <div class="use-case">
                             <span class="use-case-icon">✈️</span>
-                            <h3>Group Trips</h3>
-                            <p>Plan vacations, weekend getaways, and travel with friends</p>
+                            <h3 data-i18n="landing.useCases.trips.title">Group Trips</h3>
+                            <p data-i18n="landing.useCases.trips.desc">Plan vacations, weekend getaways, and travel with friends</p>
                         </div>
                         <div class="use-case">
                             <span class="use-case-icon">🎉</span>
-                            <h3>Social Events</h3>
-                            <p>Birthday parties, reunions, dinners, and celebrations</p>
+                            <h3 data-i18n="landing.useCases.social.title">Social Events</h3>
+                            <p data-i18n="landing.useCases.social.desc">Birthday parties, reunions, dinners, and celebrations</p>
                         </div>
                         <div class="use-case">
                             <span class="use-case-icon">💼</span>
-                            <h3>Team Meetings</h3>
-                            <p>Schedule team meetings, workshops, and collaborative sessions</p>
+                            <h3 data-i18n="landing.useCases.team.title">Team Meetings</h3>
+                            <p data-i18n="landing.useCases.team.desc">Schedule team meetings, workshops, and collaborative sessions</p>
                         </div>
                         <div class="use-case">
                             <span class="use-case-icon">🏃</span>
-                            <h3>Sports & Activities</h3>
-                            <p>Coordinate game days, practices, and group activities</p>
+                            <h3 data-i18n="landing.useCases.sports.title">Sports & Activities</h3>
+                            <p data-i18n="landing.useCases.sports.desc">Coordinate game days, practices, and group activities</p>
                         </div>
                     </div>
                 </section>
@@ -241,9 +238,9 @@
             <!-- Dashboard (shown when logged in) -->
             <section id="dashboard-page" class="page hidden">
                 <div class="dashboard-header">
-                    <h1>Your Calendars</h1>
+                    <h1 data-i18n="dashboard.title">Your Calendars</h1>
                     <button id="create-calendar-btn" class="btn btn-primary">
-                        <span class="btn-icon">+</span> Create New Calendar
+                        <span class="btn-icon">+</span> <span data-i18n="dashboard.createNew">Create New Calendar</span>
                     </button>
                 </div>
 
@@ -251,16 +248,16 @@
                     <!-- Calendar cards will be inserted here -->
                     <div class="loading-state">
                         <div class="loading-spinner"></div>
-                        <p class="loading-message">Loading your calendars...</p>
+                        <p class="loading-message" data-i18n="dashboard.loading">Loading your calendars...</p>
                     </div>
                 </div>
 
                 <!-- Empty State -->
                 <div id="no-calendars" class="empty-state hidden">
                     <div class="empty-icon">📅</div>
-                    <h3>No calendars yet</h3>
-                    <p>Create your first calendar to start planning with your group!</p>
-                    <button id="create-first-calendar-btn" class="btn btn-primary">Create Calendar</button>
+                    <h3 data-i18n="dashboard.empty.title">No calendars yet</h3>
+                    <p data-i18n="dashboard.empty.desc">Create your first calendar to start planning with your group!</p>
+                    <button id="create-first-calendar-btn" class="btn btn-primary" data-i18n="dashboard.empty.cta">Create Calendar</button>
                 </div>
             </section>
 
@@ -269,72 +266,72 @@
                 <div class="modal-backdrop"></div>
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>Create New Calendar</h2>
+                        <h2 data-i18n="dashboard.createModal.title">Create New Calendar</h2>
                         <button class="modal-close">&times;</button>
                     </div>
                     <form id="create-calendar-form">
                         <div class="form-group">
-                            <label for="calendar-name">Calendar Name *</label>
-                            <input type="text" id="calendar-name" required placeholder="e.g., Summer Trip 2026">
+                            <label for="calendar-name" data-i18n="dashboard.createModal.nameLabel">Calendar Name *</label>
+                            <input type="text" id="calendar-name" required placeholder="e.g., Summer Trip 2026" data-i18n-placeholder="dashboard.createModal.namePlaceholder">
                         </div>
 
                         <div class="form-group">
-                            <label for="calendar-description">Description (optional)</label>
-                            <textarea id="calendar-description" placeholder="What are you planning?"></textarea>
+                            <label for="calendar-description" data-i18n="dashboard.createModal.descLabel">Description (optional)</label>
+                            <textarea id="calendar-description" placeholder="What are you planning?" data-i18n-placeholder="dashboard.createModal.descPlaceholder"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label>Date Range</label>
+                            <label data-i18n="dashboard.createModal.dateRangeLabel">Date Range</label>
                             <div class="date-range-options">
                                 <label class="radio-option">
                                     <input type="radio" name="date-range-type" value="custom" checked>
-                                    <span>Custom Range</span>
+                                    <span data-i18n="dashboard.createModal.customRange">Custom Range</span>
                                 </label>
                                 <label class="radio-option">
                                     <input type="radio" name="date-range-type" value="open">
-                                    <span>Open-ended (next 6 months)</span>
+                                    <span data-i18n="dashboard.createModal.openEnded">Open-ended (next 6 months)</span>
                                 </label>
                             </div>
                             <div id="custom-date-range" class="date-inputs">
                                 <div class="date-input-group">
-                                    <label for="start-date">Start Date</label>
+                                    <label for="start-date" data-i18n="dashboard.createModal.startDate">Start Date</label>
                                     <input type="date" id="start-date">
                                 </div>
                                 <div class="date-input-group">
-                                    <label for="end-date">End Date</label>
+                                    <label for="end-date" data-i18n="dashboard.createModal.endDate">End Date</label>
                                     <input type="date" id="end-date">
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label>Participants</label>
+                            <label data-i18n="dashboard.createModal.participantsLabel">Participants</label>
                             <div class="participants-options">
                                 <label class="radio-option">
                                     <input type="radio" name="participants-type" value="defined" checked>
-                                    <span>Specific people</span>
+                                    <span data-i18n="dashboard.createModal.specificPeople">Specific people</span>
                                 </label>
                                 <label class="radio-option">
                                     <input type="radio" name="participants-type" value="open">
-                                    <span>Anyone with the link</span>
+                                    <span data-i18n="dashboard.createModal.anyoneWithLink">Anyone with the link</span>
                                 </label>
                             </div>
                             <div id="defined-participants">
                                 <div id="participants-tags"></div>
-                                <p class="form-hint">Type a name and press Enter to add. Click × to remove.</p>
+                                <p class="form-hint" data-i18n="dashboard.createModal.participantsHint">Type a name and press Enter to add. Click × to remove.</p>
                             </div>
                             <div id="open-participants-options" class="hidden">
                                 <label class="checkbox-option">
                                     <input type="checkbox" id="require-email-verification">
-                                    <span>Require email verification before submitting</span>
+                                    <span data-i18n="dashboard.createModal.requireVerification">Require email verification before submitting</span>
                                 </label>
-                                <p class="form-hint">When enabled, participants must verify their email address before they can submit their unavailable dates.</p>
+                                <p class="form-hint" data-i18n="dashboard.createModal.verificationHint">When enabled, participants must verify their email address before they can submit their unavailable dates.</p>
                             </div>
                         </div>
 
                         <div class="form-actions">
-                            <button type="button" class="btn btn-outline modal-cancel">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Create Calendar</button>
+                            <button type="button" class="btn btn-outline modal-cancel" data-i18n="common.cancel">Cancel</button>
+                            <button type="submit" class="btn btn-primary" data-i18n="dashboard.createModal.submit">Create Calendar</button>
                         </div>
                     </form>
                 </div>
@@ -345,17 +342,17 @@
                 <div class="modal-backdrop" data-close-share></div>
                 <div class="modal-content share-modal-content">
                     <div class="modal-header">
-                        <h2>🎉 Calendar Created!</h2>
+                        <h2 data-i18n="dashboard.shareModal.title">🎉 Calendar Created!</h2>
                         <button class="modal-close" data-close-share>&times;</button>
                     </div>
                     <div class="modal-body">
-                        <p class="share-modal-text">Share this link with your participants:</p>
+                        <p class="share-modal-text" data-i18n="dashboard.shareModal.text">Share this link with your participants:</p>
                         <div class="share-link-box">
-                            <label for="share-link-input" class="visually-hidden">Calendar share link</label>
-                            <input type="text" id="share-link-input" readonly aria-label="Calendar share link">
+                            <label for="share-link-input" class="visually-hidden" data-i18n="dashboard.shareModal.linkLabel">Calendar share link</label>
+                            <input type="text" id="share-link-input" readonly aria-label="Calendar share link" data-i18n-aria-label="dashboard.shareModal.linkLabel">
                             <button id="copy-link-btn" class="btn btn-primary">
-                                <span class="copy-text">Copy</span>
-                                <span class="copied-text hidden">Copied!</span>
+                                <span class="copy-text" data-i18n="common.copy">Copy</span>
+                                <span class="copied-text hidden" data-i18n="common.copied">Copied!</span>
                             </button>
                         </div>
                         <div id="share-participants-info" class="share-info">
@@ -363,8 +360,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <a id="open-calendar-link" href="#" class="btn btn-outline">Open Calendar</a>
-                        <button class="btn btn-primary" data-close-share>Done</button>
+                        <a id="open-calendar-link" href="#" class="btn btn-outline" data-i18n="dashboard.shareModal.openCalendar">Open Calendar</a>
+                        <button class="btn btn-primary" data-close-share data-i18n="common.done">Done</button>
                     </div>
                 </div>
             </div>
@@ -381,8 +378,8 @@
                         <p id="confirm-modal-message"></p>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-outline" data-close-confirm>Cancel</button>
-                        <button id="confirm-modal-confirm-btn" class="btn btn-secondary">Delete</button>
+                        <button class="btn btn-outline" data-close-confirm data-i18n="common.cancel">Cancel</button>
+                        <button id="confirm-modal-confirm-btn" class="btn btn-secondary" data-i18n="common.delete">Delete</button>
                     </div>
                 </div>
             </div>
@@ -421,7 +418,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© 2026 NotThisDate. <span data-i18n="footer.madeWith">Made with ❤️ for easier group planning.</span></p>
+                <p><span data-i18n="footer.copyright">© 2026 NotThisDate.</span> <span data-i18n="footer.madeWith">Made with ❤️ for easier group planning.</span></p>
             </div>
         </footer>
     </div>

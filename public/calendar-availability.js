@@ -38,7 +38,7 @@ function renderAvailabilityCalendar() {
     const endDate = parseDateLocal(calendarData.endDate);
 
     if (!startDate || !endDate) {
-        container.innerHTML = '<p class="empty-message">Invalid calendar date range</p>';
+        container.innerHTML = `<p class="empty-message">${window.i18n.t('calendarView.invalidDateRange')}</p>`;
         return;
     }
 
@@ -104,7 +104,7 @@ function renderMonth(container, year, month, rangeStart, rangeEnd) {
         if (!isInRange) {
             // Show the date but make it greyed out and disabled
             html += `
-                <div class="calendar-day out-of-range" title="Outside event date range">
+                <div class="calendar-day out-of-range" title="${window.i18n.t('calendarSubmit.titleOutsideRange')}">
                     <span class="day-number">${day}</span>
                 </div>
             `;
@@ -122,7 +122,7 @@ function renderMonth(container, year, month, rangeStart, rangeEnd) {
             <div class="calendar-day"
                  style="background: ${color}; color: ${textColor};"
                  data-date="${dateStr}"
-                 title="${unavailableCount} unavailable">
+                 title="${window.i18n.t('calendarView.dateTitleUnavailable', { count: unavailableCount })}">
                 <span class="day-number">${day}</span>
                 ${unavailableCount > 0 ? `<span class="unavailable-count">${unavailableCount}</span>` : ''}
             </div>
@@ -179,7 +179,7 @@ function showDateDetails(dateStr) {
     let content = `<h4>${dateDisplay}</h4>`;
 
     if (unavailablePeople.length === 0) {
-        content += '<p class="available-message">🎉 Everyone is available on this date!</p>';
+        content += `<p class="available-message">${window.i18n.t('calendarView.dateDetails.everyoneAvailable')}</p>`;
     } else {
         const allParticipants = calendarData.participantsType === 'defined'
             ? calendarData.participants
@@ -188,7 +188,7 @@ function showDateDetails(dateStr) {
         const availablePeople = allParticipants.filter(p => !unavailablePeople.includes(p));
 
         content += `
-            <p><strong>${unavailablePeople.length} unavailable:</strong></p>
+            <p><strong>${window.i18n.t('calendarView.dateDetails.unavailableCount', { count: unavailablePeople.length })}</strong></p>
             <ul class="unavailable-list">
                 ${unavailablePeople.map(p => `<li>${escapeHtml(p)}</li>`).join('')}
             </ul>
@@ -196,7 +196,7 @@ function showDateDetails(dateStr) {
 
         if (availablePeople.length > 0) {
             content += `
-                <p style="margin-top: 1rem;"><strong>${availablePeople.length} available:</strong></p>
+                <p style="margin-top: 1rem;"><strong>${window.i18n.t('calendarView.dateDetails.availableCount', { count: availablePeople.length })}</strong></p>
                 <p class="available-people">${availablePeople.map(escapeHtml).join(', ')}</p>
             `;
         }

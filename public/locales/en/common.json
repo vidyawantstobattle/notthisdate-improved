@@ -1,0 +1,19 @@
+{
+    "app.name": "NotThisDate",
+    "common.getStarted": "Get Started - It's Free",
+    "common.cancel": "Cancel",
+    "common.delete": "Delete",
+    "common.done": "Done",
+    "common.copy": "Copy",
+    "common.copied": "Copied!",
+    "common.goHome": "Go Home",
+    "common.loading": "Loading...",
+    "common.creating": "Creating...",
+    "common.submitting": "Submitting...",
+    "common.resetting": "Resetting...",
+    "common.sending": "Sending...",
+    "common.networkError": "Network error. Please try again.",
+    "common.linkCopied": "Link copied to clipboard!",
+    "common.areYouSure": "Are you sure?",
+    "common.confirm": "Confirm"
+}

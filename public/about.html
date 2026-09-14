@@ -20,13 +20,15 @@
                 </a>
                 <nav class="header-nav">
                     <ul class="nav-links">
-                        <li><a href="/#how-it-works" data-i18n="footer.howItWorks">How It Works</a></li>
-                        <li><a href="/about.html" data-i18n="footer.about">About</a></li>
+                        <li><a href="/#how-it-works" data-i18n="nav.howItWorks">How It Works</a></li>
+                        <li><a href="/about.html" data-i18n="nav.about">About</a></li>
                     </ul>
                     <div class="language-toggle">
-                        <button class="lang-btn active" data-lang="en">EN</button>
-                        <button class="lang-btn" data-lang="nl">NL</button>
-                        <button class="lang-btn" data-lang="mr">मराठी</button>
+                        <select class="lang-select" aria-label="Select language">
+                            <option value="en">EN</option>
+                            <option value="nl">NL</option>
+                            <option value="mr">मराठी</option>
+                        </select>
                     </div>
                     <div id="auth-section">
                         <button id="login-btn" class="btn btn-primary btn-small" data-i18n="nav.login">Login</button>
@@ -40,17 +42,17 @@
         </header>
         <main class="main-content" style="max-width:800px;">
             <section style="text-align:center;padding:2rem 0;">
-                <h1 style="font-size:2rem;color:#0a2540;margin-bottom:0.5rem;">About NotThisDate</h1>
-                <p style="font-size:1.1rem;color:#697386;">Simplifying group scheduling, one calendar at a time.</p>
+                <h1 style="font-size:2rem;color:#0a2540;margin-bottom:0.5rem;" data-i18n="about.title">About NotThisDate</h1>
+                <p style="font-size:1.1rem;color:#697386;" data-i18n="about.subtitle">Simplifying group scheduling, one calendar at a time.</p>
             </section>
             <section style="background:#fff;padding:2rem;border-radius:12px;border:1px solid #e6e9ec;margin-bottom:2rem;">
-                <h2 style="color:#0a2540;margin-bottom:1rem;">Our Mission</h2>
-                <p style="color:#697386;line-height:1.7;margin-bottom:1rem;">We believe coordinating group availability should be simple, fast, and free. NotThisDate was born from frustration with complex scheduling tools that require signups, have premium paywalls, or simply take too long to use.</p>
-                <p style="color:#697386;line-height:1.7;">Our approach is different: instead of asking everyone when they're available (which can be overwhelming), we ask when they're <strong>NOT</strong> available. It's faster, more intuitive, and gets you to the perfect date quicker.</p>
+                <h2 style="color:#0a2540;margin-bottom:1rem;" data-i18n="about.mission.title">Our Mission</h2>
+                <p style="color:#697386;line-height:1.7;margin-bottom:1rem;" data-i18n="about.mission.p1">We believe coordinating group availability should be simple, fast, and free. NotThisDate was born from frustration with complex scheduling tools that require signups, have premium paywalls, or simply take too long to use.</p>
+                <p style="color:#697386;line-height:1.7;" data-i18n="about.mission.p2">Our approach is different: instead of asking everyone when they're available (which can be overwhelming), we ask when they're <strong>NOT</strong> available. It's faster, more intuitive, and gets you to the perfect date quicker.</p>
             </section>
             <section style="text-align:center;padding:2rem;">
-                <h2 style="color:#0a2540;margin-bottom:1rem;">Ready to Plan Your Next Event?</h2>
-                <a href="/" class="btn btn-primary btn-large">Get Started - It's Free</a>
+                <h2 style="color:#0a2540;margin-bottom:1rem;" data-i18n="about.cta.title">Ready to Plan Your Next Event?</h2>
+                <a href="/" class="btn btn-primary btn-large" data-i18n="common.getStarted">Get Started - It's Free</a>
             </section>
         </main>
         <footer class="app-footer">
@@ -85,7 +87,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© 2026 NotThisDate. <span data-i18n="footer.madeWith">Made with ❤️ for easier group planning.</span></p>
+                <p><span data-i18n="footer.copyright">© 2026 NotThisDate.</span> <span data-i18n="footer.madeWith">Made with ❤️ for easier group planning.</span></p>
             </div>
         </footer>
     </div>
