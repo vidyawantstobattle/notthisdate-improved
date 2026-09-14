@@ -45,6 +45,7 @@
     "dashboard.createModal.errorMissingDates": "Please select both start and end dates",
     "dashboard.createModal.errorEndBeforeStart": "End date must be after start date",
     "dashboard.createModal.errorNoParticipants": "Please add at least one participant",
+    "dashboard.createModal.errorLimitReached": "You can create at most {limit} calendars. Delete an existing calendar to make room.",
     "dashboard.createModal.errorGeneric": "Failed to create calendar: {message}",
 
     "dashboard.shareModal.title": "🎉 Calendar Created!",

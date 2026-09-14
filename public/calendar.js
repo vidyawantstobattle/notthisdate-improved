@@ -995,8 +995,9 @@ async function submitUnavailability() {
             // Re-render availability calendar to show updated counts
             renderAvailabilityCalendar();
 
-            // Refresh user submission state from backend
-            loadUserSubmissions();
+            // Refresh from backend, keeping the dates the server just confirmed in case
+            // the immediate read-back is still stale.
+            await loadUserSubmissions(mergedSubmittedDates);
         } else {
             showStatus('error', result.error || window.i18n.t('calendarSubmit.errorSubmitFailed'));
         }
@@ -1067,7 +1068,9 @@ function showStatus(type, message) {
 }
 
 // Load user submissions
-async function loadUserSubmissions() {
+// `confirmedDates` are dates the server just acknowledged; they're kept even if the
+// immediate read-back hasn't caught up yet.
+async function loadUserSubmissions(confirmedDates = []) {
     if (!currentParticipant) {
         userSubmittedDates = [];
         selectedDates = [];
@@ -1096,7 +1099,7 @@ async function loadUserSubmissions() {
 
         resolvedParticipantKey = submissions[0]?.participantName || currentParticipant;
 
-        userSubmittedDates = [];
+        userSubmittedDates = [...confirmedDates];
         if (submissions.length > 0) {
             submissions.forEach(sub => {
                 if (sub.dates) {
@@ -1108,13 +1111,14 @@ async function loadUserSubmissions() {
                 }
             });
         }
+        userSubmittedDates.sort();
 
         updateSelectedDatesUI();
         refreshDatePicker();
     } catch (error) {
         console.error('Failed to load submissions:', error);
-        userSubmittedDates = [];
-        resolvedParticipantKey = '';
+        userSubmittedDates = [...confirmedDates];
+        resolvedParticipantKey = resolvedParticipantKey || currentParticipant;
         updateSelectedDatesUI();
         refreshDatePicker();
     }

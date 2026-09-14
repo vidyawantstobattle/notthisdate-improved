@@ -3,6 +3,8 @@ const netlifyIdentity = window.netlifyIdentity;
 let currentUser = null;
 let participantsTagsInput = null;
 const PROD_SITE_URL = 'https://reverse-date-picker.netlify.app';
+const MAX_CALENDARS_PER_USER = 10;
+let userCalendarCount = 0;
 
 async function fetchFunction(path, options = {}) {
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -380,6 +382,11 @@ function setDefaultDates() {
 
 // ===== MODAL FUNCTIONS =====
 function openCreateModal() {
+    if (userCalendarCount >= MAX_CALENDARS_PER_USER) {
+        showToast(window.i18n.t('dashboard.createModal.errorLimitReached', { limit: MAX_CALENDARS_PER_USER }));
+        return;
+    }
+
     document.getElementById('create-calendar-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
@@ -411,7 +418,7 @@ async function loadUserCalendars() {
     calendarsList.innerHTML = `
         <div class="loading-state">
             <div class="loading-spinner"></div>
-            <p class="loading-message">Loading your calendars...</p>
+            <p class="loading-message">${window.i18n.t('dashboard.loading')}</p>
         </div>
     `;
     noCalendars.classList.add('hidden');
@@ -423,6 +430,7 @@ async function loadUserCalendars() {
         if (!response.ok) throw new Error('Failed to load calendars');
 
         const data = await response.json();
+        userCalendarCount = data.calendars?.length || 0;
 
         if (data.calendars && data.calendars.length > 0) {
             renderCalendars(data.calendars);
@@ -552,7 +560,7 @@ async function handleCreateCalendar(e) {
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Failed to create calendar');
+            throw new Error(error.error || error.message || 'Failed to create calendar');
         }
 
         const data = await response.json();

@@ -1,6 +1,8 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
 
+const MAX_CALENDARS_PER_USER = 10;
+
 export default async (request, context) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -44,6 +46,28 @@ export default async (request, context) => {
             return new Response(JSON.stringify({ error: 'Calendar name is required' }), { status: 400, headers });
         }
 
+        const userStore = getStore({
+            name: "user-calendars",
+            siteID: context.site.id,
+            token: context.token
+        });
+
+        let userCalendars = [];
+        try {
+            const existing = await userStore.get(userId, { type: 'json' });
+            if (existing) userCalendars = existing;
+        } catch (e) {
+            console.log(`No existing calendars for user ${userId}`);
+        }
+
+        if (userCalendars.length >= MAX_CALENDARS_PER_USER) {
+            return new Response(JSON.stringify({
+                error: `You can create at most ${MAX_CALENDARS_PER_USER} calendars. Delete an existing calendar to make room.`,
+                code: 'CALENDAR_LIMIT_REACHED',
+                limit: MAX_CALENDARS_PER_USER
+            }), { status: 403, headers });
+        }
+
         // Generate unique calendar ID
         const calendarId = randomUUID().split('-')[0] + randomUUID().split('-')[1];
 
@@ -73,20 +97,6 @@ export default async (request, context) => {
         });
         await store.setJSON(calendarId, calendar);
         console.log(`Calendar ${calendarId} stored successfully`);
-
-        // Add to user's calendar list
-        const userStore = getStore({
-            name: "user-calendars",
-            siteID: context.site.id,
-            token: context.token
-        });
-        let userCalendars = [];
-        try {
-            const existing = await userStore.get(userId, { type: 'json' });
-            if (existing) userCalendars = existing;
-        } catch (e) {
-            console.log(`No existing calendars for user ${userId}`);
-        }
 
         userCalendars.push({
             id: calendarId,
