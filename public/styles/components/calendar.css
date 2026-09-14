@@ -542,7 +542,7 @@
 .calendar-day .unavailable-count {
     font-size: 0.65rem;
     margin-top: 2px;
-    color: var(--text-muted);
+    color: inherit;
 }
 
 /* ===== CUSTOM DATE PICKER ===== */
@@ -911,6 +911,7 @@
 #availability-calendar .calendar-day .unavailable-count {
     font-size: 0.56rem;
     margin-top: 1px;
+    color: inherit;
 }
 
 .availability-legend {
