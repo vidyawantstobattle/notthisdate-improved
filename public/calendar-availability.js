@@ -197,7 +197,7 @@ function showDateDetails(dateStr) {
         if (availablePeople.length > 0) {
             content += `
                 <p style="margin-top: 1rem;"><strong>${availablePeople.length} available:</strong></p>
-                <p class="available-people">✅ ${availablePeople.map(escapeHtml).join(', ')}</p>
+                <p class="available-people">${availablePeople.map(escapeHtml).join(', ')}</p>
             `;
         }
     }

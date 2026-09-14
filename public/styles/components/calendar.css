@@ -1187,13 +1187,25 @@
 }
 
 #date-details-content .available-people {
+    position: relative;
     margin-top: 0.8rem;
-    padding: 0.6rem 0.75rem;
+    padding: 0.6rem 0.75rem 0.6rem 2rem;
     border-radius: var(--radius);
     border: 1px solid var(--success-overlay-border);
     background: var(--success-overlay-light);
     color: var(--success-dark);
     font-weight: 600;
+}
+
+#date-details-content .available-people::before {
+    content: "";
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    transform: translateY(-50%);
+    background: no-repeat center / contain url('/images/Smileys_Happy_Outline.svg');
 }
 
 /* View tab content */
