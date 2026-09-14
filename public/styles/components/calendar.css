@@ -1120,7 +1120,7 @@
 
 #date-details {
     margin-top: 1.2rem;
-    background: linear-gradient(180deg, var(--color-white) 0%, var(--bg-primary) 100%);
+    background: var(--bg-white);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: 1.25rem;
@@ -1134,12 +1134,14 @@
 }
 
 #date-details-content h4 {
-    color: var(--primary-color);
-    background: var(--primary-bg);
-    border: 1px solid var(--primary-overlay-light);
-    border-radius: var(--radius);
-    padding: 0.6rem 0.75rem;
+    color: var(--secondary-color);
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0;
+    padding: 0 0 0.6rem;
     margin-bottom: 0.85rem;
+    font-size: 1rem;
 }
 
 #date-details-content p {
@@ -1166,7 +1168,7 @@
     padding: 0.35rem 0.5rem 0.35rem 1.8rem;
     border-radius: var(--radius-sm);
     color: var(--text-primary);
-    background: var(--color-white);
+    background: var(--danger-bg);
     border: 1px solid var(--danger-overlay-light);
     margin-bottom: 0.4rem;
 }
