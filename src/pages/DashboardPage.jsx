@@ -151,9 +151,13 @@ function DashboardPage() {
                       📅 {formatDate(calendar.startDate)} - {formatDate(calendar.endDate)}
                     </span>
                     <span className="meta-item">
-                      👥 {calendar.participantsType === 'defined'
-                        ? `${calendar.submittedParticipantsCount || 0}/${calendar.participants?.length || 0} submitted`
-                        : `${calendar.submittedParticipantsCount || 0} joined`}
+                      👥 {(() => {
+                        const submittedCount = calendar.submittedParticipantsCount || 0;
+                        const totalParticipants = Math.max(calendar.participants?.length || 0, submittedCount);
+                        return calendar.participantsType === 'defined'
+                          ? `${submittedCount}/${totalParticipants} submitted`
+                          : `${submittedCount} joined`;
+                      })()}
                     </span>
                   </div>
                   <div className="calendar-card-actions">

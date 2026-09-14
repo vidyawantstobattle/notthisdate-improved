@@ -447,9 +447,11 @@ function renderCalendars(calendars) {
             ? 'Open-ended'
             : `${formatDisplayDate(cal.startDate)} - ${formatDisplayDate(cal.endDate)}`;
 
+        const submittedCount = cal.submittedParticipantsCount || 0;
+        const totalParticipants = Math.max(cal.participants?.length || 0, submittedCount);
         const participantsText = cal.participantsType === 'open'
-            ? `${cal.submittedParticipantsCount || 0} joined`
-            : `${cal.submittedParticipantsCount || 0}/${cal.participants?.length || 0} submitted`;
+            ? `${submittedCount} joined`
+            : `${submittedCount}/${totalParticipants} submitted`;
 
         const shareUrl = `${window.location.origin}/c/${cal.id}`;
 
