@@ -368,6 +368,24 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Confirm Action Modal -->
+            <div id="confirm-modal" class="modal hidden">
+                <div class="modal-backdrop" data-close-confirm></div>
+                <div class="modal-content confirm-modal-content">
+                    <div class="modal-header">
+                        <h2 id="confirm-modal-title">Are you sure?</h2>
+                        <button class="modal-close" data-close-confirm>&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="confirm-modal-message"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" data-close-confirm>Cancel</button>
+                        <button id="confirm-modal-confirm-btn" class="btn btn-secondary">Delete</button>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <!-- Footer -->

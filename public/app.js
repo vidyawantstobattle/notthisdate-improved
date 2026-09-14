@@ -465,8 +465,14 @@ function renderCalendars(calendars) {
                 </div>
                 <div class="calendar-card-actions">
                     <a href="/c/${cal.id}" class="btn btn-primary btn-small">Open</a>
-                    <button class="btn btn-outline btn-small" onclick="copyShareLink('${shareUrl}')">Share Link</button>
+                    <button class="btn btn-outline btn-small" onclick="copyShareLink('${shareUrl}', '${cal.id}')">Share Link</button>
                     <button class="btn btn-outline btn-small" onclick="deleteCalendar('${cal.id}')">Delete</button>
+                </div>
+                <div class="share-link-row hidden" id="share-link-row-${cal.id}">
+                    <input type="text" class="share-link-input" value="${shareUrl}" readonly onclick="this.select()">
+                    <button class="share-link-copy-btn" onclick="copyShareLink('${shareUrl}', '${cal.id}')" title="Copy link" aria-label="Copy link">
+                        <img src="/images/save_outline.svg" alt="" class="icon-copy">
+                    </button>
                 </div>
             </div>
         `;
@@ -632,11 +638,43 @@ function closeShareModal() {
     document.body.style.overflow = '';
 }
 
-async function deleteCalendar(calendarId) {
-    if (!confirm('Are you sure you want to delete this calendar? This cannot be undone.')) {
-        return;
-    }
+// ===== CONFIRM MODAL =====
+function showConfirmModal({ title = 'Are you sure?', message = '', confirmLabel = 'Confirm', onConfirm }) {
+    const modal = document.getElementById('confirm-modal');
+    const confirmBtn = document.getElementById('confirm-modal-confirm-btn');
 
+    document.getElementById('confirm-modal-title').textContent = title;
+    document.getElementById('confirm-modal-message').textContent = message;
+    confirmBtn.textContent = confirmLabel;
+
+    const close = () => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    };
+
+    modal.querySelectorAll('[data-close-confirm]').forEach(el => {
+        el.onclick = close;
+    });
+
+    confirmBtn.onclick = () => {
+        close();
+        onConfirm?.();
+    };
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+async function deleteCalendar(calendarId) {
+    showConfirmModal({
+        title: 'Delete this calendar?',
+        message: 'This cannot be undone. All submitted dates will be permanently lost.',
+        confirmLabel: 'Delete',
+        onConfirm: () => performDeleteCalendar(calendarId)
+    });
+}
+
+async function performDeleteCalendar(calendarId) {
     try {
         const headers = await getAuthHeaders();
         const response = await fetchFunction(`/.netlify/functions/delete-calendar?id=${calendarId}`, {
@@ -648,19 +686,43 @@ async function deleteCalendar(calendarId) {
 
         // Refresh the calendar list
         await loadUserCalendars();
+        showToast('Calendar deleted.');
     } catch (error) {
         console.error('Error deleting calendar:', error);
-        alert('Failed to delete calendar. Please try again.');
+        showToast('Failed to delete calendar. Please try again.');
     }
 }
 
 // ===== UTILITY FUNCTIONS =====
-function copyShareLink(url) {
+function showToast(message) {
+    let toast = document.getElementById('app-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'app-toast';
+        toast.className = 'app-toast';
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.classList.add('is-visible');
+
+    clearTimeout(toast._hideTimeout);
+    toast._hideTimeout = setTimeout(() => {
+        toast.classList.remove('is-visible');
+    }, 3000);
+}
+
+function copyShareLink(url, calendarId) {
     navigator.clipboard.writeText(url).then(() => {
-        alert('Link copied to clipboard!');
+        showToast('Link copied to clipboard!');
     }).catch(() => {
         prompt('Copy this link:', url);
     });
+
+    if (calendarId) {
+        const row = document.getElementById(`share-link-row-${calendarId}`);
+        row?.classList.remove('hidden');
+    }
 }
 
 function formatDisplayDate(dateStr) {
