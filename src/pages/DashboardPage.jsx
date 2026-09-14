@@ -152,8 +152,8 @@ function DashboardPage() {
                     </span>
                     <span className="meta-item">
                       👥 {calendar.participantsType === 'defined'
-                        ? `${calendar.participants?.length || 0} participants`
-                        : 'Open to anyone'}
+                        ? `${calendar.submittedParticipantsCount || 0}/${calendar.participants?.length || 0} submitted`
+                        : `${calendar.submittedParticipantsCount || 0} joined`}
                     </span>
                   </div>
                   <div className="calendar-card-actions">

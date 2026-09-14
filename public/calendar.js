@@ -5,10 +5,14 @@
 let calendarData = null;
 let selectedDates = [];
 let userSubmittedDates = [];
-let flatpickrInstance = null;
+let datePickerViewStart = null;
+let isDatePickerInitialized = false;
+let isDatePickerResizeBound = false;
 let allUnavailability = {};
 let currentParticipant = '';
+let resolvedParticipantKey = '';
 const PROD_SITE_URL = 'https://reverse-date-picker.netlify.app';
+const DATE_PICKER_WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 async function fetchFunction(path, options = {}) {
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -523,66 +527,246 @@ function initTabs() {
 
 // Date Picker
 function initDatePicker() {
-    const startDate = new Date(calendarData.startDate + 'T00:00:00');
-    const endDate = new Date(calendarData.endDate + 'T00:00:00');
-    const isMobile = window.innerWidth <= 600;
+    const container = document.getElementById('date-picker');
+    const startDate = parseDateLocal(calendarData.startDate);
+    const endDate = parseDateLocal(calendarData.endDate);
 
-    flatpickrInstance = flatpickr('#date-picker', {
-        mode: 'multiple',
-        minDate: startDate,
-        maxDate: endDate,
-        dateFormat: 'Y-m-d',
-        inline: true,
-        showMonths: isMobile ? 1 : 2,
-        onChange: (selectedDateArray) => {
-            // Get the last selected date (most recent click)
-            if (selectedDateArray.length > 0) {
-                const lastDate = selectedDateArray[selectedDateArray.length - 1];
-                const dateStr = formatDateLocal(lastDate);
+    if (!container || !startDate || !endDate) {
+        console.error('Invalid calendar date range:', calendarData.startDate, calendarData.endDate);
+        return;
+    }
 
-                // Toggle date selection
-                if (selectedDates.includes(dateStr)) {
-                    // Remove if already in our list
-                    selectedDates = selectedDates.filter(d => d !== dateStr);
-                } else if (!userSubmittedDates.includes(dateStr)) {
-                    // Add if not already submitted
-                    selectedDates.push(dateStr);
-                }
+    if (!datePickerViewStart) {
+        datePickerViewStart = getMonthStart(startDate);
+    }
+    datePickerViewStart = clampDatePickerViewStart(datePickerViewStart, startDate, endDate);
 
-                selectedDates.sort();
-                updateSelectedDatesUI();
-                updateSubmitButton();
-            }
+    if (!isDatePickerInitialized) {
+        container.addEventListener('click', handleDatePickerClick);
+        isDatePickerInitialized = true;
+    }
 
-            // Clear flatpickr's internal selection to allow re-clicking
-            flatpickrInstance.clear();
-            refreshDatePicker();
-        },
-        onDayCreate: (dObj, dStr, fp, dayElem) => {
-            const dateStr = formatDateLocal(dayElem.dateObj);
+    if (!isDatePickerResizeBound) {
+        window.addEventListener('resize', refreshDatePicker);
+        isDatePickerResizeBound = true;
+    }
 
-            // Check which list contains this date
-            const isSubmitted = userSubmittedDates.includes(dateStr);
-            const isPending = selectedDates.includes(dateStr);
+    renderDatePicker();
+}
 
-            if (isSubmitted || isPending) {
-                const dateList = isSubmitted ? userSubmittedDates : selectedDates;
-                const baseClass = isSubmitted ? 'user-submitted' : 'user-pending';
+function getDatePickerMonthsToShow() {
+    return window.innerWidth <= 700 ? 1 : 2;
+}
 
-                dayElem.classList.add(baseClass);
+function getMonthIndex(date) {
+    return (date.getFullYear() * 12) + date.getMonth();
+}
 
-                // Determine range position based on adjacency
-                const rangePosition = getRangePosition(dateStr, dateList);
-                if (rangePosition) {
-                    dayElem.classList.add(rangePosition);
-                }
+function toMonthDate(monthIndex) {
+    const year = Math.floor(monthIndex / 12);
+    const month = monthIndex % 12;
+    return new Date(year, month, 1);
+}
+
+function getMonthStart(date) {
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths(date, months) {
+    return new Date(date.getFullYear(), date.getMonth() + months, 1);
+}
+
+function getMonthLabel(date) {
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+function clampDatePickerViewStart(viewStart, rangeStart, rangeEnd) {
+    const minMonth = getMonthStart(rangeStart);
+    const maxMonth = getMonthStart(rangeEnd);
+    const monthsToShow = getDatePickerMonthsToShow();
+
+    const minIndex = getMonthIndex(minMonth);
+    const maxIndex = getMonthIndex(maxMonth);
+    const latestStartIndex = Math.max(minIndex, maxIndex - (monthsToShow - 1));
+
+    const targetIndex = Math.min(
+        Math.max(getMonthIndex(getMonthStart(viewStart)), minIndex),
+        latestStartIndex
+    );
+
+    return toMonthDate(targetIndex);
+}
+
+function shiftDatePickerMonth(step) {
+    const startDate = parseDateLocal(calendarData.startDate);
+    const endDate = parseDateLocal(calendarData.endDate);
+
+    if (!startDate || !endDate) return;
+
+    datePickerViewStart = addMonths(datePickerViewStart, step);
+    datePickerViewStart = clampDatePickerViewStart(datePickerViewStart, startDate, endDate);
+    renderDatePicker();
+}
+
+function renderDatePicker() {
+    const container = document.getElementById('date-picker');
+    const startDate = parseDateLocal(calendarData.startDate);
+    const endDate = parseDateLocal(calendarData.endDate);
+
+    if (!container || !startDate || !endDate) return;
+
+    if (!datePickerViewStart) {
+        datePickerViewStart = getMonthStart(startDate);
+    }
+    datePickerViewStart = clampDatePickerViewStart(datePickerViewStart, startDate, endDate);
+
+    const monthsToShow = getDatePickerMonthsToShow();
+    const monthDates = Array.from({ length: monthsToShow }, (_, index) => addMonths(datePickerViewStart, index));
+    const minMonth = getMonthStart(startDate);
+    const maxMonth = getMonthStart(endDate);
+    const latestStartIndex = Math.max(getMonthIndex(minMonth), getMonthIndex(maxMonth) - (monthsToShow - 1));
+
+    const canGoPrev = getMonthIndex(datePickerViewStart) > getMonthIndex(minMonth);
+    const canGoNext = getMonthIndex(datePickerViewStart) < latestStartIndex;
+
+    const rangeLabel = monthDates.length === 1
+        ? getMonthLabel(monthDates[0])
+        : `${getMonthLabel(monthDates[0])} - ${getMonthLabel(monthDates[monthDates.length - 1])}`;
+
+    container.innerHTML = `
+        <div class="ntd-picker-shell">
+            <div class="ntd-picker-toolbar">
+                <button type="button" class="ntd-nav-btn" data-nav="prev" aria-label="Show previous month" ${canGoPrev ? '' : 'disabled'}>
+                    <span aria-hidden="true">&lsaquo;</span>
+                </button>
+                <div class="ntd-picker-range-label">${rangeLabel}</div>
+                <button type="button" class="ntd-nav-btn" data-nav="next" aria-label="Show next month" ${canGoNext ? '' : 'disabled'}>
+                    <span aria-hidden="true">&rsaquo;</span>
+                </button>
+            </div>
+            <div class="ntd-picker-months" data-months="${monthsToShow}">
+                ${monthDates.map(monthDate => renderDatePickerMonth(monthDate, startDate, endDate)).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderDatePickerMonth(monthDate, rangeStart, rangeEnd) {
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth();
+    const firstWeekday = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const weekdayHtml = DATE_PICKER_WEEKDAYS
+        .map(label => `<div class="ntd-weekday">${label}</div>`)
+        .join('');
+
+    let dayCellsHtml = '';
+
+    for (let slot = 0; slot < 42; slot++) {
+        const dayNumber = slot - firstWeekday + 1;
+
+        if (dayNumber < 1 || dayNumber > daysInMonth) {
+            dayCellsHtml += '<div class="ntd-day ntd-day--placeholder" aria-hidden="true"></div>';
+            continue;
+        }
+
+        const dateObj = new Date(year, month, dayNumber);
+        const dateStr = formatDateLocal(dateObj);
+        const isInRange = dateObj >= rangeStart && dateObj <= rangeEnd;
+        const isSubmitted = userSubmittedDates.includes(dateStr);
+        const isPending = selectedDates.includes(dateStr);
+
+        const classNames = ['ntd-day'];
+        const attributes = ['type="button"'];
+
+        if (!isInRange) {
+            classNames.push('is-out-of-range');
+            attributes.push('disabled');
+        } else if (isSubmitted) {
+            classNames.push('is-submitted');
+            attributes.push('disabled');
+            attributes.push('title="Already submitted"');
+        } else if (isPending) {
+            classNames.push('is-pending');
+            attributes.push('data-date="' + dateStr + '"');
+            attributes.push('aria-pressed="true"');
+        } else {
+            attributes.push('data-date="' + dateStr + '"');
+            attributes.push('aria-pressed="false"');
+        }
+
+        if (isInRange && (isSubmitted || isPending)) {
+            const rangeSource = isSubmitted ? userSubmittedDates : selectedDates;
+            const rangePosition = getRangePosition(dateStr, rangeSource);
+            if (rangePosition) {
+                classNames.push(rangePosition);
             }
         }
-    });
+
+        if (!attributes.some(attr => attr.startsWith('title='))) {
+            if (!isInRange) {
+                attributes.push('title="Outside event date range"');
+            } else if (isPending) {
+                attributes.push('title="Pending selection"');
+            } else {
+                attributes.push('title="Click to mark unavailable"');
+            }
+        }
+
+        dayCellsHtml += `
+            <button class="${classNames.join(' ')}" ${attributes.join(' ')}>
+                <span class="ntd-day-number">${dayNumber}</span>
+            </button>
+        `;
+    }
+
+    return `
+        <section class="ntd-picker-month" aria-label="${getMonthLabel(monthDate)}">
+            <h4 class="ntd-picker-month-title">${getMonthLabel(monthDate)}</h4>
+            <div class="ntd-picker-grid">
+                ${weekdayHtml}
+                ${dayCellsHtml}
+            </div>
+        </section>
+    `;
+}
+
+function handleDatePickerClick(event) {
+    const navButton = event.target.closest('.ntd-nav-btn');
+    if (navButton) {
+        const direction = navButton.dataset.nav === 'next' ? 1 : -1;
+        shiftDatePickerMonth(direction);
+        return;
+    }
+
+    const dayButton = event.target.closest('.ntd-day[data-date]');
+    if (!dayButton) return;
+
+    toggleDateSelection(dayButton.dataset.date);
+}
+
+function toggleDateSelection(dateStr) {
+    if (!dateStr) return;
+
+    if (selectedDates.includes(dateStr)) {
+        selectedDates = selectedDates.filter(d => d !== dateStr);
+    } else if (!userSubmittedDates.includes(dateStr)) {
+        selectedDates.push(dateStr);
+    }
+
+    selectedDates.sort();
+    updateSelectedDatesUI();
+    updateSubmitButton();
+    refreshDatePicker();
 }
 
 // Determine if a date is start, middle, or end of a continuous range
 function getRangePosition(dateStr, dateList) {
+    if (!Array.isArray(dateList) || !dateList.includes(dateStr)) {
+        return null;
+    }
+
     const prevDate = getAdjacentDateStr(dateStr, -1);
     const nextDate = getAdjacentDateStr(dateStr, 1);
 
@@ -603,30 +787,25 @@ function getRangePosition(dateStr, dateList) {
 
 // Get adjacent date string (offset in days)
 function getAdjacentDateStr(dateStr, offsetDays) {
-    const date = new Date(dateStr + 'T12:00:00');
+    const date = parseDateLocal(dateStr);
+    if (!date) return dateStr;
     date.setDate(date.getDate() + offsetDays);
     return formatDateLocal(date);
 }
 
 function refreshDatePicker() {
-    if (flatpickrInstance) {
-        const isMobile = window.innerWidth <= 600;
-        const currentMonth = isMobile ? flatpickrInstance.currentMonth : null;
-        const currentYear = isMobile ? flatpickrInstance.currentYear : null;
-
-        flatpickrInstance.redraw();
-
-        if (isMobile && currentMonth !== null) {
-            flatpickrInstance.changeMonth(currentMonth, false);
-            flatpickrInstance.changeYear(currentYear);
-        }
-    }
+    if (!isDatePickerInitialized) return;
+    renderDatePicker();
 }
 
 function addDateRange(start, end) {
     const dates = [];
-    let current = new Date(start);
-    while (current <= end) {
+    let current = parseDateLocal(start);
+    const endDate = parseDateLocal(end);
+
+    if (!current || !endDate) return;
+
+    while (current <= endDate) {
         dates.push(formatDateLocal(current));
         current.setDate(current.getDate() + 1);
     }
@@ -667,38 +846,63 @@ function updateSubmitButton() {
     submitBtn.disabled = !currentParticipant;
 }
 
-function updateSelectedDatesUI(justSubmitted = false) {
+function updateSelectedDatesUI() {
     const container = document.getElementById('selected-dates-list');
 
-    if (selectedDates.length === 0) {
-        if (justSubmitted) {
-            // Show success message instead of empty message after successful submit
-            container.innerHTML = '<p class="success-message">✓ Dates submitted successfully! Select more dates if needed.</p>';
-        } else {
-            container.innerHTML = '<p class="empty-message">No dates selected yet</p>';
-        }
+    if (!container) return;
+
+    const submittedRanges = groupIntoRanges(userSubmittedDates);
+    const pendingRanges = groupIntoRanges(selectedDates);
+
+    if (submittedRanges.length === 0 && pendingRanges.length === 0) {
+        container.innerHTML = '<p class="empty-message">No dates selected yet</p>';
         return;
     }
 
-    const ranges = groupIntoRanges(selectedDates);
-
-    container.innerHTML = ranges.map((range, index) => {
+    const submittedHtml = submittedRanges.map(range => {
         const displayText = range.start === range.end
             ? formatDateDisplay(range.start)
             : `${formatDateDisplay(range.start)} - ${formatDateDisplay(range.end)}`;
 
         return `
-            <span class="date-tag">
+            <span class="date-tag date-tag-submitted" title="Previously submitted">
+                ${displayText}
+            </span>
+        `;
+    }).join('');
+
+    const pendingHtml = pendingRanges.map((range, index) => {
+        const displayText = range.start === range.end
+            ? formatDateDisplay(range.start)
+            : `${formatDateDisplay(range.start)} - ${formatDateDisplay(range.end)}`;
+
+        return `
+            <span class="date-tag date-tag-pending" title="Pending submission">
                 ${displayText}
                 <span class="remove-btn" data-range-index="${index}">&times;</span>
             </span>
         `;
     }).join('');
 
+    container.innerHTML = `
+        ${pendingHtml ? `
+            <div class="dates-group">
+                <p class="dates-group-label">Pending</p>
+                <div class="dates-chip-row">${pendingHtml}</div>
+            </div>
+        ` : ''}
+        ${submittedHtml ? `
+            <div class="dates-group">
+                <p class="dates-group-label">Submitted</p>
+                <div class="dates-chip-row">${submittedHtml}</div>
+            </div>
+        ` : ''}
+    `;
+
     container.querySelectorAll('.remove-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const rangeIndex = parseInt(e.target.dataset.rangeIndex);
-            removeRange(ranges[rangeIndex]);
+            removeRange(pendingRanges[rangeIndex]);
         });
     });
 }
@@ -732,30 +936,41 @@ async function submitUnavailability() {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
 
-    // Store the dates we're submitting
+    // Always submit the union so existing submitted dates are preserved.
     const submittedDates = [...selectedDates];
+    const nextUnavailableDates = Array.from(new Set([
+        ...userSubmittedDates,
+        ...selectedDates
+    ])).sort();
 
     try {
         const response = await fetchFunction(`/.netlify/functions/submit-unavailability?calendarId=${encodeURIComponent(calendarId)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                participantName: currentParticipant,
-                unavailableDates: selectedDates
+                participantName: resolvedParticipantKey || currentParticipant,
+                unavailableDates: nextUnavailableDates
             })
         });
 
         const result = await response.json();
 
         if (response.ok) {
+            const participantKey = result.participant || currentParticipant;
             const message = selectedDates.length === 0
-                ? 'Recorded! You\'re available for all dates! 🎉'
+                ? (userSubmittedDates.length > 0
+                    ? 'No new dates selected. Existing unavailable dates are unchanged.'
+                    : 'Recorded! You\'re available for all dates! 🎉')
                 : 'Your unavailability has been recorded!';
             showStatus('success', message);
 
             // Move submitted dates to userSubmittedDates (for solid highlighting)
             // and update allUnavailability locally without refresh
-            submittedDates.forEach(date => {
+            const mergedSubmittedDates = Array.isArray(result.unavailableDates)
+                ? result.unavailableDates
+                : nextUnavailableDates;
+
+            mergedSubmittedDates.forEach(date => {
                 if (!userSubmittedDates.includes(date)) {
                     userSubmittedDates.push(date);
                 }
@@ -763,16 +978,16 @@ async function submitUnavailability() {
                 if (!allUnavailability[date]) {
                     allUnavailability[date] = [];
                 }
-                if (!allUnavailability[date].includes(currentParticipant)) {
-                    allUnavailability[date].push(currentParticipant);
+                if (!allUnavailability[date].includes(participantKey)) {
+                    allUnavailability[date].push(participantKey);
                 }
             });
 
             // Clear selected dates AFTER moving them
             selectedDates = [];
 
-            // Update the selected dates UI to show success state, not empty
-            updateSelectedDatesUI(true); // Pass true to indicate successful submit
+            // Update the selected dates UI
+            updateSelectedDatesUI();
 
             // Refresh the date picker to show solid highlights
             refreshDatePicker();
@@ -780,7 +995,7 @@ async function submitUnavailability() {
             // Re-render availability calendar to show updated counts
             renderAvailabilityCalendar();
 
-            // Load user submissions to show in the list
+            // Refresh user submission state from backend
             loadUserSubmissions();
         } else {
             showStatus('error', result.error || 'Failed to submit');
@@ -817,7 +1032,8 @@ async function resetUserDates() {
     resetBtn.textContent = 'Resetting...';
 
     try {
-        const response = await fetchFunction(`/.netlify/functions/reset-unavailability?calendarId=${encodeURIComponent(calendarId)}&participant=${encodeURIComponent(currentParticipant)}`, {
+        const participantForReset = resolvedParticipantKey || currentParticipant;
+        const response = await fetchFunction(`/.netlify/functions/reset-unavailability?calendarId=${encodeURIComponent(calendarId)}&participant=${encodeURIComponent(participantForReset)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -852,11 +1068,11 @@ function showStatus(type, message) {
 
 // Load user submissions
 async function loadUserSubmissions() {
-    const container = document.getElementById('user-submissions');
-
     if (!currentParticipant) {
-        container.innerHTML = '<p class="empty-message">Enter your name to see your submissions</p>';
         userSubmittedDates = [];
+        selectedDates = [];
+        resolvedParticipantKey = '';
+        updateSelectedDatesUI();
         refreshDatePicker();
         return;
     }
@@ -864,10 +1080,25 @@ async function loadUserSubmissions() {
     try {
         const response = await fetchFunction(`/.netlify/functions/get-user-submissions?calendarId=${calendarData.id}&participant=${encodeURIComponent(currentParticipant)}`);
         const data = await response.json();
+        let submissions = normalizeSubmissions(data.submissions, currentParticipant);
+
+        if (submissions.length === 0) {
+            const allResponse = await fetchFunction(`/.netlify/functions/get-user-submissions?calendarId=${calendarData.id}`);
+            const allData = await allResponse.json();
+            const allSubmissions = normalizeSubmissions(allData.submissions);
+            const participantQuery = normalizeParticipantName(currentParticipant);
+            const matches = allSubmissions.filter(sub => normalizeParticipantName(sub.participantName || '') === participantQuery);
+
+            if (matches.length > 0) {
+                submissions = [mergeSubmissionsByParticipant(matches, currentParticipant)];
+            }
+        }
+
+        resolvedParticipantKey = submissions[0]?.participantName || currentParticipant;
 
         userSubmittedDates = [];
-        if (data.submissions && data.submissions.length > 0) {
-            data.submissions.forEach(sub => {
+        if (submissions.length > 0) {
+            submissions.forEach(sub => {
                 if (sub.dates) {
                     sub.dates.forEach(d => {
                         if (!userSubmittedDates.includes(d)) {
@@ -876,36 +1107,15 @@ async function loadUserSubmissions() {
                     });
                 }
             });
-
-            container.innerHTML = data.submissions.map(sub => {
-                let datesDisplay;
-                if (!sub.dates || sub.dates.length === 0) {
-                    datesDisplay = '<span style="color: var(--success-color);">Available for all dates! 🎉</span>';
-                } else {
-                    const ranges = groupIntoRanges(sub.dates);
-                    datesDisplay = ranges.map(r =>
-                        r.start === r.end
-                            ? formatDateDisplay(r.start)
-                            : `${formatDateDisplay(r.start)} - ${formatDateDisplay(r.end)}`
-                    ).join(', ');
-                }
-
-                return `
-                    <div class="submission-item">
-                        <div class="submission-date">Submitted: ${new Date(sub.timestamp).toLocaleString()}</div>
-                        <div class="submission-dates">${sub.dates && sub.dates.length > 0 ? 'Unavailable: ' : ''}${datesDisplay}</div>
-                    </div>
-                `;
-            }).join('');
-        } else {
-            container.innerHTML = '<p class="empty-message">No submissions yet</p>';
         }
 
+        updateSelectedDatesUI();
         refreshDatePicker();
     } catch (error) {
         console.error('Failed to load submissions:', error);
-        container.innerHTML = '<p class="empty-message">Failed to load submissions</p>';
         userSubmittedDates = [];
+        resolvedParticipantKey = '';
+        updateSelectedDatesUI();
         refreshDatePicker();
     }
 }

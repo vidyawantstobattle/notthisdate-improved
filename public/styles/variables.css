@@ -18,6 +18,25 @@
     --text-secondary: #697386;
     --text-muted: #8898aa;
 
+    --color-white: #ffffff;
+    --color-overlay-dark: rgba(0, 0, 0, 0.05);
+    --color-overlay-dark-sm: rgba(0, 0, 0, 0.08);
+    --color-overlay-dark-lg: rgba(0, 0, 0, 0.1);
+    --color-overlay-dark-xl: rgba(0, 0, 0, 0.12);
+    --color-overlay-dark-heavy: rgba(0, 0, 0, 0.2);
+    --success-dark: #1e7b52;
+    --primary-overlay-light: rgba(99, 91, 255, 0.18);
+    --success-overlay-light: rgba(48, 198, 124, 0.1);
+    --success-overlay-border: rgba(48, 198, 124, 0.32);
+    --danger-overlay-light: rgba(223, 27, 65, 0.18);
+    --danger-overlay-pending: rgba(223, 27, 65, 0.3);
+    --danger-overlay-hover: rgba(223, 27, 65, 0.2);
+    --danger-overlay-border-sm: rgba(223, 27, 65, 0.35);
+    --danger-overlay-border-lg: rgba(223, 27, 65, 0.65);
+    --success-overlay-border-light: rgba(48, 198, 124, 0.35);
+    --secondary-overlay-sm: rgba(10, 37, 64, 0.08);
+    --bg-secondary-light: #f8fbff;
+
     --bg-primary: #f6f9fc;
     --bg-white: #ffffff;
 

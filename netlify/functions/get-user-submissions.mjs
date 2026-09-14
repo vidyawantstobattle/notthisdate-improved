@@ -1,4 +1,9 @@
 import { getStore } from "@netlify/blobs";
+import {
+    findMatchingParticipantKeys,
+    toSubmissionEntry,
+    mergeSubmissionEntries
+} from "./utils/participant-utils.mjs";
 
 export default async (request, context) => {
     const headers = {
@@ -40,11 +45,20 @@ export default async (request, context) => {
 
             let submissions;
             if (participantName) {
-                // Get specific participant's submission
-                submissions = calendar.unavailability?.[participantName] || null;
+                // Get specific participant submission with case/trim-insensitive matching.
+                const unavailability = calendar.unavailability || {};
+                const matchingKeys = findMatchingParticipantKeys(unavailability, participantName);
+
+                if (matchingKeys.length === 0) {
+                    submissions = [];
+                } else {
+                    const entries = matchingKeys.map(name => toSubmissionEntry(name, unavailability[name]));
+                    submissions = [mergeSubmissionEntries(entries, matchingKeys[0])];
+                }
             } else {
-                // Get all submissions
-                submissions = calendar.unavailability || {};
+                // Get all submissions as an array of normalized entries.
+                submissions = Object.entries(calendar.unavailability || {})
+                    .map(([name, value]) => toSubmissionEntry(name, value));
             }
 
             return new Response(JSON.stringify({ submissions }), { status: 200, headers });

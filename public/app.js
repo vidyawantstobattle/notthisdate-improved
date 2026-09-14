@@ -448,8 +448,8 @@ function renderCalendars(calendars) {
             : `${formatDisplayDate(cal.startDate)} - ${formatDisplayDate(cal.endDate)}`;
 
         const participantsText = cal.participantsType === 'open'
-            ? 'Anyone can join'
-            : `${cal.participants?.length || 0} participants`;
+            ? `${cal.submittedParticipantsCount || 0} joined`
+            : `${cal.submittedParticipantsCount || 0}/${cal.participants?.length || 0} submitted`;
 
         const shareUrl = `${window.location.origin}/c/${cal.id}`;
 

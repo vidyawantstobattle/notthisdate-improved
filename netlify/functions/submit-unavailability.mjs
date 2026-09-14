@@ -1,4 +1,10 @@
 import { getStore } from "@netlify/blobs";
+import {
+    findMatchingParticipantKeys,
+    chooseCanonicalParticipantKey,
+    collapseParticipantKeys,
+    toSubmissionEntry
+} from "./utils/participant-utils.mjs";
 
 export default async (request, context) => {
     const headers = {
@@ -58,9 +64,33 @@ export default async (request, context) => {
             calendar.unavailability = {};
         }
 
+        const enteredName = participantName.trim();
+        const matchingKeys = findMatchingParticipantKeys(calendar.unavailability, enteredName);
+
+        // Reuse an existing key for this user (case-insensitive) to avoid duplicates.
+        const participantKey = chooseCanonicalParticipantKey(matchingKeys, enteredName);
+
+        // Preserve existing dates across all case variants before key collapse.
+        const existingDates = [];
+        matchingKeys.forEach(name => {
+            const existingEntry = toSubmissionEntry(name, calendar.unavailability[name]);
+            existingEntry.dates.forEach(date => {
+                if (!existingDates.includes(date)) {
+                    existingDates.push(date);
+                }
+            });
+        });
+
+        // Collapse historical casing duplicates into one canonical participant key.
+        collapseParticipantKeys(calendar.unavailability, matchingKeys, participantKey);
+        const mergedDates = Array.from(new Set([
+            ...existingDates,
+            ...unavailableDates
+        ])).sort();
+
         // Store participant's unavailability
-        calendar.unavailability[participantName] = {
-            dates: unavailableDates,
+        calendar.unavailability[participantKey] = {
+            dates: mergedDates,
             submittedAt: new Date().toISOString()
         };
 
@@ -70,7 +100,8 @@ export default async (request, context) => {
         return new Response(JSON.stringify({
             success: true,
             message: 'Unavailability submitted',
-            participant: participantName
+            participant: participantKey,
+            unavailableDates: mergedDates
         }), { status: 200, headers });
 
     } catch (error) {

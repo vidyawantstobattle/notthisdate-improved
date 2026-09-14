@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import { findMatchingParticipantKeys } from "./utils/participant-utils.mjs";
 
 export default async (request, context) => {
     const headers = {
@@ -21,7 +22,7 @@ export default async (request, context) => {
     const calendarId = url.searchParams.get('calendarId');
     const participantName = url.searchParams.get('participant');
 
-    if (!calendarId || !participantName) {
+    if (!calendarId || !participantName || !participantName.trim()) {
         return new Response(JSON.stringify({ error: 'Calendar ID and participant name are required' }), { status: 400, headers });
     }
 
@@ -48,8 +49,12 @@ export default async (request, context) => {
             calendar.unavailability = {};
         }
 
-        // Remove participant's unavailability
-        delete calendar.unavailability[participantName];
+        const matchingKeys = findMatchingParticipantKeys(calendar.unavailability, participantName);
+
+        // Remove all casing variants of the same participant name.
+        matchingKeys.forEach(name => {
+            delete calendar.unavailability[name];
+        });
 
         // Save updated calendar
         await calendarStore.setJSON(calendarId, calendar);
@@ -57,7 +62,8 @@ export default async (request, context) => {
         return new Response(JSON.stringify({
             success: true,
             message: 'Unavailability reset for participant',
-            participant: participantName
+            participant: participantName.trim(),
+            removedCount: matchingKeys.length
         }), { status: 200, headers });
 
     } catch (error) {

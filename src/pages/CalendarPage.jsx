@@ -9,6 +9,43 @@ import AvailabilityView from '../components/AvailabilityView';
 import { apiGet, apiPost } from '../utils/apiClient';
 import ErrorMessage from '../components/ErrorMessage';
 
+function normalizeSubmissions(submissions, participantName = '') {
+  if (!submissions) return [];
+
+  const normalizeOne = (entry, fallbackName = '') => {
+    if (!entry || typeof entry !== 'object') {
+      return null;
+    }
+
+    const dates = Array.isArray(entry.dates)
+      ? entry.dates
+      : (Array.isArray(entry) ? entry : []);
+
+    return {
+      participantName: entry.participantName || fallbackName || participantName || '',
+      dates,
+      timestamp: entry.timestamp || entry.submittedAt || null
+    };
+  };
+
+  if (Array.isArray(submissions)) {
+    return submissions.map(item => normalizeOne(item)).filter(Boolean);
+  }
+
+  if (typeof submissions === 'object' && Array.isArray(submissions.dates)) {
+    const single = normalizeOne(submissions, participantName);
+    return single ? [single] : [];
+  }
+
+  if (typeof submissions === 'object') {
+    return Object.entries(submissions)
+      .map(([name, value]) => normalizeOne(value, name))
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
 function CalendarPage() {
   const { calendarId } = useParams();
   const { calendar, loading, error } = useCalendar(calendarId);
@@ -45,10 +82,11 @@ function CalendarPage() {
       const data = await apiGet(
         `/.netlify/functions/get-user-submissions?calendarId=${calendar.id}&participant=${encodeURIComponent(currentParticipant)}`
       );
+      const submissions = normalizeSubmissions(data.submissions, currentParticipant);
 
       const dates = [];
-      if (data.submissions && data.submissions.length > 0) {
-        data.submissions.forEach(sub => {
+      if (submissions.length > 0) {
+        submissions.forEach(sub => {
           if (sub.dates) {
             sub.dates.forEach(d => {
               if (!dates.includes(d)) {

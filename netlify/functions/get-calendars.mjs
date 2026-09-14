@@ -56,6 +56,7 @@ export default async (request, context) => {
                 const cal = await calendarStore.get(ref.id, { type: 'json' });
                 if (cal) {
                     const { unavailability, participantSubmissions, ...calendarInfo } = cal;
+                    calendarInfo.submittedParticipantsCount = unavailability ? Object.keys(unavailability).length : 0;
                     calendars.push(calendarInfo);
                 }
             } catch (e) {}

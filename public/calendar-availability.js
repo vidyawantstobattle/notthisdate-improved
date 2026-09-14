@@ -34,8 +34,13 @@ async function loadAllUnavailability() {
 
 function renderAvailabilityCalendar() {
     const container = document.getElementById('availability-calendar');
-    const startDate = new Date(calendarData.startDate + 'T00:00:00');
-    const endDate = new Date(calendarData.endDate + 'T00:00:00');
+    const startDate = parseDateLocal(calendarData.startDate);
+    const endDate = parseDateLocal(calendarData.endDate);
+
+    if (!startDate || !endDate) {
+        container.innerHTML = '<p class="empty-message">Invalid calendar date range</p>';
+        return;
+    }
 
     // Group dates by month
     const months = [];
@@ -185,14 +190,14 @@ function showDateDetails(dateStr) {
         content += `
             <p><strong>${unavailablePeople.length} unavailable:</strong></p>
             <ul class="unavailable-list">
-                ${unavailablePeople.map(p => `<li>❌ ${escapeHtml(p)}</li>`).join('')}
+                ${unavailablePeople.map(p => `<li>${escapeHtml(p)}</li>`).join('')}
             </ul>
         `;
 
         if (availablePeople.length > 0) {
             content += `
                 <p style="margin-top: 1rem;"><strong>${availablePeople.length} available:</strong></p>
-                <p style="color: var(--success-color);">✅ ${availablePeople.map(escapeHtml).join(', ')}</p>
+                <p class="available-people">✅ ${availablePeople.map(escapeHtml).join(', ')}</p>
             `;
         }
     }

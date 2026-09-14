@@ -56,3 +56,85 @@ function generateVerificationCode() {
 function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
+
+function normalizeSubmissions(submissions, participantName = '') {
+    if (!submissions) return [];
+
+    const normalizeOne = (entry, fallbackName = '') => {
+        if (!entry || typeof entry !== 'object') {
+            return null;
+        }
+
+        const dates = Array.isArray(entry.dates)
+            ? entry.dates
+            : (Array.isArray(entry) ? entry : []);
+
+        return {
+            participantName: entry.participantName || fallbackName || participantName || '',
+            dates,
+            timestamp: entry.timestamp || entry.submittedAt || null
+        };
+    };
+
+    if (Array.isArray(submissions)) {
+        return submissions
+            .map(item => normalizeOne(item))
+            .filter(Boolean);
+    }
+
+    if (typeof submissions === 'object' && Array.isArray(submissions.dates)) {
+        const single = normalizeOne(submissions, participantName);
+        return single ? [single] : [];
+    }
+
+    if (typeof submissions === 'object') {
+        return Object.entries(submissions)
+            .map(([name, value]) => normalizeOne(value, name))
+            .filter(Boolean);
+    }
+
+    return [];
+}
+
+function normalizeParticipantName(name = '') {
+    return name.trim().toLowerCase();
+}
+
+function mergeSubmissionsByParticipant(submissions, fallbackName = '') {
+    const mergedDates = [];
+    let latestTimestamp = null;
+
+    submissions.forEach(submission => {
+        const dates = Array.isArray(submission.dates) ? submission.dates : [];
+        dates.forEach(date => {
+            if (!mergedDates.includes(date)) {
+                mergedDates.push(date);
+            }
+        });
+
+        if (submission.timestamp) {
+            if (!latestTimestamp || new Date(submission.timestamp) > new Date(latestTimestamp)) {
+                latestTimestamp = submission.timestamp;
+            }
+        }
+    });
+
+    return {
+        participantName: submissions[0]?.participantName || fallbackName,
+        dates: mergedDates.sort(),
+        timestamp: latestTimestamp
+    };
+}
+
+function parseDateLocal(dateValue) {
+    if (!dateValue) return null;
+
+    const raw = String(dateValue);
+    const date = raw.includes('T')
+        ? new Date(raw)
+        : new Date(`${raw}T12:00:00`);
+
+    if (Number.isNaN(date.getTime())) return null;
+
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
