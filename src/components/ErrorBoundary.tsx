@@ -1,24 +1,32 @@
-import React from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  onReset?: () => void;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
   }
 
   handleReset = () => {
     this.setState({ hasError: false, error: null });
-    if (this.props.onReset) {
-      this.props.onReset();
-    }
+    this.props.onReset?.();
   };
 
   render() {
@@ -29,15 +37,11 @@ class ErrorBoundary extends React.Component {
             <h2>Something went wrong</h2>
             <p>We're sorry, but something unexpected happened. Please try refreshing the page.</p>
             <div className="error-boundary-actions">
-              <button 
-                className="btn btn-primary" 
-                onClick={this.handleReset}
-                aria-label="Try again"
-              >
+              <button className="btn btn-primary" onClick={this.handleReset} aria-label="Try again">
                 Try Again
               </button>
-              <button 
-                className="btn btn-secondary" 
+              <button
+                className="btn btn-secondary"
                 onClick={() => window.location.reload()}
                 aria-label="Refresh the page"
               >

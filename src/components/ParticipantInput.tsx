@@ -1,4 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import type { Calendar } from '../types';
+
+interface ParticipantInputProps {
+  calendar: Calendar;
+  currentParticipant: string;
+  onParticipantChange: (name: string) => void;
+  submittedDates?: string[];
+  onReset?: () => void;
+  isResetting?: boolean;
+}
 
 function ParticipantInput({
   calendar,
@@ -7,7 +17,7 @@ function ParticipantInput({
   submittedDates = [],
   onReset,
   isResetting = false
-}) {
+}: ParticipantInputProps) {
   const [nameInput, setNameInput] = useState('');
   const [nameConfirmed, setNameConfirmed] = useState(false);
 
@@ -17,6 +27,7 @@ function ParticipantInput({
       setNameConfirmed(true);
       setNameInput(currentParticipant);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentParticipant]);
 
   // Defined participants - show dropdown
@@ -53,9 +64,7 @@ function ParticipantInput({
           </div>
         )}
         {currentParticipant && submittedDates.length === 0 && (
-          <p className="form-hint">
-            Select dates below to mark when you're NOT available.
-          </p>
+          <p className="form-hint">Select dates below to mark when you're NOT available.</p>
         )}
         {!currentParticipant && (
           <p className="form-hint">Select your name from the list to submit your unavailable dates.</p>
@@ -137,9 +146,7 @@ function ParticipantInput({
           )}
         </div>
       ) : (
-        <p className="form-hint">
-          Select dates below to mark when you're NOT available.
-        </p>
+        <p className="form-hint">Select dates below to mark when you're NOT available.</p>
       )}
     </div>
   );

@@ -6,6 +6,7 @@
     "dev": "vite",
     "build": "npm run validate:imports && vite build",
     "build:skip-validation": "vite build",
+    "typecheck": "tsc --noEmit",
     "validate:imports": "node scripts/validate-imports.js",
     "preview": "vite preview",
     "netlify-dev": "netlify dev",

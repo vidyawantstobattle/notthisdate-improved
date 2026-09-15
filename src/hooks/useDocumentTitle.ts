@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 
 /**
- * Hook to set the document title with proper cleanup
- * @param {string} title - The page title (will be appended with "- NotThisDate")
- * @param {boolean} includeAppName - Whether to append the app name (default: true)
+ * Sets the document title with cleanup on unmount.
+ * @param title - Page title (appended with "- NotThisDate" unless includeAppName is false)
+ * @param includeAppName - Whether to append the app name (default: true)
  */
-function useDocumentTitle(title, includeAppName = true) {
+function useDocumentTitle(title: string, includeAppName = true): void {
   useEffect(() => {
     const previousTitle = document.title;
     document.title = title

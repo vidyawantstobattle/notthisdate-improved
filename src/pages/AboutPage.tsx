@@ -1,12 +1,11 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+import Footer from '../components/Footer';
 
 function AboutPage() {
   const { user, loading, login, signup, logout } = useAuth();
 
-  // Set page title
   useDocumentTitle('About');
 
   return (
@@ -120,13 +119,9 @@ function AboutPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="app-footer simple">
-        <p>© 2026 NotThisDate. Group trip planning made simple.</p>
-      </footer>
+      <Footer />
     </div>
   );
 }
 
 export default AboutPage;
-

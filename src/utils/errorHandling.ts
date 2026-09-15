@@ -4,28 +4,40 @@ export const ErrorTypes = {
   SERVER: 'SERVER',
   CLIENT: 'CLIENT',
   UNKNOWN: 'UNKNOWN'
-};
+} as const;
 
-export function getErrorType(error) {
+export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
+
+export interface ApiErrorLike extends Error {
+  status?: number;
+}
+
+export interface ErrorMessageInfo {
+  title: string;
+  message: string;
+  action: 'Retry' | 'OK';
+}
+
+export function getErrorType(error: ApiErrorLike): ErrorType {
   if (!navigator.onLine) {
     return ErrorTypes.NETWORK;
   }
   if (error.name === 'AbortError' || error.message?.includes('timeout')) {
     return ErrorTypes.TIMEOUT;
   }
-  if (error.status >= 500) {
+  if (error.status && error.status >= 500) {
     return ErrorTypes.SERVER;
   }
-  if (error.status >= 400 && error.status < 500) {
+  if (error.status && error.status >= 400 && error.status < 500) {
     return ErrorTypes.CLIENT;
   }
   return ErrorTypes.UNKNOWN;
 }
 
-export function getErrorMessage(error, context = '') {
+export function getErrorMessage(error: ApiErrorLike, _context = ''): ErrorMessageInfo {
   const errorType = getErrorType(error);
-  
-  const messages = {
+
+  const messages: Record<ErrorType, ErrorMessageInfo> = {
     [ErrorTypes.NETWORK]: {
       title: 'No Internet Connection',
       message: 'Please check your internet connection and try again.',
@@ -56,13 +68,13 @@ export function getErrorMessage(error, context = '') {
   return messages[errorType];
 }
 
-export function shouldRetry(error, attemptNumber) {
+export function shouldRetry(error: ApiErrorLike, attemptNumber: number): boolean {
   if (attemptNumber >= 3) return false;
-  
+
   const errorType = getErrorType(error);
-  return [ErrorTypes.NETWORK, ErrorTypes.TIMEOUT, ErrorTypes.SERVER].includes(errorType);
+  return ([ErrorTypes.NETWORK, ErrorTypes.TIMEOUT, ErrorTypes.SERVER] as ErrorType[]).includes(errorType);
 }
 
-export function getRetryDelay(attemptNumber) {
+export function getRetryDelay(attemptNumber: number): number {
   return Math.min(1000 * Math.pow(2, attemptNumber), 10000);
 }

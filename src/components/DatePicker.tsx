@@ -1,16 +1,24 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+
+interface DatePickerProps {
+  startDate: string;
+  endDate: string;
+  selectedDates?: string[];
+  submittedDates?: string[];
+  onDateSelect?: (dateStr: string) => void;
+}
 
 function DatePicker({
   startDate,
   endDate,
   selectedDates = [],
   submittedDates = [],
-  onDateSelect // Changed from onDateRangeSelect to onDateSelect
-}) {
-  const pickerRef = useRef(null);
-  const instanceRef = useRef(null);
+  onDateSelect
+}: DatePickerProps) {
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const instanceRef = useRef<any>(null);
 
   // Memoize the date arrays to prevent unnecessary re-renders
   const selectedDatesRef = useRef(selectedDates);
@@ -24,12 +32,10 @@ function DatePicker({
   useEffect(() => {
     if (!pickerRef.current || !startDate || !endDate) return;
 
-    // Parse dates properly
     const start = new Date(startDate + 'T12:00:00');
     const end = new Date(endDate + 'T12:00:00');
     const isMobile = window.innerWidth <= 600;
 
-    // Destroy existing instance
     if (instanceRef.current) {
       instanceRef.current.destroy();
     }
@@ -47,18 +53,12 @@ function DatePicker({
         firstDayOfWeek: 0
       },
       onChange: (selectedDateArray) => {
-        // Get the last selected date (most recent click)
         if (selectedDateArray.length > 0) {
           const lastDate = selectedDateArray[selectedDateArray.length - 1];
           const dateStr = formatDateLocal(lastDate);
-
-          // Call parent handler with the clicked date
-          if (onDateSelect) {
-            onDateSelect(dateStr);
-          }
+          onDateSelect?.(dateStr);
         }
 
-        // Clear flatpickr's internal selection to allow re-clicking
         setTimeout(() => {
           if (instanceRef.current) {
             instanceRef.current.clear();
@@ -66,7 +66,7 @@ function DatePicker({
           }
         }, 10);
       },
-      onDayCreate: (dObj, dStr, fp, dayElem) => {
+      onDayCreate: (_dObj, _dStr, _fp, dayElem: any) => {
         const dateStr = formatDateLocal(dayElem.dateObj);
         const isSubmitted = submittedDatesRef.current.includes(dateStr);
         const isPending = selectedDatesRef.current.includes(dateStr);
@@ -76,15 +76,11 @@ function DatePicker({
         if (isSubmitted) {
           dayElem.classList.add('user-submitted');
           const rangePosition = getRangePosition(dateStr, submittedDatesRef.current);
-          if (rangePosition) {
-            dayElem.classList.add(rangePosition);
-          }
+          if (rangePosition) dayElem.classList.add(rangePosition);
         } else if (isPending) {
           dayElem.classList.add('user-pending');
           const rangePosition = getRangePosition(dateStr, selectedDatesRef.current);
-          if (rangePosition) {
-            dayElem.classList.add(rangePosition);
-          }
+          if (rangePosition) dayElem.classList.add(rangePosition);
         }
 
         if (isMobile) {
@@ -111,9 +107,7 @@ function DatePicker({
 
   return (
     <div className="date-picker-wrapper">
-      <p className="date-picker-hint">
-        Click on dates to select/deselect them
-      </p>
+      <p className="date-picker-hint">Click on dates to select/deselect them</p>
       <div id="date-picker-container">
         <div
           ref={pickerRef}
@@ -136,15 +130,14 @@ function DatePicker({
   );
 }
 
-// Helper functions
-function formatDateLocal(date) {
+function formatDateLocal(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
-function getRangePosition(dateStr, dateList) {
+function getRangePosition(dateStr: string, dateList: string[]): string | null {
   if (!dateList || dateList.length === 0) return null;
 
   const prevDate = getAdjacentDateStr(dateStr, -1);
@@ -153,19 +146,14 @@ function getRangePosition(dateStr, dateList) {
   const hasPrev = dateList.includes(prevDate);
   const hasNext = dateList.includes(nextDate);
 
-  if (!hasPrev && !hasNext) {
-    return 'range-single';
-  } else if (!hasPrev && hasNext) {
-    return 'range-start';
-  } else if (hasPrev && hasNext) {
-    return 'range-middle';
-  } else if (hasPrev && !hasNext) {
-    return 'range-end';
-  }
+  if (!hasPrev && !hasNext) return 'range-single';
+  if (!hasPrev && hasNext) return 'range-start';
+  if (hasPrev && hasNext) return 'range-middle';
+  if (hasPrev && !hasNext) return 'range-end';
   return null;
 }
 
-function getAdjacentDateStr(dateStr, offsetDays) {
+function getAdjacentDateStr(dateStr: string, offsetDays: number): string {
   const date = new Date(dateStr + 'T12:00:00');
   date.setDate(date.getDate() + offsetDays);
   return formatDateLocal(date);

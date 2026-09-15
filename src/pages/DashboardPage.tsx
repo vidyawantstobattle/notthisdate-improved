@@ -1,74 +1,89 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import useDocumentTitle from '../hooks/useDocumentTitle';
-import { apiGet, apiPost, apiDelete } from '../utils/apiClient';
+import { calendarsApi } from '../api/calendars.api';
+import { useToast } from '../context/ToastContext';
 import ErrorMessage from '../components/ErrorMessage';
+import ConfirmDialog from '../components/ConfirmDialog';
+import Footer from '../components/Footer';
+import { formatDisplayDate } from '../core/dateRanges';
+import type { Calendar, CreateCalendarInput } from '../types';
 
 function DashboardPage() {
   const { user, loading, logout, getAuthHeaders } = useAuth();
   const navigate = useNavigate();
-  const [calendars, setCalendars] = useState([]);
+  const { showToast } = useToast();
+  const [calendars, setCalendars] = useState<Calendar[]>([]);
   const [loadingCalendars, setLoadingCalendars] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [error, setError] = useState(null);
-  const [deletingId, setDeletingId] = useState(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  // Set page title
   useDocumentTitle('Dashboard');
 
-  // Redirect if not logged in
   useEffect(() => {
     if (!loading && !user) {
       navigate('/');
     }
   }, [user, loading, navigate]);
 
-  // Load calendars when user is authenticated
   useEffect(() => {
     if (user && !loading) {
       loadUserCalendars();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, loading]);
+
+  const getToken = async (): Promise<string | null> => {
+    const headers = await getAuthHeaders();
+    return headers['Authorization']?.replace('Bearer ', '') || null;
+  };
 
   const loadUserCalendars = async () => {
     try {
       setLoadingCalendars(true);
       setError(null);
-      const headers = await getAuthHeaders();
-      const token = headers['Authorization']?.replace('Bearer ', '');
-      const data = await apiGet('/.netlify/functions/get-calendars', token);
+      const token = await getToken();
+      const data = await calendarsApi.list(token);
       setCalendars(Array.isArray(data) ? data : data.calendars || []);
     } catch (err) {
       console.error('Failed to load calendars:', err);
-      setError(err);
+      setError(err as Error);
       setCalendars([]);
     } finally {
       setLoadingCalendars(false);
     }
   };
 
-  const handleDeleteCalendar = async (calendarId) => {
-    if (!confirm('Are you sure you want to delete this calendar?')) return;
+  const handleDeleteCalendar = (calendarId: string) => {
+    setConfirmDeleteId(calendarId);
+  };
+
+  const performDeleteCalendar = async () => {
+    const calendarId = confirmDeleteId;
+    setConfirmDeleteId(null);
+    if (!calendarId) return;
 
     try {
       setDeletingId(calendarId);
-      const headers = await getAuthHeaders();
-      const token = headers['Authorization']?.replace('Bearer ', '');
-      await apiDelete(`/.netlify/functions/delete-calendar?id=${calendarId}`, token);
+      const token = await getToken();
+      await calendarsApi.remove(calendarId, token);
       setCalendars(calendars.filter(c => c.id !== calendarId));
+      showToast('Calendar deleted.');
     } catch (err) {
       console.error('Failed to delete calendar:', err);
-      alert('Failed to delete calendar. Please try again.');
+      showToast('Failed to delete calendar. Please try again.');
     } finally {
       setDeletingId(null);
     }
   };
 
-  const handleShareCalendar = (calendarId) => {
+  const handleShareCalendar = (calendarId: string) => {
     const url = `${window.location.origin}/c/${calendarId}`;
     navigator.clipboard.writeText(url);
-    alert('Calendar link copied to clipboard!');
+    showToast('Calendar link copied to clipboard!');
   };
 
   if (loading) {
@@ -114,18 +129,15 @@ function DashboardPage() {
               <p className="dashboard-subtitle">Manage your group planning calendars</p>
             </div>
             <div className="dashboard-actions">
-              <button
-                className="btn btn-primary"
-                onClick={() => setShowCreateForm(true)}
-              >
+              <button className="btn btn-primary" onClick={() => setShowCreateForm(true)}>
                 + Create New Calendar
               </button>
             </div>
           </div>
 
           {error && (
-            <ErrorMessage 
-              error={error} 
+            <ErrorMessage
+              error={error}
               onRetry={loadUserCalendars}
               onDismiss={() => setError(null)}
             />
@@ -148,7 +160,7 @@ function DashboardPage() {
                   )}
                   <div className="calendar-card-meta">
                     <span className="meta-item">
-                      📅 {formatDate(calendar.startDate)} - {formatDate(calendar.endDate)}
+                      📅 {formatDisplayDate(calendar.startDate)} - {formatDisplayDate(calendar.endDate)}
                     </span>
                     <span className="meta-item">
                       👥 {(() => {
@@ -191,10 +203,7 @@ function DashboardPage() {
               <div className="empty-icon">📅</div>
               <h3>No calendars yet</h3>
               <p>Create your first calendar to start coordinating with your group!</p>
-              <button
-                className="btn btn-primary"
-                onClick={() => setShowCreateForm(true)}
-              >
+              <button className="btn btn-primary" onClick={() => setShowCreateForm(true)}>
                 Create Your First Calendar
               </button>
             </div>
@@ -215,12 +224,31 @@ function DashboardPage() {
           getAuthHeaders={getAuthHeaders}
         />
       )}
+
+      {/* Confirm Delete Dialog */}
+      {confirmDeleteId && (
+        <ConfirmDialog
+          title="Delete this calendar?"
+          message="This cannot be undone. All submitted dates will be permanently lost."
+          confirmLabel="Delete"
+          onConfirm={performDeleteCalendar}
+          onCancel={() => setConfirmDeleteId(null)}
+        />
+      )}
+
+      <Footer />
     </div>
   );
 }
 
+interface CreateCalendarModalProps {
+  onClose: () => void;
+  onCalendarCreated: () => Promise<void>;
+  getAuthHeaders: () => Promise<Record<string, string>>;
+}
+
 // Create Calendar Modal Component
-function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
+function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }: CreateCalendarModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -229,9 +257,9 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const nameInputRef = useRef(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -255,16 +283,20 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
     setSubmitting(true);
     try {
       const headers = await getAuthHeaders();
-      const token = headers['Authorization']?.replace('Bearer ', '');
-      await apiPost('/.netlify/functions/create-calendar', {
+      const token = headers['Authorization']?.replace('Bearer ', '') || null;
+      const input: CreateCalendarInput = {
         name: formData.name.trim(),
         description: formData.description.trim(),
+        dateRangeType: 'custom',
         startDate: formData.startDate,
-        endDate: formData.endDate
-      }, token);
+        endDate: formData.endDate,
+        participantsType: 'defined',
+        participants: []
+      };
+      await calendarsApi.create(input, token);
       await onCalendarCreated();
     } catch (err) {
-      setError(err.message || 'Failed to create calendar. Please try again.');
+      setError((err as Error).message || 'Failed to create calendar. Please try again.');
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -282,8 +314,7 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
       startDate: formatDateInput(today),
       endDate: formatDateInput(threeMonthsLater)
     }));
-    
-    // Focus the first input when modal opens
+
     if (nameInputRef.current) {
       nameInputRef.current.focus();
     }
@@ -316,9 +347,9 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
             <textarea
               id="cal-desc"
               value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="What's this calendar for?"
-              rows="3"
+              rows={3}
             />
           </div>
 
@@ -329,7 +360,7 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
                 id="cal-start"
                 type="date"
                 value={formData.startDate}
-                onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
               />
             </div>
 
@@ -339,7 +370,7 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
                 id="cal-end"
                 type="date"
                 value={formData.endDate}
-                onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
               />
             </div>
           </div>
@@ -347,19 +378,10 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
           {error && <div className="form-error">{error}</div>}
 
           <div className="form-actions">
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={onClose}
-              disabled={submitting}
-            >
+            <button type="button" className="btn btn-outline" onClick={onClose} disabled={submitting}>
               Cancel
             </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={submitting}
-            >
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
               {submitting ? 'Creating...' : 'Create Calendar'}
             </button>
           </div>
@@ -369,14 +391,7 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }) {
   );
 }
 
-// Helper functions
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const date = new Date(dateStr + 'T12:00:00');
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function formatDateInput(date) {
+function formatDateInput(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');

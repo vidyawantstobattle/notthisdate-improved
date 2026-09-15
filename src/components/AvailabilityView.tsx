@@ -1,7 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ReactElement } from 'react';
+import { getAvailabilityColor, getAvailabilityTextColor } from '../core/availability';
+import type { Calendar, UnavailabilityByDate } from '../types';
 
-function AvailabilityView({ calendar, allUnavailability }) {
-  const [selectedDate, setSelectedDate] = useState(null);
+interface AvailabilityViewProps {
+  calendar: Calendar;
+  allUnavailability: UnavailabilityByDate;
+}
+
+function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps) {
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   if (!calendar) return null;
 
@@ -9,15 +16,12 @@ function AvailabilityView({ calendar, allUnavailability }) {
   const endDate = new Date(calendar.endDate + 'T12:00:00');
 
   // Generate months to display
-  const months = [];
+  const months: { year: number; month: number }[] = [];
   let current = new Date(startDate);
   current.setDate(1);
 
   while (current <= endDate) {
-    months.push({
-      year: current.getFullYear(),
-      month: current.getMonth()
-    });
+    months.push({ year: current.getFullYear(), month: current.getMonth() });
     current.setMonth(current.getMonth() + 1);
   }
 
@@ -26,7 +30,6 @@ function AvailabilityView({ calendar, allUnavailability }) {
   const totalPeople = calendar.participantsType === 'defined'
     ? calendar.participants?.length || 1
     : Math.max(allParticipants.length, 1);
-
 
   return (
     <div className="availability-view">
@@ -77,29 +80,34 @@ function AvailabilityView({ calendar, allUnavailability }) {
   );
 }
 
-function MonthCalendar({ year, month, startDate, endDate, allUnavailability, totalPeople, onDateClick }) {
+interface MonthCalendarProps {
+  year: number;
+  month: number;
+  startDate: Date;
+  endDate: Date;
+  allUnavailability: UnavailabilityByDate;
+  totalPeople: number;
+  onDateClick: (dateStr: string) => void;
+}
+
+function MonthCalendar({ year, month, startDate, endDate, allUnavailability, totalPeople, onDateClick }: MonthCalendarProps) {
   const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   const firstDayOfMonth = new Date(year, month, 1);
   const lastDayOfMonth = new Date(year, month + 1, 0);
-  const startDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday
+  const startDayOfWeek = firstDayOfMonth.getDay();
   const daysInMonth = lastDayOfMonth.getDate();
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  // Normalize date range for comparison
   const rangeStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
   const rangeEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
 
-  const calendarCells = [];
+  const calendarCells: ReactElement[] = [];
 
-  // Add empty cells for days before the 1st
   for (let i = 0; i < startDayOfWeek; i++) {
-    calendarCells.push(
-      <div key={`empty-${i}`} className="av-calendar-day empty"></div>
-    );
+    calendarCells.push(<div key={`empty-${i}`} className="av-calendar-day empty"></div>);
   }
 
-  // Add actual days
   for (let day = 1; day <= daysInMonth; day++) {
     const dateObj = new Date(year, month, day);
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -118,7 +126,7 @@ function MonthCalendar({ year, month, startDate, endDate, allUnavailability, tot
     const unavailableCount = unavailablePeople.length;
     const ratio = totalPeople > 0 ? unavailableCount / totalPeople : 0;
     const bgColor = getAvailabilityColor(ratio);
-    const textColor = ratio > 0.5 ? '#ffffff' : '#1a1f36';
+    const textColor = getAvailabilityTextColor(ratio);
 
     calendarCells.push(
       <button
@@ -149,18 +157,21 @@ function MonthCalendar({ year, month, startDate, endDate, allUnavailability, tot
   );
 }
 
-function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }) {
-  const modalRef = useRef(null);
-  
+interface DateDetailsModalProps {
+  dateStr: string;
+  calendar: Calendar;
+  allUnavailability: UnavailabilityByDate;
+  onClose: () => void;
+}
+
+function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }: DateDetailsModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (modalRef.current) {
-      const firstButton = modalRef.current.querySelector('button');
-      if (firstButton) {
-        firstButton.focus();
-      }
-    }
+    const firstButton = modalRef.current?.querySelector('button');
+    firstButton?.focus();
   }, []);
-  
+
   const unavailablePeople = allUnavailability[dateStr] || [];
   const date = new Date(dateStr + 'T12:00:00');
   const dateDisplay = date.toLocaleDateString('en-US', {
@@ -211,34 +222,22 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }) {
   );
 }
 
-function getAllParticipants(allUnavailability, calendar) {
-  const participants = new Set();
+function getAllParticipants(allUnavailability: UnavailabilityByDate, calendar: Calendar): string[] {
+  const participants = new Set<string>();
 
-  // If defined participants, use those
   if (calendar?.participantsType === 'defined' && calendar?.participants) {
     return calendar.participants;
   }
 
-  // Otherwise, collect from unavailability data
   Object.values(allUnavailability || {}).forEach(peopleArray => {
     if (Array.isArray(peopleArray)) {
       peopleArray.forEach(p => {
-        if (p && typeof p === 'string') {
-          participants.add(p);
-        }
+        if (p && typeof p === 'string') participants.add(p);
       });
     }
   });
 
   return Array.from(participants).sort();
-}
-
-function getAvailabilityColor(ratio) {
-  if (ratio === 0) return '#4ade80'; // Green - everyone available
-  if (ratio < 0.3) return '#86efac'; // Light green
-  if (ratio < 0.5) return '#fbbf24'; // Yellow
-  if (ratio < 0.7) return '#f97316'; // Orange
-  return '#6b7280'; // Gray - most unavailable
 }
 
 export default AvailabilityView;

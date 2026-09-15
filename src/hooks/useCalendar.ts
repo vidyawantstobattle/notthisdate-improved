@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { calendarsApi } from '../api/calendars.api';
+import type { Calendar } from '../types';
 
-export function useCalendar(calendarId) {
-  const [calendar, setCalendar] = useState(null);
+export function useCalendar(calendarId: string | undefined) {
+  const [calendar, setCalendar] = useState<Calendar | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!calendarId) {
@@ -15,18 +17,11 @@ export function useCalendar(calendarId) {
       try {
         setLoading(true);
         setError(null);
-
-        const response = await fetch(`/.netlify/functions/get-calendar?id=${calendarId}`);
-
-        if (!response.ok) {
-          throw new Error(`Calendar not found (Status: ${response.status})`);
-        }
-
-        const data = await response.json();
+        const data = await calendarsApi.get(calendarId as string);
         setCalendar(data);
       } catch (err) {
         console.error('Error loading calendar:', err);
-        setError(err.message);
+        setError((err as Error).message);
       } finally {
         setLoading(false);
       }
@@ -37,4 +32,3 @@ export function useCalendar(calendarId) {
 
   return { calendar, loading, error };
 }
-

@@ -1,17 +1,16 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+import Footer from '../components/Footer';
 
 function LandingPage() {
   const { user, loading, login, signup, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Set page title (default landing title)
   useDocumentTitle('Reverse Availability Trip Planner', true);
 
-  // Redirect to dashboard if logged in
-  React.useEffect(() => {
+  useEffect(() => {
     if (user && !loading) {
       navigate('/dashboard');
     }
@@ -97,10 +96,7 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="app-footer simple">
-        <p>© 2026 NotThisDate. Group trip planning made simple.</p>
-      </footer>
+      <Footer />
     </div>
   );
 }

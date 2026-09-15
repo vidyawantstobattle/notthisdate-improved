@@ -1,8 +1,11 @@
-import React from 'react';
+interface LoadingOverlayProps {
+  message?: string;
+  fullscreen?: boolean;
+}
 
-function LoadingOverlay({ message = 'Loading...', fullscreen = false }) {
+function LoadingOverlay({ message = 'Loading...', fullscreen = false }: LoadingOverlayProps) {
   return (
-    <div 
+    <div
       className={`loading-overlay ${fullscreen ? 'loading-overlay-fullscreen' : ''}`}
       role="status"
       aria-live="polite"

@@ -13,3 +13,43 @@
 @import '../../public/styles/pages/dashboard.css';
 @import '../../public/styles/responsive.css';
 /* React-specific overrides and additions can go here */
+
+/* The React modal markup uses a single .modal-overlay wrapper (unlike the vanilla
+   site's .modal + .modal-backdrop pair), so it needs its own centering rule. */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(26, 31, 54, 0.4);
+    backdrop-filter: blur(4px);
+}
+
+/* The vanilla site relies on per-child padding (e.g. #create-calendar-form); the
+   React modals render content directly inside .modal-content, so give it padding here. */
+.modal-content {
+    padding: 1.5rem;
+}
+
+.confirm-modal-content {
+    max-width: 400px;
+}
+
+.confirm-modal-content .modal-footer {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    padding-top: 1.25rem;
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #c01638;
+}

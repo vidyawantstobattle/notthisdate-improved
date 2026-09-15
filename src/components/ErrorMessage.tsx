@@ -1,11 +1,17 @@
-import React from 'react';
-import { getErrorMessage } from '../utils/errorHandling';
+import { getErrorMessage, type ApiErrorLike } from '../utils/errorHandling';
 
-function ErrorMessage({ error, onRetry, onDismiss, context = '' }) {
-  const errorInfo = getErrorMessage(error, context);
-  
+interface ErrorMessageProps {
+  error: ApiErrorLike | null;
+  onRetry?: () => void;
+  onDismiss?: () => void;
+  context?: string;
+}
+
+function ErrorMessage({ error, onRetry, onDismiss, context = '' }: ErrorMessageProps) {
   if (!error) return null;
-  
+
+  const errorInfo = getErrorMessage(error, context);
+
   return (
     <div className="error-message" role="alert" aria-live="polite">
       <div className="error-content">
@@ -17,20 +23,12 @@ function ErrorMessage({ error, onRetry, onDismiss, context = '' }) {
       </div>
       <div className="error-actions">
         {errorInfo.action === 'Retry' && onRetry && (
-          <button 
-            className="btn btn-primary btn-small"
-            onClick={onRetry}
-            aria-label="Retry the failed operation"
-          >
+          <button className="btn btn-primary btn-small" onClick={onRetry} aria-label="Retry the failed operation">
             {errorInfo.action}
           </button>
         )}
         {onDismiss && (
-          <button 
-            className="btn btn-outline btn-small"
-            onClick={onDismiss}
-            aria-label="Dismiss this error message"
-          >
+          <button className="btn btn-outline btn-small" onClick={onDismiss} aria-label="Dismiss this error message">
             Dismiss
           </button>
         )}

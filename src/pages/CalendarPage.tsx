@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCalendar } from '../hooks/useCalendar';
 import useDocumentTitle from '../hooks/useDocumentTitle';
@@ -6,114 +6,76 @@ import DatePicker from '../components/DatePicker';
 import DateRangeDisplay from '../components/DateRangeDisplay';
 import ParticipantInput from '../components/ParticipantInput';
 import AvailabilityView from '../components/AvailabilityView';
-import { apiGet, apiPost } from '../utils/apiClient';
 import ErrorMessage from '../components/ErrorMessage';
-
-function normalizeSubmissions(submissions, participantName = '') {
-  if (!submissions) return [];
-
-  const normalizeOne = (entry, fallbackName = '') => {
-    if (!entry || typeof entry !== 'object') {
-      return null;
-    }
-
-    const dates = Array.isArray(entry.dates)
-      ? entry.dates
-      : (Array.isArray(entry) ? entry : []);
-
-    return {
-      participantName: entry.participantName || fallbackName || participantName || '',
-      dates,
-      timestamp: entry.timestamp || entry.submittedAt || null
-    };
-  };
-
-  if (Array.isArray(submissions)) {
-    return submissions.map(item => normalizeOne(item)).filter(Boolean);
-  }
-
-  if (typeof submissions === 'object' && Array.isArray(submissions.dates)) {
-    const single = normalizeOne(submissions, participantName);
-    return single ? [single] : [];
-  }
-
-  if (typeof submissions === 'object') {
-    return Object.entries(submissions)
-      .map(([name, value]) => normalizeOne(value, name))
-      .filter(Boolean);
-  }
-
-  return [];
-}
+import ConfirmDialog from '../components/ConfirmDialog';
+import Footer from '../components/Footer';
+import { unavailabilityApi } from '../api/unavailability.api';
+import { normalizeSubmissions } from '../core/participants';
+import { formatDisplayDate } from '../core/dateRanges';
+import type { DateRange, UnavailabilityByDate } from '../types';
 
 function CalendarPage() {
   const { calendarId } = useParams();
   const { calendar, loading, error } = useCalendar(calendarId);
 
-  const [activeTab, setActiveTab] = useState('submit');
+  const [activeTab, setActiveTab] = useState<'submit' | 'view'>('submit');
   const [currentParticipant, setCurrentParticipant] = useState('');
-  const [selectedDates, setSelectedDates] = useState([]);
-  const [submittedDates, setSubmittedDates] = useState([]);
-  const [allUnavailability, setAllUnavailability] = useState({});
-  const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [submittedDates, setSubmittedDates] = useState<string[]>([]);
+  const [allUnavailability, setAllUnavailability] = useState<UnavailabilityByDate>({});
+  const [statusMessage, setStatusMessage] = useState<{ type: string; text: string }>({ type: '', text: '' });
   const [submitting, setSubmitting] = useState(false);
-  const [apiError, setApiError] = useState(null);
+  const [apiError, setApiError] = useState<Error | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
 
-  // Set page title based on calendar name
   useDocumentTitle(calendar?.name || 'Calendar');
 
-  // Load user submissions when participant changes
   useEffect(() => {
     if (currentParticipant && calendar?.id) {
       loadUserSubmissions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentParticipant, calendar?.id]);
 
-  // Load all unavailability for the view tab
   useEffect(() => {
     if (calendar?.id && activeTab === 'view') {
       loadAllUnavailability();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [calendar?.id, activeTab]);
 
   const loadUserSubmissions = async () => {
+    if (!calendar) return;
     try {
       setApiError(null);
-      const data = await apiGet(
-        `/.netlify/functions/get-user-submissions?calendarId=${calendar.id}&participant=${encodeURIComponent(currentParticipant)}`
-      );
+      const data = await unavailabilityApi.getUserSubmissions(calendar.id, currentParticipant);
       const submissions = normalizeSubmissions(data.submissions, currentParticipant);
 
-      const dates = [];
-      if (submissions.length > 0) {
-        submissions.forEach(sub => {
-          if (sub.dates) {
-            sub.dates.forEach(d => {
-              if (!dates.includes(d)) {
-                dates.push(d);
-              }
-            });
-          }
+      const dates: string[] = [];
+      submissions.forEach(sub => {
+        (sub.dates || []).forEach(d => {
+          if (!dates.includes(d)) dates.push(d);
         });
-      }
+      });
       setSubmittedDates(dates.sort());
     } catch (err) {
       console.error('Failed to load submissions:', err);
-      setApiError(err);
+      setApiError(err as Error);
       setSubmittedDates([]);
     }
   };
 
   const loadAllUnavailability = async () => {
+    if (!calendar) return;
     try {
       setApiError(null);
-      const data = await apiGet(`/.netlify/functions/get-unavailability?calendarId=${calendar.id}`);
+      const data = await unavailabilityApi.getForCalendar(calendar.id);
 
-      const unavailabilityByDate = {};
+      const unavailabilityByDate: UnavailabilityByDate = {};
       const rawUnavailability = data.unavailability || {};
 
       Object.entries(rawUnavailability).forEach(([participant, info]) => {
-        const dates = Array.isArray(info) ? info : (info.dates || []);
+        const dates: string[] = Array.isArray(info) ? info : ((info as any)?.dates || []);
         dates.forEach(date => {
           if (!unavailabilityByDate[date]) {
             unavailabilityByDate[date] = [];
@@ -127,29 +89,23 @@ function CalendarPage() {
       setAllUnavailability(unavailabilityByDate);
     } catch (err) {
       console.error('Failed to load unavailability:', err);
-      setApiError(err);
+      setApiError(err as Error);
       setAllUnavailability({});
     }
   };
 
   // Handle single date selection (toggle on/off)
-  const handleDateSelect = (dateStr) => {
-    // Don't allow selecting already submitted dates
-    if (submittedDates.includes(dateStr)) {
-      return;
-    }
+  const handleDateSelect = (dateStr: string) => {
+    if (submittedDates.includes(dateStr)) return;
 
-    // Toggle the date
     if (selectedDates.includes(dateStr)) {
-      // Remove if already selected
       setSelectedDates(prev => prev.filter(d => d !== dateStr));
     } else {
-      // Add if not selected
       setSelectedDates(prev => [...prev, dateStr].sort());
     }
   };
 
-  const handleRemoveRange = (range) => {
+  const handleRemoveRange = (range: DateRange) => {
     const start = new Date(range.start + 'T12:00:00');
     const end = new Date(range.end + 'T12:00:00');
 
@@ -162,7 +118,7 @@ function CalendarPage() {
   };
 
   const handleSubmit = async () => {
-    if (!currentParticipant) {
+    if (!currentParticipant || !calendar) {
       showStatus('error', 'Please enter your name first');
       return;
     }
@@ -171,13 +127,7 @@ function CalendarPage() {
     setApiError(null);
 
     try {
-      await apiPost(
-        `/.netlify/functions/submit-unavailability?calendarId=${encodeURIComponent(calendar.id)}`,
-        {
-          participantName: currentParticipant,
-          unavailableDates: selectedDates
-        }
-      );
+      await unavailabilityApi.submit(calendar.id, currentParticipant, selectedDates);
 
       const message = selectedDates.length === 0
         ? 'Recorded! You\'re available for all dates! 🎉'
@@ -185,11 +135,10 @@ function CalendarPage() {
 
       showStatus('success', message);
 
-      // Move selected to submitted
-      setSubmittedDates(prev => [...new Set([...prev, ...selectedDates])].sort());
+      setSubmittedDates(prev => Array.from(new Set([...prev, ...selectedDates])).sort());
       setSelectedDates([]);
     } catch (err) {
-      setApiError(err);
+      setApiError(err as Error);
       showStatus('error', 'Failed to submit. Please try again.');
       console.error(err);
     } finally {
@@ -197,30 +146,30 @@ function CalendarPage() {
     }
   };
 
-  const handleReset = async () => {
+  const handleReset = () => {
     if (!currentParticipant) {
       showStatus('error', 'Please enter your name first');
       return;
     }
 
-    if (!confirm('Are you sure you want to reset all your unavailable dates?')) {
-      return;
-    }
+    setConfirmReset(true);
+  };
+
+  const performReset = async () => {
+    setConfirmReset(false);
+    if (!calendar) return;
 
     setSubmitting(true);
     setApiError(null);
 
     try {
-      await apiPost(
-        `/.netlify/functions/reset-unavailability?calendarId=${encodeURIComponent(calendar.id)}&participant=${encodeURIComponent(currentParticipant)}`,
-        {}
-      );
+      await unavailabilityApi.reset(calendar.id, currentParticipant);
 
       showStatus('success', 'Your dates have been reset!');
       setSelectedDates([]);
       setSubmittedDates([]);
     } catch (err) {
-      setApiError(err);
+      setApiError(err as Error);
       showStatus('error', 'Failed to reset. Please try again.');
       console.error(err);
     } finally {
@@ -228,7 +177,7 @@ function CalendarPage() {
     }
   };
 
-  const showStatus = (type, text) => {
+  const showStatus = (type: string, text: string) => {
     setStatusMessage({ type, text });
     setTimeout(() => {
       setStatusMessage({ type: '', text: '' });
@@ -315,13 +264,13 @@ function CalendarPage() {
               {activeTab === 'submit' && (
                 <div className="submit-tab-content">
                   {apiError && (
-                    <ErrorMessage 
+                    <ErrorMessage
                       error={apiError}
                       onRetry={() => loadUserSubmissions()}
                       onDismiss={() => setApiError(null)}
                     />
                   )}
-                  
+
                   <ParticipantInput
                     calendar={calendar}
                     currentParticipant={currentParticipant}
@@ -391,13 +340,13 @@ function CalendarPage() {
               {activeTab === 'view' && (
                 <div className="view-tab-content">
                   {apiError && (
-                    <ErrorMessage 
+                    <ErrorMessage
                       error={apiError}
                       onRetry={() => loadAllUnavailability()}
                       onDismiss={() => setApiError(null)}
                     />
                   )}
-                  
+
                   <AvailabilityView
                     calendar={calendar}
                     allUnavailability={allUnavailability}
@@ -408,15 +357,21 @@ function CalendarPage() {
           </div>
         </div>
       </main>
+
+      {/* Confirm Reset Dialog */}
+      {confirmReset && (
+        <ConfirmDialog
+          title="Reset your dates?"
+          message="This will remove all your unavailable dates for this calendar."
+          confirmLabel="Reset"
+          onConfirm={performReset}
+          onCancel={() => setConfirmReset(false)}
+        />
+      )}
+
+      <Footer />
     </div>
   );
 }
 
-// Helper function
-function formatDisplayDate(dateStr) {
-  const date = new Date(dateStr + 'T12:00:00');
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
 export default CalendarPage;
-
