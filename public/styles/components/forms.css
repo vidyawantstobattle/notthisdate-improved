@@ -22,7 +22,7 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     font-size: 14px;
-    font-family: var(--font-family);
+    font-family: var(--font-family-body);
     color: var(--text-primary);
     background: var(--bg-white);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -33,7 +33,7 @@
 .form-group select:focus {
     outline: none;
     border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(200, 90, 50, 0.1);
 }
 
 .form-group input::placeholder,
@@ -91,7 +91,7 @@
     padding: 1rem;
     background: var(--primary-bg);
     border-radius: var(--radius);
-    border: 1px solid rgba(99, 91, 255, 0.2);
+    border: 1px solid rgba(200, 90, 50, 0.2);
 }
 
 #open-participants-options .form-hint {
@@ -279,7 +279,7 @@
 
 .tags-input-container:focus-within {
     border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(200, 90, 50, 0.1);
 }
 
 .tag {
@@ -314,7 +314,7 @@
 
 .tag-remove:hover {
     opacity: 1;
-    background: rgba(99, 91, 255, 0.2);
+    background: rgba(200, 90, 50, 0.2);
 }
 
 .tags-input {
@@ -381,7 +381,7 @@
     border-radius: var(--radius);
     font-size: 1rem;
     font-weight: 500;
-    font-family: var(--font-family);
+    font-family: var(--font-family-body);
     color: var(--text-primary);
     background: linear-gradient(180deg, var(--color-white) 0%, var(--bg-primary) 100%);
     box-shadow: var(--shadow-sm);
@@ -401,7 +401,7 @@
 .participant-select:focus {
     outline: none;
     border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.12);
+    box-shadow: 0 0 0 3px rgba(200, 90, 50, 0.12);
 }
 
 .participant-select option {
@@ -416,7 +416,7 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     font-size: 1rem;
-    font-family: var(--font-family);
+    font-family: var(--font-family-body);
     color: var(--text-primary);
     background: var(--bg-white);
 }
@@ -424,7 +424,7 @@
 .name-input:focus {
     outline: none;
     border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(200, 90, 50, 0.1);
 }
 
 .name-input-row {

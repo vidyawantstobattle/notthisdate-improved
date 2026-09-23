@@ -32,6 +32,7 @@
 }
 
 .calendar-header-section h1 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     margin-bottom: 0.5rem;
     font-weight: 600;
@@ -78,7 +79,7 @@
     cursor: pointer;
     transition: all 0.15s ease;
     border-bottom: 2px solid transparent;
-    font-family: var(--font-family);
+    font-family: var(--font-family-body);
 }
 
 .tab-btn:hover {
@@ -171,6 +172,7 @@
 
 .name-entry-card h3,
 .verification-card h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     margin-bottom: 0.5rem;
     font-size: 1.25rem;
@@ -262,6 +264,7 @@
 }
 
 .date-picker-section h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     font-size: 1.1rem;
     font-weight: 600;
@@ -285,6 +288,7 @@
 }
 
 .selected-dates-section h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     letter-spacing: -0.01em;
 }
@@ -299,6 +303,7 @@
 
 .selected-dates-section h3,
 .submitted-dates-section h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     margin-bottom: 0.75rem;
     font-size: 1rem;
@@ -469,6 +474,7 @@
 }
 
 .calendar-month h4 {
+    font-family: var(--font-family-heading);
     text-align: center;
     color: var(--secondary-color);
     margin-bottom: 1rem;
@@ -811,6 +817,7 @@
 }
 
 .availability-header h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     font-size: 1.25rem;
     font-weight: 600;
@@ -831,6 +838,7 @@
 }
 
 .legend h3 {
+    font-family: var(--font-family-heading);
     margin-bottom: 0.75rem;
     color: var(--secondary-color);
     font-size: 1rem;
@@ -1060,6 +1068,7 @@
 }
 
 .date-details-modal h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     font-size: 1.1rem;
     font-weight: 600;
@@ -1104,6 +1113,7 @@
 }
 
 .detail-section h4 {
+    font-family: var(--font-family-heading);
     font-size: 0.95rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
@@ -1271,6 +1281,7 @@
 }
 
 .pending-participants > h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     font-size: 1.05rem;
     margin-bottom: 0.75rem;

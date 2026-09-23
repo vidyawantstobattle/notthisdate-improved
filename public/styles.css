@@ -23,13 +23,13 @@
 }
 
 :root {
-    /* Stripe-inspired color palette */
-    --primary-color: #635bff;
-    --primary-dark: #5248e5;
-    --primary-light: #7a73ff;
-    --primary-bg: #f6f5ff;
+    /* Digital Earth color palette (warm terracotta & olive) */
+    --primary-color: #c85a32;
+    --primary-dark: #a94823;
+    --primary-light: #d97850;
+    --primary-bg: #fbede7;
 
-    --secondary-color: #0a2540;
+    --secondary-color: #2c3529;
 
     --success-color: #30c67c;
     --success-bg: #d4edda;
@@ -37,15 +37,15 @@
     --danger-bg: #fef2f4;
     --warning-color: #f7b32b;
 
-    --text-primary: #1a1f36;
-    --text-secondary: #697386;
-    --text-muted: #8898aa;
+    --text-primary: #2c3529;
+    --text-secondary: #8a9a86;
+    --text-muted: #a9b5a5;
 
-    --bg-primary: #f6f9fc;
+    --bg-primary: #f5f4f0;
     --bg-white: #ffffff;
 
-    --border-color: #e6e9ec;
-    --border-focus: #635bff;
+    --border-color: #dde1d6;
+    --border-focus: #c85a32;
 
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -59,7 +59,7 @@
 }
 
 body {
-    font-family: var(--font-family);
+    font-family: var(--font-family-body);
     background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
@@ -165,7 +165,7 @@ body {
     padding: 10px 16px;
     font-size: 14px;
     font-weight: 500;
-    font-family: var(--font-family);
+    font-family: var(--font-family-body);
     border-radius: var(--radius);
     cursor: pointer;
     transition: all 0.15s ease;
@@ -255,6 +255,7 @@ body {
 }
 
 .hero h1 {
+    font-family: var(--font-family-heading);
     font-size: 2.75rem;
     color: var(--secondary-color);
     margin-bottom: 1.5rem;
@@ -353,6 +354,7 @@ body {
 }
 
 .features-section h2 {
+    font-family: var(--font-family-heading);
     text-align: center;
     font-size: 1.75rem;
     color: var(--secondary-color);
@@ -387,6 +389,7 @@ body {
 }
 
 .feature-card h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     margin-bottom: 0.75rem;
     font-size: 1.1rem;
@@ -409,6 +412,7 @@ body {
 }
 
 .dashboard-header h1 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     font-size: 1.5rem;
     font-weight: 600;
@@ -436,6 +440,7 @@ body {
 }
 
 .calendar-card h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     margin-bottom: 0.5rem;
     font-size: 1rem;
@@ -493,6 +498,7 @@ body {
 }
 
 .empty-state h3 {
+    font-family: var(--font-family-heading);
     color: var(--text-primary);
     margin-bottom: 0.5rem;
     font-weight: 600;
@@ -575,6 +581,7 @@ body {
 }
 
 .modal-header h2 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     font-size: 1.125rem;
     font-weight: 600;
@@ -647,7 +654,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     font-size: 14px;
-    font-family: var(--font-family);
+    font-family: var(--font-family-body);
     background: var(--bg-primary);
     color: var(--text-primary);
 }
@@ -669,6 +676,7 @@ body {
 }
 
 .share-info h4 {
+    font-family: var(--font-family-heading);
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-primary);
@@ -713,6 +721,7 @@ body {
 }
 
 .verification-card h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     margin-bottom: 0.5rem;
     font-size: 1.25rem;
@@ -783,6 +792,7 @@ body {
 }
 
 .name-entry-card h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     margin-bottom: 0.5rem;
     font-size: 1.25rem;
@@ -896,7 +906,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     font-size: 14px;
-    font-family: var(--font-family);
+    font-family: var(--font-family-body);
     color: var(--text-primary);
     background: var(--bg-white);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -907,7 +917,7 @@ body {
 .form-group select:focus {
     outline: none;
     border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(200, 90, 50, 0.1);
 }
 
 .form-group input::placeholder,
@@ -959,7 +969,7 @@ body {
     padding: 1rem;
     background: var(--primary-bg);
     border-radius: var(--radius);
-    border: 1px solid rgba(99, 91, 255, 0.2);
+    border: 1px solid rgba(200, 90, 50, 0.2);
 }
 
 #open-participants-options .form-hint {
@@ -1086,7 +1096,7 @@ body {
 
 .tags-input-container:focus-within {
     border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(200, 90, 50, 0.1);
 }
 
 .tag {
@@ -1121,7 +1131,7 @@ body {
 
 .tag-remove:hover {
     opacity: 1;
-    background: rgba(99, 91, 255, 0.2);
+    background: rgba(200, 90, 50, 0.2);
 }
 
 .tags-input {
@@ -1189,7 +1199,7 @@ body {
     cursor: pointer;
     transition: all 0.15s ease;
     border-bottom: 2px solid transparent;
-    font-family: var(--font-family);
+    font-family: var(--font-family-body);
 }
 
 .tab-btn:hover {
@@ -1234,6 +1244,7 @@ body {
 }
 
 .selected-dates-section h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     margin-bottom: 0.75rem;
     font-size: 1rem;
@@ -1295,6 +1306,7 @@ body {
 }
 
 .calendar-month h4 {
+    font-family: var(--font-family-heading);
     text-align: center;
     color: var(--secondary-color);
     margin-bottom: 1rem;
@@ -1380,6 +1392,7 @@ body {
 }
 
 .participants-section h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     margin-bottom: 1rem;
     font-size: 1rem;
@@ -1429,6 +1442,7 @@ body {
 }
 
 .share-section h3 {
+    font-family: var(--font-family-heading);
     color: var(--secondary-color);
     margin-bottom: 0.5rem;
     font-size: 1rem;
@@ -1461,7 +1475,7 @@ body {
     border-radius: var(--radius-lg) !important;
     box-shadow: var(--shadow) !important;
     border: 1px solid var(--border-color) !important;
-    font-family: var(--font-family) !important;
+    font-family: var(--font-family-body) !important;
 }
 
 .flatpickr-months {
@@ -1573,7 +1587,7 @@ body {
 }
 
 .flatpickr-day.inRange {
-    background: rgba(99, 91, 255, 0.2) !important;
+    background: rgba(200, 90, 50, 0.2) !important;
     border-color: transparent !important;
 }
 
@@ -1702,6 +1716,7 @@ body {
 }
 
 .footer-column h4 {
+    font-family: var(--font-family-heading);
     color: white;
     font-size: 0.8rem;
     font-weight: 600;
@@ -1763,7 +1778,7 @@ body {
     cursor: pointer;
     border-radius: calc(var(--radius) - 2px);
     transition: all 0.2s ease;
-    font-family: var(--font-family);
+    font-family: var(--font-family-body);
 }
 
 .lang-btn:hover {

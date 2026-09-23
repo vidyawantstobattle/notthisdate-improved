@@ -14,7 +14,7 @@ html {
 }
 
 body {
-    font-family: var(--font-family);
+    font-family: var(--font-family-body);
     color: var(--text-primary);
     background: var(--bg-primary);
     line-height: 1.5;
@@ -162,6 +162,7 @@ img {
 }
 
 .error-state h2 {
+    font-family: var(--font-family-heading);
     color: var(--danger-color);
     margin-bottom: 0.5rem;
 }
@@ -226,6 +227,7 @@ img {
 }
 
 .error-boundary-content h2 {
+    font-family: var(--font-family-heading);
     color: var(--danger-color);
     margin-bottom: 0.75rem;
     font-size: 1.5rem;

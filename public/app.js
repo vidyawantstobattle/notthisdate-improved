@@ -7,6 +7,27 @@ let userCalendarCount = 0;
 let cachedCalendars = [];
 let blockedDates = [];
 
+// ===== PENDING ACTION (guest -> auth -> resume) =====
+// Persisted so it survives the email-confirmation redirect/reload during signup.
+const PENDING_ACTION_KEY = 'ntd_pendingAction';
+
+function setPendingAction(action) {
+    localStorage.setItem(PENDING_ACTION_KEY, action);
+}
+
+function consumePendingAction() {
+    const action = localStorage.getItem(PENDING_ACTION_KEY);
+    localStorage.removeItem(PENDING_ACTION_KEY);
+    return action;
+}
+
+function runPendingAction() {
+    const action = consumePendingAction();
+    if (action === 'createCalendar') {
+        openCreateModal();
+    }
+}
+
 // ===== TAGS INPUT CLASS =====
 class TagsInput {
     constructor(container, options = {}) {
@@ -208,20 +229,22 @@ function addPasswordRequirements(input, wrapper) {
 
 // Initialize Netlify Identity
 function initAuth() {
-    netlifyIdentity.on('init', user => {
+    netlifyIdentity.on('init', async user => {
         currentUser = user;
         updateUI();
         // If user is already logged in on page load, load their calendars
         if (user) {
-            loadUserCalendars();
+            await loadUserCalendars();
+            runPendingAction();
         }
     });
 
-    netlifyIdentity.on('login', user => {
+    netlifyIdentity.on('login', async user => {
         currentUser = user;
         netlifyIdentity.close();
         updateUI();
-        loadUserCalendars();
+        await loadUserCalendars();
+        runPendingAction();
     });
 
     netlifyIdentity.on('logout', () => {
@@ -288,7 +311,10 @@ function setupEventListeners() {
     });
 
     document.getElementById('hero-login-btn')?.addEventListener('click', () => {
-        netlifyIdentity.open('login');
+        // Guests start the "create a calendar" journey here; auth is required first,
+        // then the create-calendar modal opens automatically once they're signed in.
+        setPendingAction('createCalendar');
+        netlifyIdentity.open('signup');
     });
 
     // Logout button

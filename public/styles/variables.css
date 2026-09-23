@@ -1,12 +1,12 @@
 /* ===== CSS CUSTOM PROPERTIES ===== */
 :root {
-    /* Stripe-inspired color palette */
-    --primary-color: #635bff;
-    --primary-dark: #5248e5;
-    --primary-light: #7a73ff;
-    --primary-bg: #f6f5ff;
+    /* Digital Earth color palette (warm terracotta & olive) */
+    --primary-color: #c85a32;
+    --primary-dark: #a94823;
+    --primary-light: #d97850;
+    --primary-bg: #fbede7;
 
-    --secondary-color: #0a2540;
+    --secondary-color: #2c3529;
 
     --success-color: #30c67c;
     --success-bg: #d4edda;
@@ -14,9 +14,9 @@
     --danger-bg: #fef2f4;
     --warning-color: #f7b32b;
 
-    --text-primary: #1a1f36;
-    --text-secondary: #697386;
-    --text-muted: #8898aa;
+    --text-primary: #2c3529;
+    --text-secondary: #8a9a86;
+    --text-muted: #a9b5a5;
 
     --color-white: #ffffff;
     --color-overlay-dark: rgba(0, 0, 0, 0.05);
@@ -25,7 +25,7 @@
     --color-overlay-dark-xl: rgba(0, 0, 0, 0.12);
     --color-overlay-dark-heavy: rgba(0, 0, 0, 0.2);
     --success-dark: #1e7b52;
-    --primary-overlay-light: rgba(99, 91, 255, 0.18);
+    --primary-overlay-light: rgba(200, 90, 50, 0.18);
     --success-overlay-light: rgba(48, 198, 124, 0.1);
     --success-overlay-border: rgba(48, 198, 124, 0.32);
     --danger-overlay-light: rgba(223, 27, 65, 0.18);
@@ -34,14 +34,14 @@
     --danger-overlay-border-sm: rgba(223, 27, 65, 0.35);
     --danger-overlay-border-lg: rgba(223, 27, 65, 0.65);
     --success-overlay-border-light: rgba(48, 198, 124, 0.35);
-    --secondary-overlay-sm: rgba(10, 37, 64, 0.08);
+    --secondary-overlay-sm: rgba(44, 53, 41, 0.08);
     --bg-secondary-light: #f8fbff;
 
-    --bg-primary: #f6f9fc;
+    --bg-primary: #f5f4f0;
     --bg-white: #ffffff;
 
-    --border-color: #e6e9ec;
-    --border-focus: #635bff;
+    --border-color: #dde1d6;
+    --border-focus: #c85a32;
 
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -52,5 +52,7 @@
     --radius-lg: 12px;
 
     --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Ubuntu, sans-serif;
+    --font-family-heading: 'Commissioner', sans-serif;
+    --font-family-body: 'Roboto', sans-serif;
 }
 
