@@ -1102,6 +1102,7 @@ body {
 .tag {
     display: inline-flex;
     align-items: center;
+    direction: ltr;
     gap: 6px;
     background: var(--primary-bg);
     color: var(--primary-color);

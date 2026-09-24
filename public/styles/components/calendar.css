@@ -82,6 +82,32 @@
     font-family: var(--font-family-body);
 }
 
+.tab-btn-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.tab-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    background: currentColor;
+    -webkit-mask: no-repeat center / contain;
+    mask: no-repeat center / contain;
+}
+
+.tab-icon-submit {
+    -webkit-mask-image: url('/images/save_outline.svg');
+    mask-image: url('/images/save_outline.svg');
+}
+
+.tab-icon-view {
+    -webkit-mask-image: url('/images/search_outline.svg');
+    mask-image: url('/images/search_outline.svg');
+}
+
 .tab-btn:hover {
     background: var(--border-color);
 }

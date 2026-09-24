@@ -107,6 +107,20 @@
     height: 16px;
 }
 
+.calendar-card-edit-btn .icon-settings {
+    width: 16px;
+    height: 16px;
+    display: block;
+    background: var(--text-secondary);
+    -webkit-mask: url('/images/setting_outline.svg') no-repeat center / contain;
+    mask: url('/images/setting_outline.svg') no-repeat center / contain;
+    transition: background 0.15s ease;
+}
+
+.calendar-card-edit-btn:hover .icon-settings {
+    background: var(--primary-color);
+}
+
 .calendar-card h3 {
     color: var(--secondary-color);
     margin-bottom: 0.5rem;

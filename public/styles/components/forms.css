@@ -58,7 +58,7 @@
     margin-bottom: 0.75rem;
 }
 
-.form-group .radio-option {
+.radio-option {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -72,7 +72,7 @@
     accent-color: var(--primary-color);
 }
 
-.form-group .checkbox-option {
+.checkbox-option {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -285,6 +285,7 @@
 .tag {
     display: inline-flex;
     align-items: center;
+    direction: ltr;
     gap: 6px;
     background: var(--primary-bg);
     color: var(--primary-color);
@@ -473,9 +474,10 @@
     margin-top: 1rem;
 }
 
-.submission-status .form-hint.success {
-    color: var(--success-color);
-    background: var(--success-bg);
+.submission-status .form-hint.info {
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
     padding: 0.75rem;
     border-radius: var(--radius);
     margin: 0;

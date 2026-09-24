@@ -48,8 +48,8 @@ function ParticipantInput({
         </select>
         {currentParticipant && submittedDates.length > 0 && (
           <div className="submission-status">
-            <p className="form-hint success">
-              ✅ You have already submitted {submittedDates.length} unavailable date(s). You can add more below.
+            <p className="form-hint info">
+              💡 You have already submitted {submittedDates.length} unavailable date(s). You can add more below.
             </p>
             {onReset && (
               <button
@@ -131,8 +131,8 @@ function ParticipantInput({
       </div>
       {submittedDates.length > 0 ? (
         <div className="submission-status">
-          <p className="form-hint success">
-            ✅ You have already submitted {submittedDates.length} unavailable date(s). You can add more below.
+          <p className="form-hint info">
+            💡 You have already submitted {submittedDates.length} unavailable date(s). You can add more below.
           </p>
           {onReset && (
             <button

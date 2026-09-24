@@ -10,6 +10,7 @@ let blockedDates = [];
 // ===== PENDING ACTION (guest -> auth -> resume) =====
 // Persisted so it survives the email-confirmation redirect/reload during signup.
 const PENDING_ACTION_KEY = 'ntd_pendingAction';
+const CREATE_CALENDAR_DRAFT_KEY = 'ntd_createCalendarDraft';
 
 function setPendingAction(action) {
     localStorage.setItem(PENDING_ACTION_KEY, action);
@@ -21,10 +22,88 @@ function consumePendingAction() {
     return action;
 }
 
-function runPendingAction() {
+function setCreateCalendarDraft(draft) {
+    try {
+        localStorage.setItem(CREATE_CALENDAR_DRAFT_KEY, JSON.stringify(draft));
+    } catch (error) {
+        console.error('Failed to persist calendar draft:', error);
+    }
+}
+
+function consumeCreateCalendarDraft() {
+    try {
+        const raw = localStorage.getItem(CREATE_CALENDAR_DRAFT_KEY);
+        localStorage.removeItem(CREATE_CALENDAR_DRAFT_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+        console.error('Failed to read calendar draft:', error);
+        localStorage.removeItem(CREATE_CALENDAR_DRAFT_KEY);
+        return null;
+    }
+}
+
+function applyCreateCalendarDraftToForm(draft) {
+    if (!draft) return;
+
+    const nameInput = document.getElementById('calendar-name');
+    const descriptionInput = document.getElementById('calendar-description');
+    const startInput = document.getElementById('start-date');
+    const endInput = document.getElementById('end-date');
+    const requireVerificationInput = document.getElementById('require-email-verification');
+
+    if (nameInput) nameInput.value = draft.name || '';
+    if (descriptionInput) descriptionInput.value = draft.description || '';
+    if (startInput) startInput.value = draft.startDate || '';
+    if (endInput) endInput.value = draft.endDate || '';
+
+    const dateRangeType = draft.dateRangeType === 'open' ? 'open' : 'custom';
+    const dateRangeRadio = document.querySelector(`input[name="date-range-type"][value="${dateRangeType}"]`);
+    if (dateRangeRadio) {
+        dateRangeRadio.checked = true;
+        dateRangeRadio.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    const participantsType = draft.participantsType === 'open' ? 'open' : 'defined';
+    const participantsRadio = document.querySelector(`input[name="participants-type"][value="${participantsType}"]`);
+    if (participantsRadio) {
+        participantsRadio.checked = true;
+        participantsRadio.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    if (participantsTagsInput) {
+        participantsTagsInput.setTags(Array.isArray(draft.participants) ? draft.participants : []);
+    }
+
+    if (requireVerificationInput) {
+        requireVerificationInput.checked = Boolean(draft.requireEmailVerification);
+    }
+
+    blockedDates = Array.isArray(draft.blockedDates) ? [...draft.blockedDates] : [];
+    renderBlockedDates();
+}
+
+async function runPendingAction() {
     const action = consumePendingAction();
-    if (action === 'createCalendar') {
-        openCreateModal();
+    if (action !== 'createCalendar') {
+        return;
+    }
+
+    const draft = consumeCreateCalendarDraft();
+
+    if (draft && currentUser) {
+        try {
+            await createCalendarFromPayload(draft);
+            showToast('Calendar created successfully.');
+            return;
+        } catch (error) {
+            console.error('Failed to auto-create calendar from draft:', error);
+            showToast('Please review your calendar details and try again.');
+        }
+    }
+
+    openCreateModal();
+    if (draft) {
+        applyCreateCalendarDraftToForm(draft);
     }
 }
 
@@ -235,7 +314,7 @@ function initAuth() {
         // If user is already logged in on page load, load their calendars
         if (user) {
             await loadUserCalendars();
-            runPendingAction();
+            await runPendingAction();
         }
     });
 
@@ -244,7 +323,7 @@ function initAuth() {
         netlifyIdentity.close();
         updateUI();
         await loadUserCalendars();
-        runPendingAction();
+        await runPendingAction();
     });
 
     netlifyIdentity.on('logout', () => {
@@ -311,10 +390,8 @@ function setupEventListeners() {
     });
 
     document.getElementById('hero-login-btn')?.addEventListener('click', () => {
-        // Guests start the "create a calendar" journey here; auth is required first,
-        // then the create-calendar modal opens automatically once they're signed in.
-        setPendingAction('createCalendar');
-        netlifyIdentity.open('signup');
+        // Start with calendar setup details first, then require signup at submit time.
+        openCreateModal();
     });
 
     // Logout button
@@ -532,7 +609,7 @@ function renderCalendars(calendars) {
                         <button type="button" class="calendar-card-edit-btn" onclick="openEditParticipantsModal('${cal.id}')"
                             title="${window.i18n.t('dashboard.card.editParticipants')}"
                             aria-label="${window.i18n.t('dashboard.card.editParticipants')}">
-                            <img src="/images/setting_outline.svg" alt="">
+                            <span class="icon-settings" aria-hidden="true"></span>
                         </button>
                     ` : ''}
                 </div>
@@ -622,41 +699,30 @@ async function handleCreateCalendar(e) {
         return;
     }
 
+    const payload = {
+        name,
+        description,
+        dateRangeType,
+        startDate,
+        endDate,
+        participantsType,
+        participants,
+        requireEmailVerification,
+        blockedDates
+    };
+
+    if (!currentUser) {
+        setCreateCalendarDraft(payload);
+        setPendingAction('createCalendar');
+        showToast('Create your account to finish creating this calendar.');
+        netlifyIdentity.open('signup');
+        submitBtn.disabled = false;
+        submitBtn.textContent = window.i18n.t('dashboard.createModal.submit');
+        return;
+    }
+
     try {
-        const headers = await getAuthHeaders();
-        const response = await fetchFunction('/.netlify/functions/create-calendar', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-                name,
-                description,
-                dateRangeType,
-                startDate,
-                endDate,
-                participantsType,
-                participants,
-                requireEmailVerification,
-                blockedDates
-            })
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || error.message || 'Failed to create calendar');
-        }
-
-        const data = await response.json();
-        closeCreateModal();
-
-        // Append (matching backend order) instead of re-fetching: Netlify Blobs reads
-        // immediately after a write can be stale and miss the calendar we just created.
-        cachedCalendars = [...cachedCalendars, { ...data.calendar, submittedParticipantsCount: 0 }];
-        userCalendarCount = cachedCalendars.length;
-        document.getElementById('no-calendars')?.classList.add('hidden');
-        renderCalendars(cachedCalendars);
-
-        // Show share modal with the link
-        showShareModal(data.calendar);
+        await createCalendarFromPayload(payload);
     } catch (error) {
         console.error('Error creating calendar:', error);
         showToast(window.i18n.t('dashboard.createModal.errorGeneric', { message: error.message }));
@@ -664,6 +730,35 @@ async function handleCreateCalendar(e) {
 
     submitBtn.disabled = false;
     submitBtn.textContent = window.i18n.t('dashboard.createModal.submit');
+}
+
+async function createCalendarFromPayload(payload) {
+    const headers = await getAuthHeaders();
+    const response = await fetchFunction('/.netlify/functions/create-calendar', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || error.message || 'Failed to create calendar');
+    }
+
+    const data = await response.json();
+    closeCreateModal();
+
+    // Append (matching backend order) instead of re-fetching: Netlify Blobs reads
+    // immediately after a write can be stale and miss the calendar we just created.
+    cachedCalendars = [...cachedCalendars, { ...data.calendar, submittedParticipantsCount: 0 }];
+    userCalendarCount = cachedCalendars.length;
+    document.getElementById('no-calendars')?.classList.add('hidden');
+    renderCalendars(cachedCalendars);
+
+    // Show share modal with the link
+    showShareModal(data.calendar);
+
+    return data.calendar;
 }
 
 // ===== SHARE MODAL =====

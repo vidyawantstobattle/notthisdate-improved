@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCalendar } from '../hooks/useCalendar';
+import { useAuth } from '../context/AuthContext';
 import { useI18n, RichText } from '../context/I18nContext';
 import LanguageSelector from '../components/LanguageSelector';
 import useDocumentTitle from '../hooks/useDocumentTitle';
@@ -19,6 +20,7 @@ import type { DateRange, UnavailabilityByDate } from '../types';
 function CalendarPage() {
   const { calendarId } = useParams();
   const { calendar, loading, error } = useCalendar(calendarId);
+  const { user } = useAuth();
   const { t } = useI18n();
 
   const [activeTab, setActiveTab] = useState<'submit' | 'view'>('submit');
@@ -26,7 +28,6 @@ function CalendarPage() {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [submittedDates, setSubmittedDates] = useState<string[]>([]);
   const [allUnavailability, setAllUnavailability] = useState<UnavailabilityByDate>({});
-  const [allSubmitters, setAllSubmitters] = useState<string[]>([]);
   const [statusMessage, setStatusMessage] = useState<{ type: string; text: string }>({ type: '', text: '' });
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState<Error | null>(null);
@@ -90,14 +91,10 @@ function CalendarPage() {
         });
       });
 
-      // Every key in rawUnavailability is a submitter, even ones with zero unavailable
-      // dates (fully available) — those would otherwise be invisible to the ratio calc.
-      setAllSubmitters(Object.keys(rawUnavailability));
       setAllUnavailability(unavailabilityByDate);
     } catch (err) {
       console.error('Failed to load unavailability:', err);
       setApiError(err as Error);
-      setAllSubmitters([]);
       setAllUnavailability({});
     }
   };
@@ -221,6 +218,12 @@ function CalendarPage() {
     return null;
   }
 
+  const isOwner = Boolean(
+    user &&
+    calendar.ownerEmail &&
+    user.email.toLowerCase() === calendar.ownerEmail.toLowerCase()
+  );
+
   return (
     <div className="page-wrapper">
       {/* Header */}
@@ -242,7 +245,7 @@ function CalendarPage() {
         <div className="calendar-container">
           {/* Calendar Header */}
           <div className="calendar-header-section">
-            <Link to="/dashboard" className="back-link">← Back to Dashboard</Link>
+            {isOwner && <Link to="/dashboard" className="back-link">← Back to Dashboard</Link>}
             <h1>{calendar.name}</h1>
             {calendar.description && <p className="calendar-description">{calendar.description}</p>}
             <p className="calendar-date-range">
@@ -257,13 +260,19 @@ function CalendarPage() {
                 className={`tab-btn ${activeTab === 'submit' ? 'active' : ''}`}
                 onClick={() => setActiveTab('submit')}
               >
-                📝 {t('calendarShell.tabs.submit')}
+                <span className="tab-btn-content">
+                  <span className="tab-icon tab-icon-submit" aria-hidden="true"></span>
+                  <span>{t('calendarShell.tabs.submit')}</span>
+                </span>
               </button>
               <button
                 className={`tab-btn ${activeTab === 'view' ? 'active' : ''}`}
                 onClick={() => setActiveTab('view')}
               >
-                📊 {t('calendarShell.tabs.view')}
+                <span className="tab-btn-content">
+                  <span className="tab-icon tab-icon-view" aria-hidden="true"></span>
+                  <span>{t('calendarShell.tabs.view')}</span>
+                </span>
               </button>
             </div>
 
@@ -299,7 +308,6 @@ function CalendarPage() {
                           endDate={calendar.endDate}
                           selectedDates={selectedDates}
                           submittedDates={submittedDates}
-                          blockedDates={calendar.blockedDates}
                           onDateSelect={handleDateSelect}
                         />
                       </div>
@@ -360,7 +368,6 @@ function CalendarPage() {
                   <AvailabilityView
                     calendar={calendar}
                     allUnavailability={allUnavailability}
-                    allSubmitters={allSubmitters}
                   />
                 </div>
               )}

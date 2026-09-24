@@ -75,6 +75,16 @@ function AboutPage() {
                 <h3>{t('about.howItWorks.step4.title')}</h3>
                 <p>{t('about.howItWorks.step4.desc')}</p>
               </div>
+              <div className="how-it-works-item">
+                <div className="step-number">5</div>
+                <h3>{t('about.howItWorks.step5.title')}</h3>
+                <p>{t('about.howItWorks.step5.desc')}</p>
+              </div>
+              <div className="how-it-works-item">
+                <div className="step-number">6</div>
+                <h3>{t('about.howItWorks.step6.title')}</h3>
+                <p>{t('about.howItWorks.step6.desc')}</p>
+              </div>
             </div>
           </section>
 
