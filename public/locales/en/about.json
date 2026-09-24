@@ -4,5 +4,21 @@
     "about.mission.title": "Our Mission",
     "about.mission.p1": "We believe coordinating group availability should be simple, fast, and free. NotThisDate was born from frustration with complex scheduling tools that require signups, have premium paywalls, or simply take too long to use.",
     "about.mission.p2": "Our approach is different: instead of asking everyone when they're available (which can be overwhelming), we ask when they're <strong>NOT</strong> available. It's faster, more intuitive, and gets you to the perfect date quicker.",
-    "about.cta.title": "Ready to Plan Your Next Event?"
+
+    "about.howItWorks.step1.title": "Create a Calendar",
+    "about.howItWorks.step1.desc": "Set up your event with a date range and invite your group.",
+    "about.howItWorks.step2.title": "Share the Link",
+    "about.howItWorks.step2.desc": "Send participants a simple link - no signup required for them.",
+    "about.howItWorks.step3.title": "Mark Unavailability",
+    "about.howItWorks.step3.desc": "Everyone marks when they CAN'T make it - quick and easy.",
+    "about.howItWorks.step4.title": "Find the Best Date",
+    "about.howItWorks.step4.desc": "See at a glance which dates work best for everyone.",
+
+    "about.whyReverse.title": "Why \"Reverse\" Availability?",
+    "about.whyReverse.p1": "Traditional scheduling polls ask you to mark every date you're available. But most of us have more free time than busy time - marking availability for a 3-month range is tedious!",
+    "about.whyReverse.p2": "With NotThisDate, you only mark the dates you <em>can't</em> attend. For most people, that's just a handful of dates. It's faster, easier, and you're done in seconds instead of minutes.",
+
+    "about.cta.title": "Ready to Plan Your Next Event?",
+    "about.cta.desc": "Get started for free - no credit card required.",
+    "about.cta.dashboard": "Go to Dashboard"
 }

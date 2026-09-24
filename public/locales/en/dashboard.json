@@ -1,5 +1,6 @@
 {
     "dashboard.title": "Your Calendars",
+    "dashboard.subtitle": "Manage your group planning calendars",
     "dashboard.createNew": "Create New Calendar",
     "dashboard.loading": "Loading your calendars...",
     "dashboard.loadError": "Failed to load calendars. Please try again.",
@@ -24,6 +25,7 @@
     "dashboard.confirmDelete.confirmLabel": "Delete",
 
     "dashboard.createModal.title": "Create New Calendar",
+    "dashboard.createModal.subtitle": "Set up a new group availability calendar",
     "dashboard.createModal.nameLabel": "Calendar Name *",
     "dashboard.createModal.namePlaceholder": "e.g., Summer Trip 2026",
     "dashboard.createModal.descLabel": "Description (optional)",

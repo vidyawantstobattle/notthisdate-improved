@@ -9,9 +9,21 @@
 
 import { apiGet, apiPost, apiDelete } from '../utils/apiClient';
 
+const PROD_SITE_URL = 'https://reverse-date-picker.netlify.app';
+
+// Netlify Functions can't run under `vite dev`, so local requests go straight to
+// the deployed site. Safe from the browser: the functions send
+// Access-Control-Allow-Origin: *. Doing this here rather than via a Vite proxy
+// keeps TLS in the browser, which matters on networks that intercept certs.
+function defaultBaseUrl(): string {
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+  return isLocalhost ? `${PROD_SITE_URL}/.netlify/functions` : '/.netlify/functions';
+}
+
 // Defaults to same-origin "/.netlify/functions" (current backend). Override via
 // .env: VITE_API_BASE_URL=https://api.example.com/v1
-const API_BASE_URL: string = (import.meta as any).env?.VITE_API_BASE_URL || '/.netlify/functions';
+const API_BASE_URL: string = (import.meta as any).env?.VITE_API_BASE_URL || defaultBaseUrl();
 
 function endpoint(path: string): string {
   return `${API_BASE_URL}${path}`;

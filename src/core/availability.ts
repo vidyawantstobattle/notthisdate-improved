@@ -21,5 +21,5 @@ export function getAvailabilityColor(ratio: number): string {
 }
 
 export function getAvailabilityTextColor(ratio: number): string {
-  return ratio > 0.5 ? '#ffffff' : '#1a1f36';
+  return ratio > 0.5 ? '#ffffff' : '#2c3529';
 }

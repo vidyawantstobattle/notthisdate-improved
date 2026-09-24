@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCalendar } from '../hooks/useCalendar';
+import { useI18n, RichText } from '../context/I18nContext';
+import LanguageSelector from '../components/LanguageSelector';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import DatePicker from '../components/DatePicker';
 import DateRangeDisplay from '../components/DateRangeDisplay';
@@ -17,6 +19,7 @@ import type { DateRange, UnavailabilityByDate } from '../types';
 function CalendarPage() {
   const { calendarId } = useParams();
   const { calendar, loading, error } = useCalendar(calendarId);
+  const { t } = useI18n();
 
   const [activeTab, setActiveTab] = useState<'submit' | 'view'>('submit');
   const [currentParticipant, setCurrentParticipant] = useState('');
@@ -119,7 +122,7 @@ function CalendarPage() {
 
   const handleSubmit = async () => {
     if (!currentParticipant || !calendar) {
-      showStatus('error', 'Please enter your name first');
+      showStatus('error', t('calendarSubmit.errorEnterName'));
       return;
     }
 
@@ -130,8 +133,8 @@ function CalendarPage() {
       await unavailabilityApi.submit(calendar.id, currentParticipant, selectedDates);
 
       const message = selectedDates.length === 0
-        ? 'Recorded! You\'re available for all dates! 🎉'
-        : `Submitted ${selectedDates.length} unavailable date(s)! ✅`;
+        ? t('calendarSubmit.successAllAvailable')
+        : t('calendarSubmit.successSubmitted');
 
       showStatus('success', message);
 
@@ -139,7 +142,7 @@ function CalendarPage() {
       setSelectedDates([]);
     } catch (err) {
       setApiError(err as Error);
-      showStatus('error', 'Failed to submit. Please try again.');
+      showStatus('error', t('calendarSubmit.errorSubmitFailed'));
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -148,7 +151,7 @@ function CalendarPage() {
 
   const handleReset = () => {
     if (!currentParticipant) {
-      showStatus('error', 'Please enter your name first');
+      showStatus('error', t('calendarSubmit.errorEnterName'));
       return;
     }
 
@@ -165,12 +168,12 @@ function CalendarPage() {
     try {
       await unavailabilityApi.reset(calendar.id, currentParticipant);
 
-      showStatus('success', 'Your dates have been reset!');
+      showStatus('success', t('calendarSubmit.successReset'));
       setSelectedDates([]);
       setSubmittedDates([]);
     } catch (err) {
       setApiError(err as Error);
-      showStatus('error', 'Failed to reset. Please try again.');
+      showStatus('error', t('calendarSubmit.errorResetFailed'));
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -190,7 +193,7 @@ function CalendarPage() {
       <div className="page-wrapper">
         <div className="loading-state">
           <div className="spinner"></div>
-          <p>Loading calendar...</p>
+          <p>{t('calendarShell.loading')}</p>
         </div>
       </div>
     );
@@ -201,9 +204,9 @@ function CalendarPage() {
     return (
       <div className="page-wrapper">
         <div className="error-state">
-          <h2>❌ Calendar Not Found</h2>
-          <p>This calendar doesn't exist or the link is incorrect.</p>
-          <Link to="/" className="btn btn-primary">Go Home</Link>
+          <h2>❌ {t('calendarShell.error.title')}</h2>
+          <p>{t('calendarShell.error.desc')}</p>
+          <Link to="/" className="btn btn-primary">{t('common.goHome')}</Link>
         </div>
       </div>
     );
@@ -223,7 +226,8 @@ function CalendarPage() {
             <span>NotThisDate</span>
           </Link>
           <nav className="header-nav">
-            <Link to="/about" className="nav-link">About</Link>
+            <Link to="/about" className="nav-link">{t('nav.about')}</Link>
+            <LanguageSelector />
           </nav>
         </div>
       </header>
@@ -248,13 +252,13 @@ function CalendarPage() {
                 className={`tab-btn ${activeTab === 'submit' ? 'active' : ''}`}
                 onClick={() => setActiveTab('submit')}
               >
-                📝 Submit Dates
+                📝 {t('calendarShell.tabs.submit')}
               </button>
               <button
                 className={`tab-btn ${activeTab === 'view' ? 'active' : ''}`}
                 onClick={() => setActiveTab('view')}
               >
-                📊 View Availability
+                📊 {t('calendarShell.tabs.view')}
               </button>
             </div>
 
@@ -283,8 +287,8 @@ function CalendarPage() {
                   {currentParticipant && (
                     <>
                       <div className="date-picker-section">
-                        <h3>Select dates you're NOT available</h3>
-                        <p className="form-hint">Click on dates to select/deselect them. Click multiple dates to mark them all as unavailable.</p>
+                        <RichText as="h3" k="calendarSubmit.selectDatesLabel" />
+                        <p className="form-hint">{t('calendarSubmit.selectDatesHint')}</p>
                         <DatePicker
                           startDate={calendar.startDate}
                           endDate={calendar.endDate}
@@ -321,14 +325,14 @@ function CalendarPage() {
                           onClick={handleSubmit}
                           disabled={submitting}
                         >
-                          {submitting ? 'Submitting...' : 'Submit Unavailability'}
+                          {submitting ? t('common.submitting') : t('calendarSubmit.submitBtn')}
                         </button>
                         <button
                           className="btn btn-outline"
                           onClick={handleReset}
                           disabled={submitting}
                         >
-                          Reset My Dates
+                          {t('calendarSubmit.resetBtn')}
                         </button>
                       </div>
                     </>
@@ -361,9 +365,9 @@ function CalendarPage() {
       {/* Confirm Reset Dialog */}
       {confirmReset && (
         <ConfirmDialog
-          title="Reset your dates?"
+          title={t('calendarSubmit.confirmReset')}
           message="This will remove all your unavailable dates for this calendar."
-          confirmLabel="Reset"
+          confirmLabel={t('calendarSubmit.resetBtn')}
           onConfirm={performReset}
           onCancel={() => setConfirmReset(false)}
         />

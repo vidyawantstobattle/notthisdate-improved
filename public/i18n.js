@@ -12,7 +12,6 @@ const I18N_SECTIONS = [
     'footer',
     'landing',
     'about',
-    'privacy',
     'dashboard',
     'calendarShell',
     'calendarSubmit',

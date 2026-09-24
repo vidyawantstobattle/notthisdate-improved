@@ -1,4 +1,5 @@
 import { groupIntoRanges, formatDateDisplay } from '../core/dateRanges';
+import { useI18n } from '../context/I18nContext';
 import type { DateRange } from '../types';
 
 interface DateRangeDisplayProps {
@@ -7,8 +8,10 @@ interface DateRangeDisplayProps {
 }
 
 function DateRangeDisplay({ dates, onRemoveRange }: DateRangeDisplayProps) {
+  const { t } = useI18n();
+
   if (!dates || dates.length === 0) {
-    return <p className="empty-message">No dates selected yet</p>;
+    return <p className="empty-message">{t('calendarSubmit.noDatesSelected')}</p>;
   }
 
   const ranges = groupIntoRanges(dates);

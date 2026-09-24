@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, type ReactElement } from 'react';
 import { getAvailabilityColor, getAvailabilityTextColor } from '../core/availability';
+import { useI18n } from '../context/I18nContext';
 import type { Calendar, UnavailabilityByDate } from '../types';
 
 interface AvailabilityViewProps {
@@ -9,6 +10,7 @@ interface AvailabilityViewProps {
 
 function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const { t } = useI18n();
 
   if (!calendar) return null;
 
@@ -34,22 +36,22 @@ function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps
   return (
     <div className="availability-view">
       <div className="availability-header">
-        <h3>Group Availability Overview</h3>
-        <p className="availability-subtitle">Click on any date to see who's available</p>
+        <h3>{t('calendarShell.tabs.view')}</h3>
+        <p className="availability-subtitle">{t('calendarView.legend.note')}</p>
       </div>
 
-      <div className="availability-legend" role="region" aria-label="Availability color legend">
+      <div className="availability-legend" role="region" aria-label={t('calendarView.legend.title')}>
         <div className="legend-item">
           <span className="legend-color" style={{ background: '#4ade80' }} aria-hidden="true"></span>
-          <span>Everyone available (green)</span>
+          <span>{t('calendarView.legend.everyoneAvailable')}</span>
         </div>
         <div className="legend-item">
           <span className="legend-color" style={{ background: '#fbbf24' }} aria-hidden="true"></span>
-          <span>Some unavailable (yellow)</span>
+          <span>{t('calendarView.legend.someUnavailable')}</span>
         </div>
         <div className="legend-item">
           <span className="legend-color" style={{ background: '#6b7280' }} aria-hidden="true"></span>
-          <span>Most unavailable (gray)</span>
+          <span>{t('calendarView.legend.manyUnavailable')}</span>
         </div>
       </div>
 
@@ -166,6 +168,7 @@ interface DateDetailsModalProps {
 
 function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }: DateDetailsModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const { t, lang } = useI18n();
 
   useEffect(() => {
     const firstButton = modalRef.current?.querySelector('button');
@@ -174,7 +177,7 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }: Dat
 
   const unavailablePeople = allUnavailability[dateStr] || [];
   const date = new Date(dateStr + 'T12:00:00');
-  const dateDisplay = date.toLocaleDateString('en-US', {
+  const dateDisplay = date.toLocaleDateString(lang, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -196,12 +199,12 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }: Dat
         {unavailablePeople.length === 0 ? (
           <div className="all-available-message">
             <span className="success-icon">🎉</span>
-            <p>Everyone is available on this date!</p>
+            <p>{t('calendarView.dateDetails.everyoneAvailable')}</p>
           </div>
         ) : (
           <div className="availability-details">
             <div className="detail-section unavailable">
-              <h4>❌ Unavailable ({unavailablePeople.length})</h4>
+              <h4>❌ {t('calendarView.dateDetails.unavailableCount', { count: unavailablePeople.length })}</h4>
               <ul>
                 {unavailablePeople.map((person, idx) => (
                   <li key={idx}>{person}</li>
@@ -211,7 +214,7 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }: Dat
 
             {availablePeople.length > 0 && (
               <div className="detail-section available">
-                <h4>✅ Available ({availablePeople.length})</h4>
+                <h4>✅ {t('calendarView.dateDetails.availableCount', { count: availablePeople.length })}</h4>
                 <p>{availablePeople.join(', ')}</p>
               </div>
             )}

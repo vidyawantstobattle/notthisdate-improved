@@ -1,17 +1,21 @@
 import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, consumePendingAction } from '../context/AuthContext';
+import { useI18n } from '../context/I18nContext';
+import LanguageSelector from '../components/LanguageSelector';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import { calendarsApi } from '../api/calendars.api';
 import { useToast } from '../context/ToastContext';
 import ErrorMessage from '../components/ErrorMessage';
 import ConfirmDialog from '../components/ConfirmDialog';
+import TagsInput from '../components/TagsInput';
 import Footer from '../components/Footer';
 import { formatDisplayDate } from '../core/dateRanges';
-import type { Calendar, CreateCalendarInput } from '../types';
+import type { Calendar, CreateCalendarInput, ParticipantsType } from '../types';
 
 function DashboardPage() {
   const { user, loading, logout, getAuthHeaders } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [calendars, setCalendars] = useState<Calendar[]>([]);
@@ -34,6 +38,13 @@ function DashboardPage() {
       loadUserCalendars();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, loading]);
+
+  // Replay a create-calendar intent parked before the user signed up.
+  useEffect(() => {
+    if (user && !loading && consumePendingAction() === 'createCalendar') {
+      setShowCreateForm(true);
+    }
   }, [user, loading]);
 
   const getToken = async (): Promise<string | null> => {
@@ -71,10 +82,10 @@ function DashboardPage() {
       const token = await getToken();
       await calendarsApi.remove(calendarId, token);
       setCalendars(calendars.filter(c => c.id !== calendarId));
-      showToast('Calendar deleted.');
+      showToast(t('dashboard.toast.deleted'));
     } catch (err) {
       console.error('Failed to delete calendar:', err);
-      showToast('Failed to delete calendar. Please try again.');
+      showToast(t('dashboard.toast.deleteFailed'));
     } finally {
       setDeletingId(null);
     }
@@ -83,7 +94,7 @@ function DashboardPage() {
   const handleShareCalendar = (calendarId: string) => {
     const url = `${window.location.origin}/c/${calendarId}`;
     navigator.clipboard.writeText(url);
-    showToast('Calendar link copied to clipboard!');
+    showToast(t('common.linkCopied'));
   };
 
   if (loading) {
@@ -111,10 +122,11 @@ function DashboardPage() {
             <span>NotThisDate</span>
           </Link>
           <nav className="header-nav">
-            <Link to="/about" className="nav-link">About</Link>
+            <Link to="/about" className="nav-link">{t('nav.about')}</Link>
+            <LanguageSelector />
             <div className="user-menu">
               <span className="user-email">{user.email}</span>
-              <button className="btn btn-outline btn-small" onClick={logout}>Logout</button>
+              <button className="btn btn-outline btn-small" onClick={logout}>{t('nav.logout')}</button>
             </div>
           </nav>
         </div>
@@ -125,12 +137,12 @@ function DashboardPage() {
         <div className="dashboard-container">
           <div className="dashboard-header">
             <div className="dashboard-header-content">
-              <h1>Your Calendars</h1>
-              <p className="dashboard-subtitle">Manage your group planning calendars</p>
+              <h1>{t('dashboard.title')}</h1>
+              <p className="dashboard-subtitle">{t('dashboard.subtitle')}</p>
             </div>
             <div className="dashboard-actions">
               <button className="btn btn-primary" onClick={() => setShowCreateForm(true)}>
-                + Create New Calendar
+                + {t('dashboard.createNew')}
               </button>
             </div>
           </div>
@@ -146,7 +158,7 @@ function DashboardPage() {
           {loadingCalendars ? (
             <div className="loading-state">
               <div className="spinner"></div>
-              <p>Loading your calendars...</p>
+              <p>{t('dashboard.loading')}</p>
             </div>
           ) : calendars.length > 0 ? (
             <div className="calendars-grid">
@@ -167,8 +179,8 @@ function DashboardPage() {
                         const submittedCount = calendar.submittedParticipantsCount || 0;
                         const totalParticipants = Math.max(calendar.participants?.length || 0, submittedCount);
                         return calendar.participantsType === 'defined'
-                          ? `${submittedCount}/${totalParticipants} submitted`
-                          : `${submittedCount} joined`;
+                          ? t('dashboard.card.submitted', { submitted: submittedCount, total: totalParticipants })
+                          : t('dashboard.card.joined', { count: submittedCount });
                       })()}
                     </span>
                   </div>
@@ -178,21 +190,21 @@ function DashboardPage() {
                       onClick={() => navigate(`/c/${calendar.id}`)}
                       disabled={deletingId === calendar.id}
                     >
-                      View
+                      {t('dashboard.card.open')}
                     </button>
                     <button
                       className="btn btn-outline btn-small"
                       onClick={() => handleShareCalendar(calendar.id)}
                       disabled={deletingId === calendar.id}
                     >
-                      Share
+                      {t('dashboard.card.shareLink')}
                     </button>
                     <button
                       className="btn btn-danger btn-small"
                       onClick={() => handleDeleteCalendar(calendar.id)}
                       disabled={deletingId !== null}
                     >
-                      {deletingId === calendar.id ? 'Deleting...' : 'Delete'}
+                      {deletingId === calendar.id ? t('common.loading') : t('dashboard.card.delete')}
                     </button>
                   </div>
                 </div>
@@ -201,10 +213,10 @@ function DashboardPage() {
           ) : (
             <div className="empty-state">
               <div className="empty-icon">📅</div>
-              <h3>No calendars yet</h3>
-              <p>Create your first calendar to start coordinating with your group!</p>
+              <h3>{t('dashboard.empty.title')}</h3>
+              <p>{t('dashboard.empty.desc')}</p>
               <button className="btn btn-primary" onClick={() => setShowCreateForm(true)}>
-                Create Your First Calendar
+                {t('dashboard.empty.cta')}
               </button>
             </div>
           )}
@@ -228,9 +240,9 @@ function DashboardPage() {
       {/* Confirm Delete Dialog */}
       {confirmDeleteId && (
         <ConfirmDialog
-          title="Delete this calendar?"
-          message="This cannot be undone. All submitted dates will be permanently lost."
-          confirmLabel="Delete"
+          title={t('dashboard.confirmDelete.title')}
+          message={t('dashboard.confirmDelete.message')}
+          confirmLabel={t('dashboard.confirmDelete.confirmLabel')}
           onConfirm={performDeleteCalendar}
           onCancel={() => setConfirmDeleteId(null)}
         />
@@ -249,12 +261,16 @@ interface CreateCalendarModalProps {
 
 // Create Calendar Modal Component
 function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }: CreateCalendarModalProps) {
+  const { t } = useI18n();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     startDate: '',
     endDate: ''
   });
+  const [participantsType, setParticipantsType] = useState<ParticipantsType>('defined');
+  const [participants, setParticipants] = useState<string[]>([]);
+  const [requireEmailVerification, setRequireEmailVerification] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -267,16 +283,16 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }: Cre
       setError('Please enter a calendar name');
       return;
     }
-    if (!formData.startDate) {
-      setError('Please select a start date');
-      return;
-    }
-    if (!formData.endDate) {
-      setError('Please select an end date');
+    if (!formData.startDate || !formData.endDate) {
+      setError(t('dashboard.createModal.errorMissingDates'));
       return;
     }
     if (formData.startDate > formData.endDate) {
-      setError('End date must be after start date');
+      setError(t('dashboard.createModal.errorEndBeforeStart'));
+      return;
+    }
+    if (participantsType === 'defined' && participants.length === 0) {
+      setError(t('dashboard.createModal.errorNoParticipants'));
       return;
     }
 
@@ -290,13 +306,14 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }: Cre
         dateRangeType: 'custom',
         startDate: formData.startDate,
         endDate: formData.endDate,
-        participantsType: 'defined',
-        participants: []
+        participantsType,
+        participants: participantsType === 'defined' ? participants : [],
+        requireEmailVerification: participantsType === 'open' ? requireEmailVerification : false
       };
       await calendarsApi.create(input, token);
       await onCalendarCreated();
     } catch (err) {
-      setError((err as Error).message || 'Failed to create calendar. Please try again.');
+      setError(t('dashboard.createModal.errorGeneric', { message: (err as Error).message || '' }));
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -325,17 +342,18 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }: Cre
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose} aria-label="Close dialog">&times;</button>
 
-        <h2 id="create-calendar-title">Create New Calendar</h2>
-        <p className="modal-subtitle">Set up a new group availability calendar</p>
+        <h2 id="create-calendar-title">{t('dashboard.createModal.title')}</h2>
+        <p className="modal-subtitle">{t('dashboard.createModal.subtitle')}</p>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="cal-name">Calendar Name *</label>
+            <label htmlFor="cal-name">{t('dashboard.createModal.nameLabel')}</label>
             <input
               ref={nameInputRef}
               id="cal-name"
               type="text"
               value={formData.name}
+              placeholder={t('dashboard.createModal.namePlaceholder')}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
               required
               disabled={submitting}
@@ -343,19 +361,19 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }: Cre
           </div>
 
           <div className="form-group">
-            <label htmlFor="cal-desc">Description</label>
+            <label htmlFor="cal-desc">{t('dashboard.createModal.descLabel')}</label>
             <textarea
               id="cal-desc"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="What's this calendar for?"
+              placeholder={t('dashboard.createModal.descPlaceholder')}
               rows={3}
             />
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="cal-start">Start Date *</label>
+              <label htmlFor="cal-start">{t('dashboard.createModal.startDate')}</label>
               <input
                 id="cal-start"
                 type="date"
@@ -365,7 +383,7 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }: Cre
             </div>
 
             <div className="form-group">
-              <label htmlFor="cal-end">End Date *</label>
+              <label htmlFor="cal-end">{t('dashboard.createModal.endDate')}</label>
               <input
                 id="cal-end"
                 type="date"
@@ -375,14 +393,69 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }: Cre
             </div>
           </div>
 
+          <div className="form-group">
+            <label>{t('dashboard.createModal.participantsLabel')}</label>
+            <div className="radio-group">
+              <label className="radio-option">
+                <input
+                  type="radio"
+                  name="participants-type"
+                  value="defined"
+                  checked={participantsType === 'defined'}
+                  onChange={() => setParticipantsType('defined')}
+                  disabled={submitting}
+                />
+                <span>{t('dashboard.createModal.specificPeople')}</span>
+              </label>
+              <label className="radio-option">
+                <input
+                  type="radio"
+                  name="participants-type"
+                  value="open"
+                  checked={participantsType === 'open'}
+                  onChange={() => setParticipantsType('open')}
+                  disabled={submitting}
+                />
+                <span>{t('dashboard.createModal.anyoneWithLink')}</span>
+              </label>
+            </div>
+          </div>
+
+          {participantsType === 'defined' ? (
+            <div className="form-group">
+              <label htmlFor="cal-participants">{t('dashboard.createModal.participantsLabel')}</label>
+              <TagsInput
+                id="cal-participants"
+                tags={participants}
+                onChange={setParticipants}
+                placeholder={t('dashboard.createModal.participantsPlaceholder')}
+                disabled={submitting}
+              />
+              <p className="form-hint">{t('dashboard.createModal.participantsHint')}</p>
+            </div>
+          ) : (
+            <div className="form-group">
+              <label className="checkbox-option">
+                <input
+                  type="checkbox"
+                  checked={requireEmailVerification}
+                  onChange={(e) => setRequireEmailVerification(e.target.checked)}
+                  disabled={submitting}
+                />
+                <span>{t('dashboard.createModal.requireVerification')}</span>
+              </label>
+              <p className="form-hint">{t('dashboard.createModal.verificationHint')}</p>
+            </div>
+          )}
+
           {error && <div className="form-error">{error}</div>}
 
           <div className="form-actions">
             <button type="button" className="btn btn-outline" onClick={onClose} disabled={submitting}>
-              Cancel
+              {t('common.cancel')}
             </button>
             <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? 'Creating...' : 'Create Calendar'}
+              {submitting ? t('common.creating') : t('dashboard.createModal.submit')}
             </button>
           </div>
         </form>

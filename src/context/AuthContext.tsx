@@ -5,6 +5,7 @@
 // means rewriting this file only, with the AuthContextValue contract unchanged.
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { observeIdentityPasswordFields } from '../utils/identityPasswordUI';
 
 export interface AuthUser {
   email: string;
@@ -22,6 +23,31 @@ export interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+// Guest-to-auth journey: a guest who clicks a CTA that requires an account has
+// their intent parked here, then replayed once they land authenticated. Uses
+// localStorage so it survives the full-page reload of email verification.
+const PENDING_ACTION_KEY = 'ntd_pendingAction';
+
+export type PendingAction = 'createCalendar';
+
+export function setPendingAction(action: PendingAction): void {
+  try {
+    localStorage.setItem(PENDING_ACTION_KEY, action);
+  } catch {
+    // Private browsing / storage disabled: the journey degrades to a normal signup.
+  }
+}
+
+export function consumePendingAction(): PendingAction | null {
+  try {
+    const action = localStorage.getItem(PENDING_ACTION_KEY);
+    if (action) localStorage.removeItem(PENDING_ACTION_KEY);
+    return action as PendingAction | null;
+  } catch {
+    return null;
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -52,10 +78,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       });
 
-      identity.init();
+      // Identity has no endpoint to talk to on localhost, so point it at the
+      // deployed site (mirrors public/app.js). Without this the `init` event
+      // never fires and the UI hangs in its loading state.
+      const host = window.location.hostname;
+      if (host === 'localhost' || host === '127.0.0.1') {
+        identity.init({ APIUrl: 'https://reverse-date-picker.netlify.app/.netlify/identity' });
+      } else {
+        identity.init();
+      }
     };
 
+    // Don't strand the UI in a loading state if the widget is blocked.
+    script.onerror = () => setLoading(false);
+
+    const stopObservingPasswordFields = observeIdentityPasswordFields();
+
     return () => {
+      stopObservingPasswordFields();
       if (script.parentNode) {
         script.parentNode.removeChild(script);
       }

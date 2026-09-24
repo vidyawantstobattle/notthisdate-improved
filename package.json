@@ -4,8 +4,9 @@
   "description": "Trip planning app - mark dates you're NOT available",
   "scripts": {
     "dev": "vite",
-    "build": "npm run validate:imports && vite build",
-    "build:skip-validation": "vite build",
+    "build": "npm run validate:imports && vite build && npm run copy:assets",
+    "build:skip-validation": "vite build && npm run copy:assets",
+    "copy:assets": "mkdir -p dist/images && cp -R public/images/. dist/images/ && cp public/robots.txt public/sitemap.xml dist/",
     "typecheck": "tsc --noEmit",
     "validate:imports": "node scripts/validate-imports.js",
     "preview": "vite preview",
