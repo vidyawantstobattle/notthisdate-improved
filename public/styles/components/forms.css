@@ -58,7 +58,7 @@
     margin-bottom: 0.75rem;
 }
 
-.radio-option {
+.form-group .radio-option {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -72,7 +72,7 @@
     accent-color: var(--primary-color);
 }
 
-.checkbox-option {
+.form-group .checkbox-option {
     display: flex;
     align-items: center;
     gap: 0.5rem;

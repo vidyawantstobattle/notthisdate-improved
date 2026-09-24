@@ -26,6 +26,7 @@ function CalendarPage() {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [submittedDates, setSubmittedDates] = useState<string[]>([]);
   const [allUnavailability, setAllUnavailability] = useState<UnavailabilityByDate>({});
+  const [allSubmitters, setAllSubmitters] = useState<string[]>([]);
   const [statusMessage, setStatusMessage] = useState<{ type: string; text: string }>({ type: '', text: '' });
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState<Error | null>(null);
@@ -89,10 +90,14 @@ function CalendarPage() {
         });
       });
 
+      // Every key in rawUnavailability is a submitter, even ones with zero unavailable
+      // dates (fully available) — those would otherwise be invisible to the ratio calc.
+      setAllSubmitters(Object.keys(rawUnavailability));
       setAllUnavailability(unavailabilityByDate);
     } catch (err) {
       console.error('Failed to load unavailability:', err);
       setApiError(err as Error);
+      setAllSubmitters([]);
       setAllUnavailability({});
     }
   };
@@ -294,6 +299,7 @@ function CalendarPage() {
                           endDate={calendar.endDate}
                           selectedDates={selectedDates}
                           submittedDates={submittedDates}
+                          blockedDates={calendar.blockedDates}
                           onDateSelect={handleDateSelect}
                         />
                       </div>
@@ -354,6 +360,7 @@ function CalendarPage() {
                   <AvailabilityView
                     calendar={calendar}
                     allUnavailability={allUnavailability}
+                    allSubmitters={allSubmitters}
                   />
                 </div>
               )}

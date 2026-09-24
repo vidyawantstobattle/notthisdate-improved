@@ -24,6 +24,7 @@ function DashboardPage() {
   const [error, setError] = useState<Error | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [editingParticipantsCalendarId, setEditingParticipantsCalendarId] = useState<string | null>(null);
 
   useDocumentTitle('Dashboard');
 
@@ -97,6 +98,10 @@ function DashboardPage() {
     showToast(t('common.linkCopied'));
   };
 
+  const handleParticipantsUpdated = (calendarId: string, participants: string[]) => {
+    setCalendars(prev => prev.map(cal => (cal.id === calendarId ? { ...cal, participants } : cal)));
+  };
+
   if (loading) {
     return (
       <div className="dashboard-page">
@@ -164,8 +169,19 @@ function DashboardPage() {
             <div className="calendars-grid">
               {calendars.map(calendar => (
                 <div key={calendar.id} className="calendar-card">
-                  <div className="calendar-card-header">
+                  <div className="calendar-card-heading">
                     <h3>{calendar.name}</h3>
+                    {calendar.participantsType === 'defined' && (
+                      <button
+                        type="button"
+                        className="calendar-card-edit-btn"
+                        onClick={() => setEditingParticipantsCalendarId(calendar.id)}
+                        title={t('dashboard.card.editParticipants')}
+                        aria-label={t('dashboard.card.editParticipants')}
+                      >
+                        <img src="/images/setting_outline.svg" alt="" />
+                      </button>
+                    )}
                   </div>
                   {calendar.description && (
                     <p className="calendar-card-description">{calendar.description}</p>
@@ -245,6 +261,20 @@ function DashboardPage() {
           confirmLabel={t('dashboard.confirmDelete.confirmLabel')}
           onConfirm={performDeleteCalendar}
           onCancel={() => setConfirmDeleteId(null)}
+        />
+      )}
+
+      {/* Edit Participants Modal */}
+      {editingParticipantsCalendarId && (
+        <EditParticipantsModal
+          calendar={calendars.find(cal => cal.id === editingParticipantsCalendarId)!}
+          onClose={() => setEditingParticipantsCalendarId(null)}
+          onSaved={(participants) => {
+            handleParticipantsUpdated(editingParticipantsCalendarId, participants);
+            setEditingParticipantsCalendarId(null);
+            showToast(t('dashboard.editParticipants.saved'));
+          }}
+          getAuthHeaders={getAuthHeaders}
         />
       )}
 
@@ -459,6 +489,72 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }: Cre
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+interface EditParticipantsModalProps {
+  calendar: Calendar;
+  onClose: () => void;
+  onSaved: (participants: string[]) => void;
+  getAuthHeaders: () => Promise<Record<string, string>>;
+}
+
+function EditParticipantsModal({ calendar, onClose, onSaved, getAuthHeaders }: EditParticipantsModalProps) {
+  const { t } = useI18n();
+  const [participants, setParticipants] = useState<string[]>([...(calendar.participants || [])]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSave = async () => {
+    if (participants.length === 0) {
+      setError(t('dashboard.editParticipants.errorEmpty'));
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    try {
+      const headers = await getAuthHeaders();
+      const token = headers['Authorization']?.replace('Bearer ', '') || null;
+      const result = await calendarsApi.updateParticipants(calendar.id, participants, token);
+      onSaved(result.participants);
+    } catch (err) {
+      setError((err as Error).message || t('dashboard.editParticipants.saveFailed'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="edit-participants-title">
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close dialog">&times;</button>
+
+        <h2 id="edit-participants-title">{t('dashboard.editParticipants.title')}</h2>
+        <p className="modal-subtitle">{t('dashboard.editParticipants.desc')}</p>
+
+        <div className="form-group">
+          <TagsInput
+            tags={participants}
+            onChange={setParticipants}
+            placeholder={t('dashboard.createModal.participantsPlaceholder')}
+            disabled={saving}
+          />
+          <p className="form-hint">{t('dashboard.editParticipants.warning')}</p>
+        </div>
+
+        {error && <div className="form-error">{error}</div>}
+
+        <div className="form-actions">
+          <button type="button" className="btn btn-outline" onClick={onClose} disabled={saving}>
+            {t('common.cancel')}
+          </button>
+          <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
+            {saving ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
       </div>
     </div>
   );

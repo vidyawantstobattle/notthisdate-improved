@@ -6,9 +6,10 @@ import type { Calendar, UnavailabilityByDate } from '../types';
 interface AvailabilityViewProps {
   calendar: Calendar;
   allUnavailability: UnavailabilityByDate;
+  allSubmitters?: string[];
 }
 
-function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps) {
+function AvailabilityView({ calendar, allUnavailability, allSubmitters = [] }: AvailabilityViewProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { t } = useI18n();
 
@@ -27,8 +28,9 @@ function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps
     current.setMonth(current.getMonth() + 1);
   }
 
-  // Calculate total participants
-  const allParticipants = getAllParticipants(allUnavailability, calendar);
+  // Calculate total participants. For open calendars this must include everyone who
+  // submitted, even with zero unavailable dates, or the ratio skews toward "unavailable".
+  const allParticipants = getAllParticipants(allUnavailability, calendar, allSubmitters);
   const totalPeople = calendar.participantsType === 'defined'
     ? calendar.participants?.length || 1
     : Math.max(allParticipants.length, 1);
@@ -75,6 +77,7 @@ function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps
           dateStr={selectedDate}
           calendar={calendar}
           allUnavailability={allUnavailability}
+          allSubmitters={allSubmitters}
           onClose={() => setSelectedDate(null)}
         />
       )}
@@ -163,10 +166,11 @@ interface DateDetailsModalProps {
   dateStr: string;
   calendar: Calendar;
   allUnavailability: UnavailabilityByDate;
+  allSubmitters?: string[];
   onClose: () => void;
 }
 
-function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }: DateDetailsModalProps) {
+function DateDetailsModal({ dateStr, calendar, allUnavailability, allSubmitters = [], onClose }: DateDetailsModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const { t, lang } = useI18n();
 
@@ -186,7 +190,7 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }: Dat
 
   const allParticipants = calendar.participantsType === 'defined'
     ? calendar.participants || []
-    : getAllParticipants(allUnavailability, calendar);
+    : getAllParticipants(allUnavailability, calendar, allSubmitters);
 
   const availablePeople = allParticipants.filter(p => !unavailablePeople.includes(p));
 
@@ -225,12 +229,16 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }: Dat
   );
 }
 
-function getAllParticipants(allUnavailability: UnavailabilityByDate, calendar: Calendar): string[] {
+function getAllParticipants(allUnavailability: UnavailabilityByDate, calendar: Calendar, allSubmitters: string[] = []): string[] {
   const participants = new Set<string>();
 
   if (calendar?.participantsType === 'defined' && calendar?.participants) {
     return calendar.participants;
   }
+
+  allSubmitters.forEach(p => {
+    if (p && typeof p === 'string') participants.add(p);
+  });
 
   Object.values(allUnavailability || {}).forEach(peopleArray => {
     if (Array.isArray(peopleArray)) {
