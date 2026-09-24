@@ -25,6 +25,10 @@ function DashboardPage() {
   const [error, setError] = useState<Error | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [editCalendar, setEditCalendar] = useState<Calendar | null>(null);
+  const [editParticipants, setEditParticipants] = useState<string[]>([]);
+  const [savingParticipants, setSavingParticipants] = useState(false);
+  const [editParticipantsError, setEditParticipantsError] = useState('');
 
   useDocumentTitle('Dashboard');
 
@@ -102,6 +106,43 @@ function DashboardPage() {
     showToast(t('common.linkCopied'));
   };
 
+  const openEditParticipantsModal = (calendar: Calendar) => {
+    setEditCalendar(calendar);
+    setEditParticipants([...(calendar.participants || [])]);
+    setEditParticipantsError('');
+  };
+
+  const saveParticipants = async () => {
+    if (!editCalendar) return;
+
+    if (editParticipants.length === 0) {
+      setEditParticipantsError(t('dashboard.editParticipants.errorEmpty'));
+      return;
+    }
+
+    setSavingParticipants(true);
+    setEditParticipantsError('');
+
+    try {
+      const token = await getToken();
+      const result = await calendarsApi.updateParticipants(editCalendar.id, editParticipants, token);
+
+      setCalendars(prev => prev.map(cal => (
+        cal.id === editCalendar.id ? { ...cal, participants: result.participants } : cal
+      )));
+
+      setEditCalendar(null);
+      setEditParticipants([]);
+      showToast(t('dashboard.editParticipants.saved'));
+    } catch (err) {
+      const message = (err as Error).message || t('dashboard.editParticipants.saveFailed');
+      setEditParticipantsError(message);
+      console.error('Failed to update participants:', err);
+    } finally {
+      setSavingParticipants(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="dashboard-page">
@@ -169,8 +210,20 @@ function DashboardPage() {
             <div className="calendars-grid">
               {calendars.map(calendar => (
                 <div key={calendar.id} className="calendar-card">
-                  <div className="calendar-card-header">
+                  <div className="calendar-card-header calendar-card-heading">
                     <h3>{calendar.name}</h3>
+                    {calendar.participantsType === 'defined' && (
+                      <button
+                        type="button"
+                        className="calendar-card-edit-btn"
+                        onClick={() => openEditParticipantsModal(calendar)}
+                        title={t('dashboard.card.editParticipants')}
+                        aria-label={t('dashboard.card.editParticipants')}
+                        disabled={deletingId !== null}
+                      >
+                        <span className="icon-settings" aria-hidden="true"></span>
+                      </button>
+                    )}
                   </div>
                   {calendar.description && (
                     <p className="calendar-card-description">{calendar.description}</p>
@@ -244,6 +297,23 @@ function DashboardPage() {
           }}
           getAuthHeaders={getAuthHeaders}
           initialDraft={pendingDraft}
+        />
+      )}
+
+      {/* Edit Participants Modal */}
+      {editCalendar && (
+        <EditParticipantsModal
+          onClose={() => {
+            if (savingParticipants) return;
+            setEditCalendar(null);
+            setEditParticipants([]);
+            setEditParticipantsError('');
+          }}
+          onSave={saveParticipants}
+          participants={editParticipants}
+          onParticipantsChange={setEditParticipants}
+          error={editParticipantsError}
+          saving={savingParticipants}
         />
       )}
 
@@ -487,6 +557,60 @@ function formatDateInput(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+interface EditParticipantsModalProps {
+  onClose: () => void;
+  onSave: () => void;
+  participants: string[];
+  onParticipantsChange: (participants: string[]) => void;
+  error: string;
+  saving: boolean;
+}
+
+function EditParticipantsModal({
+  onClose,
+  onSave,
+  participants,
+  onParticipantsChange,
+  error,
+  saving
+}: EditParticipantsModalProps) {
+  const { t } = useI18n();
+
+  return (
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="edit-participants-title">
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close dialog" disabled={saving}>&times;</button>
+
+        <h2 id="edit-participants-title">{t('dashboard.editParticipants.title')}</h2>
+        <p className="modal-subtitle">{t('dashboard.editParticipants.desc')}</p>
+
+        <div className="form-group">
+          <label htmlFor="edit-participants-tags">{t('dashboard.createModal.participantsLabel')}</label>
+          <TagsInput
+            id="edit-participants-tags"
+            tags={participants}
+            onChange={onParticipantsChange}
+            placeholder={t('dashboard.createModal.participantsPlaceholder')}
+            disabled={saving}
+          />
+          <p className="form-hint">{t('dashboard.editParticipants.warning')}</p>
+        </div>
+
+        {error && <div className="form-error">{error}</div>}
+
+        <div className="form-actions">
+          <button type="button" className="btn btn-outline" onClick={onClose} disabled={saving}>
+            {t('common.cancel')}
+          </button>
+          <button type="button" className="btn btn-primary" onClick={onSave} disabled={saving}>
+            {saving ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default DashboardPage;
