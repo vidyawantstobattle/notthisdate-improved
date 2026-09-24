@@ -30,6 +30,17 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const PENDING_ACTION_KEY = 'ntd_pendingAction';
 
 export type PendingAction = 'createCalendar';
+export interface PendingCalendarDraft {
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  participantsType: 'defined' | 'open';
+  participants: string[];
+  requireEmailVerification: boolean;
+}
+
+const PENDING_CALENDAR_DRAFT_KEY = 'ntd_pendingCalendarDraft';
 
 export function setPendingAction(action: PendingAction): void {
   try {
@@ -44,6 +55,48 @@ export function consumePendingAction(): PendingAction | null {
     const action = localStorage.getItem(PENDING_ACTION_KEY);
     if (action) localStorage.removeItem(PENDING_ACTION_KEY);
     return action as PendingAction | null;
+  } catch {
+    return null;
+  }
+}
+
+export function setPendingCalendarDraft(draft: PendingCalendarDraft): void {
+  try {
+    localStorage.setItem(PENDING_CALENDAR_DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // Private browsing / storage disabled: the journey degrades to manual re-entry.
+  }
+}
+
+export function consumePendingCalendarDraft(): PendingCalendarDraft | null {
+  try {
+    const rawDraft = localStorage.getItem(PENDING_CALENDAR_DRAFT_KEY);
+    if (!rawDraft) return null;
+
+    localStorage.removeItem(PENDING_CALENDAR_DRAFT_KEY);
+    const parsed = JSON.parse(rawDraft) as Partial<PendingCalendarDraft>;
+
+    if (
+      typeof parsed.name !== 'string' ||
+      typeof parsed.description !== 'string' ||
+      typeof parsed.startDate !== 'string' ||
+      typeof parsed.endDate !== 'string' ||
+      (parsed.participantsType !== 'defined' && parsed.participantsType !== 'open') ||
+      !Array.isArray(parsed.participants) ||
+      typeof parsed.requireEmailVerification !== 'boolean'
+    ) {
+      return null;
+    }
+
+    return {
+      name: parsed.name,
+      description: parsed.description,
+      startDate: parsed.startDate,
+      endDate: parsed.endDate,
+      participantsType: parsed.participantsType,
+      participants: parsed.participants.filter(p => typeof p === 'string'),
+      requireEmailVerification: parsed.requireEmailVerification
+    };
   } catch {
     return null;
   }

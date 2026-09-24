@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth, consumePendingAction } from '../context/AuthContext';
+import { useAuth, consumePendingAction, consumePendingCalendarDraft, type PendingCalendarDraft } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 import LanguageSelector from '../components/LanguageSelector';
 import useDocumentTitle from '../hooks/useDocumentTitle';
@@ -21,6 +21,7 @@ function DashboardPage() {
   const [calendars, setCalendars] = useState<Calendar[]>([]);
   const [loadingCalendars, setLoadingCalendars] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<PendingCalendarDraft | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -42,8 +43,12 @@ function DashboardPage() {
 
   // Replay a create-calendar intent parked before the user signed up.
   useEffect(() => {
-    if (user && !loading && consumePendingAction() === 'createCalendar') {
-      setShowCreateForm(true);
+    if (user && !loading) {
+      const action = consumePendingAction();
+      if (action === 'createCalendar') {
+        setPendingDraft(consumePendingCalendarDraft());
+        setShowCreateForm(true);
+      }
     }
   }, [user, loading]);
 
@@ -226,14 +231,19 @@ function DashboardPage() {
       {/* Create Calendar Modal */}
       {showCreateForm && (
         <CreateCalendarModal
-          onClose={() => setShowCreateForm(false)}
+          onClose={() => {
+            setShowCreateForm(false);
+            setPendingDraft(null);
+          }}
           onCalendarCreated={async () => {
             setLoadingCalendars(true);
             setShowCreateForm(false);
+            setPendingDraft(null);
             await loadUserCalendars();
             setLoadingCalendars(false);
           }}
           getAuthHeaders={getAuthHeaders}
+          initialDraft={pendingDraft}
         />
       )}
 
@@ -257,10 +267,11 @@ interface CreateCalendarModalProps {
   onClose: () => void;
   onCalendarCreated: () => Promise<void>;
   getAuthHeaders: () => Promise<Record<string, string>>;
+  initialDraft?: PendingCalendarDraft | null;
 }
 
 // Create Calendar Modal Component
-function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }: CreateCalendarModalProps) {
+function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders, initialDraft = null }: CreateCalendarModalProps) {
   const { t } = useI18n();
   const [formData, setFormData] = useState({
     name: '',
@@ -326,16 +337,23 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders }: Cre
     const threeMonthsLater = new Date();
     threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
 
-    setFormData(prev => ({
-      ...prev,
-      startDate: formatDateInput(today),
-      endDate: formatDateInput(threeMonthsLater)
-    }));
+    const defaultStartDate = formatDateInput(today);
+    const defaultEndDate = formatDateInput(threeMonthsLater);
+
+    setFormData({
+      name: initialDraft?.name || '',
+      description: initialDraft?.description || '',
+      startDate: initialDraft?.startDate || defaultStartDate,
+      endDate: initialDraft?.endDate || defaultEndDate
+    });
+    setParticipantsType(initialDraft?.participantsType || 'defined');
+    setParticipants(initialDraft?.participants || []);
+    setRequireEmailVerification(initialDraft?.requireEmailVerification || false);
 
     if (nameInputRef.current) {
       nameInputRef.current.focus();
     }
-  }, []);
+  }, [initialDraft]);
 
   return (
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="create-calendar-title">

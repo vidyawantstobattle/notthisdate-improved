@@ -1,18 +1,33 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth, setPendingAction } from '../context/AuthContext';
+import { useAuth, setPendingAction, setPendingCalendarDraft, type PendingCalendarDraft } from '../context/AuthContext';
 import { useI18n, RichText } from '../context/I18nContext';
 import LanguageSelector from '../components/LanguageSelector';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+import TagsInput from '../components/TagsInput';
 import Footer from '../components/Footer';
+import type { ParticipantsType } from '../types';
 
 function LandingPage() {
   const { user, loading, login, signup, logout } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const [showCreateDraftModal, setShowCreateDraftModal] = useState(false);
 
   const startCreateCalendar = () => {
+    setShowCreateDraftModal(true);
+  };
+
+  const continueToSignup = (draft: PendingCalendarDraft) => {
+    setPendingCalendarDraft(draft);
     setPendingAction('createCalendar');
+    setShowCreateDraftModal(false);
+
+    if (user) {
+      navigate('/dashboard');
+      return;
+    }
+
     signup();
   };
 
@@ -159,8 +174,211 @@ function LandingPage() {
       </section>
 
       <Footer />
+
+      {showCreateDraftModal && (
+        <CreateCalendarDraftModal
+          onClose={() => setShowCreateDraftModal(false)}
+          onContinue={continueToSignup}
+        />
+      )}
     </div>
   );
+}
+
+interface CreateCalendarDraftModalProps {
+  onClose: () => void;
+  onContinue: (draft: PendingCalendarDraft) => void;
+}
+
+function CreateCalendarDraftModal({ onClose, onContinue }: CreateCalendarDraftModalProps) {
+  const { t } = useI18n();
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    startDate: '',
+    endDate: ''
+  });
+  const [participantsType, setParticipantsType] = useState<ParticipantsType>('defined');
+  const [participants, setParticipants] = useState<string[]>([]);
+  const [requireEmailVerification, setRequireEmailVerification] = useState(false);
+  const [error, setError] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const today = new Date();
+    const threeMonthsLater = new Date();
+    threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
+
+    setFormData(prev => ({
+      ...prev,
+      startDate: formatDateInput(today),
+      endDate: formatDateInput(threeMonthsLater)
+    }));
+
+    if (nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
+  }, []);
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!formData.name.trim()) {
+      setError('Please enter a calendar name');
+      return;
+    }
+    if (!formData.startDate || !formData.endDate) {
+      setError(t('dashboard.createModal.errorMissingDates'));
+      return;
+    }
+    if (formData.startDate > formData.endDate) {
+      setError(t('dashboard.createModal.errorEndBeforeStart'));
+      return;
+    }
+    if (participantsType === 'defined' && participants.length === 0) {
+      setError(t('dashboard.createModal.errorNoParticipants'));
+      return;
+    }
+
+    onContinue({
+      name: formData.name.trim(),
+      description: formData.description.trim(),
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      participantsType,
+      participants: participantsType === 'defined' ? participants : [],
+      requireEmailVerification: participantsType === 'open' ? requireEmailVerification : false
+    });
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="create-calendar-title">
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close dialog">&times;</button>
+
+        <h2 id="create-calendar-title">{t('dashboard.createModal.title')}</h2>
+        <p className="modal-subtitle">{t('dashboard.createModal.subtitle')}</p>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="landing-cal-name">{t('dashboard.createModal.nameLabel')}</label>
+            <input
+              ref={nameInputRef}
+              id="landing-cal-name"
+              type="text"
+              value={formData.name}
+              placeholder={t('dashboard.createModal.namePlaceholder')}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="landing-cal-desc">{t('dashboard.createModal.descLabel')}</label>
+            <textarea
+              id="landing-cal-desc"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder={t('dashboard.createModal.descPlaceholder')}
+              rows={3}
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="landing-cal-start">{t('dashboard.createModal.startDate')}</label>
+              <input
+                id="landing-cal-start"
+                type="date"
+                value={formData.startDate}
+                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="landing-cal-end">{t('dashboard.createModal.endDate')}</label>
+              <input
+                id="landing-cal-end"
+                type="date"
+                value={formData.endDate}
+                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>{t('dashboard.createModal.participantsLabel')}</label>
+            <div className="radio-group">
+              <label className="radio-option">
+                <input
+                  type="radio"
+                  name="landing-participants-type"
+                  value="defined"
+                  checked={participantsType === 'defined'}
+                  onChange={() => setParticipantsType('defined')}
+                />
+                <span>{t('dashboard.createModal.specificPeople')}</span>
+              </label>
+              <label className="radio-option">
+                <input
+                  type="radio"
+                  name="landing-participants-type"
+                  value="open"
+                  checked={participantsType === 'open'}
+                  onChange={() => setParticipantsType('open')}
+                />
+                <span>{t('dashboard.createModal.anyoneWithLink')}</span>
+              </label>
+            </div>
+          </div>
+
+          {participantsType === 'defined' ? (
+            <div className="form-group">
+              <label htmlFor="landing-cal-participants">{t('dashboard.createModal.participantsLabel')}</label>
+              <TagsInput
+                id="landing-cal-participants"
+                tags={participants}
+                onChange={setParticipants}
+                placeholder={t('dashboard.createModal.participantsPlaceholder')}
+              />
+              <p className="form-hint">{t('dashboard.createModal.participantsHint')}</p>
+            </div>
+          ) : (
+            <div className="form-group">
+              <label className="checkbox-option">
+                <input
+                  type="checkbox"
+                  checked={requireEmailVerification}
+                  onChange={(e) => setRequireEmailVerification(e.target.checked)}
+                />
+                <span>{t('dashboard.createModal.requireVerification')}</span>
+              </label>
+              <p className="form-hint">{t('dashboard.createModal.verificationHint')}</p>
+            </div>
+          )}
+
+          {error && <div className="form-error">{error}</div>}
+
+          <div className="form-actions">
+            <button type="button" className="btn btn-outline" onClick={onClose}>
+              {t('common.cancel')}
+            </button>
+            <button type="submit" className="btn btn-primary">
+              {t('nav.signup')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function formatDateInput(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export default LandingPage;
