@@ -90,23 +90,21 @@ function LandingPage() {
       {/* How It Works */}
       <section id="how-it-works" className="features-section">
         <h2>{t('landing.howItWorks.title')}</h2>
-        <div className="features-editorial">
-          <article className="feature-spotlight">
+        <div className="features-grid">
+          <div className="feature-card">
             <div className="feature-icon icon-calendar" aria-hidden="true"></div>
             <h3>{t('landing.howItWorks.step1.title')}</h3>
             <RichText as="p" k="landing.howItWorks.step1.desc" />
-          </article>
-          <div className="feature-rail" role="list">
-            <article className="feature-rail-item" role="listitem">
-              <div className="feature-icon icon-unhappy" aria-hidden="true"></div>
-              <h3>{t('landing.howItWorks.step2.title')}</h3>
-              <RichText as="p" k="landing.howItWorks.step2.desc" />
-            </article>
-            <article className="feature-rail-item" role="listitem">
-              <div className="feature-icon icon-search" aria-hidden="true"></div>
-              <h3>{t('landing.howItWorks.step3.title')}</h3>
-              <RichText as="p" k="landing.howItWorks.step3.desc" />
-            </article>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon icon-unhappy" aria-hidden="true"></div>
+            <h3>{t('landing.howItWorks.step2.title')}</h3>
+            <RichText as="p" k="landing.howItWorks.step2.desc" />
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon icon-search" aria-hidden="true"></div>
+            <h3>{t('landing.howItWorks.step3.title')}</h3>
+            <RichText as="p" k="landing.howItWorks.step3.desc" />
           </div>
         </div>
       </section>
@@ -114,23 +112,21 @@ function LandingPage() {
       {/* Benefits */}
       <section className="benefits-section">
         <h2>{t('landing.benefits.title')}</h2>
-        <div className="benefits-editorial">
-          <article className="benefit-lead">
+        <div className="benefits-grid">
+          <div className="benefit-card">
             <div className="benefit-icon icon-swap" aria-hidden="true"></div>
             <h3>{t('landing.benefits.reverse.title')}</h3>
             <RichText as="p" k="landing.benefits.reverse.desc" />
-          </article>
-          <div className="benefit-stack" role="list">
-            <article className="benefit-card" role="listitem">
-              <div className="benefit-icon icon-happy" aria-hidden="true"></div>
-              <h3>{t('landing.benefits.noAccount.title')}</h3>
-              <RichText as="p" k="landing.benefits.noAccount.desc" />
-            </article>
-            <article className="benefit-card" role="listitem">
-              <div className="benefit-icon icon-dot" aria-hidden="true"></div>
-              <h3>{t('landing.benefits.heatmap.title')}</h3>
-              <RichText as="p" k="landing.benefits.heatmap.desc" />
-            </article>
+          </div>
+          <div className="benefit-card">
+            <div className="benefit-icon icon-happy" aria-hidden="true"></div>
+            <h3>{t('landing.benefits.noAccount.title')}</h3>
+            <RichText as="p" k="landing.benefits.noAccount.desc" />
+          </div>
+          <div className="benefit-card">
+            <div className="benefit-icon icon-dot" aria-hidden="true"></div>
+            <h3>{t('landing.benefits.heatmap.title')}</h3>
+            <RichText as="p" k="landing.benefits.heatmap.desc" />
           </div>
         </div>
       </section>
