@@ -38,6 +38,7 @@ export interface PendingCalendarDraft {
   participantsType: 'defined' | 'open';
   participants: string[];
   requireEmailVerification: boolean;
+  blockedDates: string[];
 }
 
 const PENDING_CALENDAR_DRAFT_KEY = 'ntd_pendingCalendarDraft';
@@ -95,7 +96,10 @@ export function consumePendingCalendarDraft(): PendingCalendarDraft | null {
       endDate: parsed.endDate,
       participantsType: parsed.participantsType,
       participants: parsed.participants.filter(p => typeof p === 'string'),
-      requireEmailVerification: parsed.requireEmailVerification
+      requireEmailVerification: parsed.requireEmailVerification,
+      blockedDates: Array.isArray(parsed.blockedDates)
+        ? parsed.blockedDates.filter(d => typeof d === 'string')
+        : []
     };
   } catch {
     return null;

@@ -9,6 +9,7 @@ import { useToast } from '../context/ToastContext';
 import ErrorMessage from '../components/ErrorMessage';
 import ConfirmDialog from '../components/ConfirmDialog';
 import TagsInput from '../components/TagsInput';
+import BlockedDatesInput from '../components/BlockedDatesInput';
 import Footer from '../components/Footer';
 import { formatDisplayDate } from '../core/dateRanges';
 import type { Calendar, CreateCalendarInput, ParticipantsType } from '../types';
@@ -351,6 +352,7 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders, initi
   });
   const [participantsType, setParticipantsType] = useState<ParticipantsType>('defined');
   const [participants, setParticipants] = useState<string[]>([]);
+  const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [requireEmailVerification, setRequireEmailVerification] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -376,6 +378,10 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders, initi
       setError(t('dashboard.createModal.errorNoParticipants'));
       return;
     }
+    if (blockedDates.some(d => d < formData.startDate || d > formData.endDate)) {
+      setError(t('dashboard.createModal.errorBlockedOutOfRange'));
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -389,7 +395,8 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders, initi
         endDate: formData.endDate,
         participantsType,
         participants: participantsType === 'defined' ? participants : [],
-        requireEmailVerification: participantsType === 'open' ? requireEmailVerification : false
+        requireEmailVerification: participantsType === 'open' ? requireEmailVerification : false,
+        blockedDates
       };
       await calendarsApi.create(input, token);
       await onCalendarCreated();
@@ -418,6 +425,7 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders, initi
     });
     setParticipantsType(initialDraft?.participantsType || 'defined');
     setParticipants(initialDraft?.participants || []);
+    setBlockedDates(initialDraft?.blockedDates || []);
     setRequireEmailVerification(initialDraft?.requireEmailVerification || false);
 
     if (nameInputRef.current) {
@@ -479,6 +487,19 @@ function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders, initi
                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
               />
             </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="cal-blocked-date">{t('dashboard.createModal.blockedDatesLabel')}</label>
+            <BlockedDatesInput
+              id="cal-blocked-date"
+              dates={blockedDates}
+              onChange={setBlockedDates}
+              min={formData.startDate}
+              max={formData.endDate}
+              disabled={submitting}
+            />
+            <p className="form-hint">{t('dashboard.createModal.blockedDatesHint')}</p>
           </div>
 
           <div className="form-group">

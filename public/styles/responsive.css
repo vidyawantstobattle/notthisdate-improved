@@ -1,5 +1,12 @@
 /* ===== RESPONSIVE STYLES ===== */
 
+/* Tablet: dashboard grid down to 2 columns */
+@media (max-width: 1024px) {
+    .calendars-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 /* Footer responsive */
 @media (max-width: 768px) {
     .footer-content {
@@ -80,6 +87,20 @@
 
     .dashboard-actions .btn {
         width: 100%;
+    }
+
+    /* Dashboard cards single column on mobile, action buttons stacked full-width */
+    .calendars-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-card-actions {
+        flex-direction: column;
+    }
+
+    .calendar-card-actions .btn {
+        width: 100%;
+        flex: none;
     }
 
     /* Calendar Page Mobile Optimizations */

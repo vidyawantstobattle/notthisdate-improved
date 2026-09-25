@@ -53,10 +53,12 @@
 }
 
 .btn-danger {
-    background: var(--danger-color);
-    color: white;
+    background: transparent;
+    color: var(--danger-color);
+    border: 1px solid var(--border-color);
 }
 
 .btn-danger:hover:not(:disabled) {
-    background: #c01638;
+    background: var(--danger-bg);
+    border-color: var(--danger-color);
 }

@@ -5,6 +5,7 @@ import { useI18n, RichText } from '../context/I18nContext';
 import LanguageSelector from '../components/LanguageSelector';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import TagsInput from '../components/TagsInput';
+import BlockedDatesInput from '../components/BlockedDatesInput';
 import Footer from '../components/Footer';
 import type { ParticipantsType } from '../types';
 
@@ -200,6 +201,7 @@ function CreateCalendarDraftModal({ onClose, onContinue }: CreateCalendarDraftMo
   });
   const [participantsType, setParticipantsType] = useState<ParticipantsType>('defined');
   const [participants, setParticipants] = useState<string[]>([]);
+  const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [requireEmailVerification, setRequireEmailVerification] = useState(false);
   const [error, setError] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -240,6 +242,10 @@ function CreateCalendarDraftModal({ onClose, onContinue }: CreateCalendarDraftMo
       setError(t('dashboard.createModal.errorNoParticipants'));
       return;
     }
+    if (blockedDates.some(d => d < formData.startDate || d > formData.endDate)) {
+      setError(t('dashboard.createModal.errorBlockedOutOfRange'));
+      return;
+    }
 
     onContinue({
       name: formData.name.trim(),
@@ -248,7 +254,8 @@ function CreateCalendarDraftModal({ onClose, onContinue }: CreateCalendarDraftMo
       endDate: formData.endDate,
       participantsType,
       participants: participantsType === 'defined' ? participants : [],
-      requireEmailVerification: participantsType === 'open' ? requireEmailVerification : false
+      requireEmailVerification: participantsType === 'open' ? requireEmailVerification : false,
+      blockedDates
     });
   };
 
@@ -305,6 +312,18 @@ function CreateCalendarDraftModal({ onClose, onContinue }: CreateCalendarDraftMo
                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
               />
             </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="landing-cal-blocked-date">{t('dashboard.createModal.blockedDatesLabel')}</label>
+            <BlockedDatesInput
+              id="landing-cal-blocked-date"
+              dates={blockedDates}
+              onChange={setBlockedDates}
+              min={formData.startDate}
+              max={formData.endDate}
+            />
+            <p className="form-hint">{t('dashboard.createModal.blockedDatesHint')}</p>
           </div>
 
           <div className="form-group">
