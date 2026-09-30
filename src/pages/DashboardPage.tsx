@@ -29,7 +29,7 @@ function DashboardPage() {
   const [savingParticipants, setSavingParticipants] = useState(false);
   const [editParticipantsError, setEditParticipantsError] = useState('');
 
-  useDocumentTitle('Dashboard');
+  useDocumentTitle(t('dashboard.title'));
 
   useEffect(() => {
     if (!loading && !user) {

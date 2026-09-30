@@ -23,7 +23,7 @@ function LandingPage() {
     navigate(category ? `/create?category=${encodeURIComponent(category)}` : '/create');
   };
 
-  useDocumentTitle('Reverse Availability Trip Planner', true);
+  useDocumentTitle(t('landing.useCases.title'), true);
 
   useEffect(() => {
     if (user && !loading) {
