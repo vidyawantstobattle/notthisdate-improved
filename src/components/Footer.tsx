@@ -9,8 +9,8 @@ function Footer() {
       <div className="footer-content">
         <div className="footer-brand">
           <Link to="/" className="footer-logo">
-            <img src="/images/logo.svg" alt="NotThisDate" className="logo-icon" />
-            <span>NotThisDate</span>
+            <img src="/images/logo.svg" alt={t('app.name')} className="logo-icon" />
+            <span>{t('app.name')}</span>
           </Link>
           <p className="footer-tagline">{t('footer.tagline')}</p>
         </div>

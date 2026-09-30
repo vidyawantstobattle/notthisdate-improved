@@ -528,3 +528,130 @@
     }
 }
 
+/* ===== LANDING PAGE ===== */
+@media (max-width: 900px) {
+    .category-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        padding: 2.5rem 1rem 2rem;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .hero-inner .hero-actions {
+        flex-direction: column;
+    }
+
+    .hero-inner .hero-actions .btn {
+        width: 100%;
+    }
+
+    .steps-section {
+        padding: 2.5rem 1rem;
+    }
+
+    .steps-intro h2 {
+        font-size: 1.4rem;
+    }
+
+    /* Stack each step with its text first, regardless of desktop side. */
+    .step-row {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 2rem 0;
+    }
+
+    .step-row-reversed .step-text,
+    .step-row-reversed .step-visual {
+        order: initial;
+    }
+
+    .benefits-section {
+        padding: 2.5rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .category-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+
+    .category-tile {
+        padding: 0.9rem 0.4rem;
+    }
+
+    .category-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.25rem;
+    }
+
+    .category-label {
+        font-size: 0.8rem;
+    }
+}
+
+/* ===== CREATE CALENDAR WIZARD ===== */
+@media (max-width: 1100px) {
+    /* Ad rails are desktop-only; the form keeps the full column on tablets down. */
+    .create-layout {
+        grid-template-columns: minmax(0, 720px);
+    }
+
+    .create-rail {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .create-progress {
+        padding: 1rem 0.5rem 0;
+    }
+
+    .create-step {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .create-step h1 {
+        font-size: 1.3rem;
+    }
+
+    .create-step-subtitle {
+        margin-bottom: 1.5rem;
+    }
+
+    .ad-slot-banner {
+        min-height: 80px;
+    }
+
+    .create-summary dl > div {
+        flex-direction: column;
+        gap: 0.125rem;
+    }
+
+    .create-summary dd {
+        text-align: left;
+    }
+}
+
+@media (max-width: 480px) {
+    .create-progress-label {
+        display: none;
+    }
+
+    .create-nav-inner .btn {
+        flex: 1;
+    }
+}
+

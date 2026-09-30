@@ -3,5 +3,6 @@
     "nav.signup": "Sign Up",
     "nav.logout": "Logout",
     "nav.howItWorks": "How It Works",
-    "nav.about": "About"
+    "nav.about": "About",
+    "nav.dashboard": "Dashboard"
 }

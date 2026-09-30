@@ -193,7 +193,7 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }: Dat
   return (
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="date-details-title">
       <div className="modal-content date-details-modal" onClick={(e) => e.stopPropagation()} ref={modalRef}>
-        <button className="modal-close" onClick={onClose} aria-label="Close dialog">&times;</button>
+        <button className="modal-close" onClick={onClose} aria-label={t('common.closeDialog')}>&times;</button>
         <h3 id="date-details-title">{dateDisplay}</h3>
 
         {unavailablePeople.length === 0 ? (

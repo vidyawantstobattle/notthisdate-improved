@@ -18,14 +18,14 @@ function AboutPage() {
         <div className="header-content">
           <Link to="/" className="logo">
             <span className="logo-icon">📅</span>
-            <span>NotThisDate</span>
+            <span>{t('app.name')}</span>
           </Link>
           <nav className="header-nav">
             <Link to="/about" className="nav-link active">{t('nav.about')}</Link>
             <LanguageSelector />
             {loading ? null : user ? (
               <div className="user-menu">
-                <Link to="/dashboard" className="btn btn-outline btn-small">Dashboard</Link>
+                <Link to="/dashboard" className="btn btn-outline btn-small">{t('nav.dashboard')}</Link>
                 <button className="btn btn-outline btn-small" onClick={logout}>{t('nav.logout')}</button>
               </div>
             ) : (

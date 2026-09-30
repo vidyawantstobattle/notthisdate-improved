@@ -31,6 +31,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   render() {
     if (this.state.hasError) {
+      // Deliberately untranslated: this boundary wraps I18nProvider, so no catalog is in scope here.
       return (
         <div className="error-boundary" role="alert">
           <div className="error-boundary-content">

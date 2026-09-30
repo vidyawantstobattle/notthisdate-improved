@@ -84,7 +84,7 @@ Modal dialogs and overlays:
 Calendar-specific components:
 - Calendar page layout
 - Tabs interface
-- Date picker customization (Flatpickr)
+- Custom date picker
 - Calendar grid and day cells
 - Participant badges
 - Selected/submitted date displays

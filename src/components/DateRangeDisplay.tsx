@@ -31,8 +31,8 @@ function DateRangeDisplay({ dates, onRemoveRange }: DateRangeDisplayProps) {
                 type="button"
                 className="remove-btn"
                 onClick={() => onRemoveRange(range)}
-                title="Remove this date range"
-                aria-label={`Remove ${displayText}`}
+                title={t('calendarSubmit.removeRangeTitle')}
+                aria-label={t('calendarSubmit.removeRangeAria', { range: displayText })}
               >
                 &times;
               </button>

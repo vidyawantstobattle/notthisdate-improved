@@ -4,7 +4,7 @@
 //
 // To point this app at a different backend (Perl/PHP/Go/etc instead of Netlify
 // Functions), set VITE_API_BASE_URL and, if the new backend's request/response
-// shapes differ, adjust the small per-resource files in this folder — no
+// shapes differ, adjust the small per-resource files in this folder; no
 // changes needed anywhere else in the app.
 
 import { apiGet, apiPost, apiDelete } from '../utils/apiClient';

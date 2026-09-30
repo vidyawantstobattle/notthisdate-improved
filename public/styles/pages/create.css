@@ -1,0 +1,334 @@
+/* ===== CREATE CALENDAR WIZARD ===== */
+.create-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-primary);
+    /* Room for the fixed step nav. */
+    padding-bottom: 6rem;
+}
+
+/* Progress */
+.create-progress {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 1.25rem 1rem 0;
+}
+
+.create-progress-step {
+    flex: 1;
+    max-width: 180px;
+}
+
+.create-progress-step button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.25rem 0.75rem;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-bottom: 3px solid var(--border-color);
+    cursor: default;
+}
+
+.create-progress-step.is-done button {
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-bottom-color: var(--primary-light);
+}
+
+.create-progress-step.is-active button {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.create-progress-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--border-color);
+    color: var(--bg-white);
+    font-size: 0.75rem;
+}
+
+.create-progress-step.is-done .create-progress-index {
+    background: var(--primary-light);
+}
+
+.create-progress-step.is-active .create-progress-index {
+    background: var(--primary-color);
+}
+
+/* Layout */
+.create-layout {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 200px) minmax(0, 720px) minmax(0, 200px);
+    justify-content: center;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 0;
+}
+
+.create-rail {
+    position: sticky;
+    top: 1.5rem;
+    align-self: start;
+}
+
+.create-main {
+    min-width: 0;
+}
+
+.create-step-status {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.create-step {
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 2rem;
+}
+
+.create-step h1 {
+    font-size: 1.6rem;
+    color: var(--secondary-color);
+    letter-spacing: -0.01em;
+    margin-bottom: 0.5rem;
+}
+
+.create-step-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.create-step .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-large {
+    font-size: 1.05rem;
+    padding: 0.75rem 0.875rem;
+}
+
+/* Choice cards */
+.create-choice-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+/* Two classes needed to beat `.form-group label { display: block }`. */
+.create-choice-group .create-choice {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 0.625rem;
+    align-items: start;
+    margin-bottom: 0;
+    padding: 1rem;
+    font-size: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.create-choice-group .create-choice:hover {
+    border-color: var(--primary-light);
+}
+
+.create-choice-group .create-choice.is-selected {
+    border-color: var(--primary-color);
+    background: var(--primary-bg);
+}
+
+.create-choice input {
+    grid-row: 1;
+    margin-top: 0.2rem;
+}
+
+.create-choice-title {
+    grid-column: 2;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+.create-choice-hint {
+    grid-column: 2;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.create-quick-picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.form-hint-warning {
+    padding: 0.75rem 0.875rem;
+    border-radius: var(--radius);
+    background: var(--danger-bg);
+    color: var(--danger-color);
+    line-height: 1.6;
+}
+
+.create-range-summary {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Summary */
+.create-summary {
+    margin-top: 2rem;
+    padding: 1.25rem;
+    border-radius: var(--radius);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+}
+
+.create-summary h2 {
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.create-summary dl {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.create-summary dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
+.create-summary dt {
+    color: var(--text-secondary);
+}
+
+.create-summary dd {
+    margin: 0;
+    font-weight: 600;
+    color: var(--secondary-color);
+    text-align: right;
+}
+
+.create-signup-notice {
+    margin-top: 1.25rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius);
+    background: var(--primary-bg);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+/* Fixed step nav */
+.create-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    background: var(--bg-white);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.create-nav-inner {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0.875rem 1rem;
+}
+
+.create-nav-inner .btn {
+    padding: 0.875rem 2rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+/* ===== AD PLACEHOLDERS ===== */
+.ad-slot {
+    position: relative;
+    overflow: hidden;
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-bg) 0%, var(--bg-white) 55%, var(--success-bg) 100%);
+}
+
+.ad-slot-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(2px);
+}
+
+.ad-slot-blob-1 {
+    width: 120px;
+    height: 120px;
+    background: var(--primary-color);
+    opacity: 0.12;
+    top: -40px;
+    left: 8%;
+}
+
+.ad-slot-blob-2 {
+    width: 90px;
+    height: 90px;
+    background: var(--success-color);
+    opacity: 0.12;
+    bottom: -30px;
+    right: 14%;
+}
+
+.ad-slot-blob-3 {
+    width: 60px;
+    height: 60px;
+    background: var(--primary-light);
+    opacity: 0.14;
+    top: 35%;
+    right: 35%;
+}
+
+.ad-slot-banner {
+    width: 100%;
+    max-width: 970px;
+    min-height: 100px;
+    margin: 1.25rem auto 0;
+}
+
+.ad-slot-rail {
+    width: 100%;
+    min-height: 600px;
+}

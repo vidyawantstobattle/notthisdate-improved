@@ -13,8 +13,10 @@ export interface ApiErrorLike extends Error {
 }
 
 export interface ErrorMessageInfo {
-  title: string;
-  message: string;
+  titleKey: string;
+  messageKey: string;
+  /** Server-supplied detail, shown instead of messageKey when present. */
+  messageOverride?: string;
   action: 'Retry' | 'OK';
 }
 
@@ -39,28 +41,29 @@ export function getErrorMessage(error: ApiErrorLike, _context = ''): ErrorMessag
 
   const messages: Record<ErrorType, ErrorMessageInfo> = {
     [ErrorTypes.NETWORK]: {
-      title: 'No Internet Connection',
-      message: 'Please check your internet connection and try again.',
+      titleKey: 'error.network.title',
+      messageKey: 'error.network.message',
       action: 'Retry'
     },
     [ErrorTypes.TIMEOUT]: {
-      title: 'Request Timed Out',
-      message: 'The request took too long. Please try again.',
+      titleKey: 'error.timeout.title',
+      messageKey: 'error.timeout.message',
       action: 'Retry'
     },
     [ErrorTypes.SERVER]: {
-      title: 'Server Error',
-      message: 'Something went wrong on our end. Please try again in a moment.',
+      titleKey: 'error.server.title',
+      messageKey: 'error.server.message',
       action: 'Retry'
     },
     [ErrorTypes.CLIENT]: {
-      title: 'Request Error',
-      message: error.message || 'There was a problem with your request.',
+      titleKey: 'error.client.title',
+      messageKey: 'error.client.message',
+      messageOverride: error.message || undefined,
       action: 'OK'
     },
     [ErrorTypes.UNKNOWN]: {
-      title: 'Something Went Wrong',
-      message: 'An unexpected error occurred. Please try again.',
+      titleKey: 'error.unknown.title',
+      messageKey: 'error.unknown.message',
       action: 'Retry'
     }
   };

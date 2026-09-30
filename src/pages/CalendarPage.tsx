@@ -231,7 +231,7 @@ function CalendarPage() {
         <div className="header-content">
           <Link to="/" className="logo">
             <span className="logo-icon">📅</span>
-            <span>NotThisDate</span>
+            <span>{t('app.name')}</span>
           </Link>
           <nav className="header-nav">
             <Link to="/about" className="nav-link">{t('nav.about')}</Link>

@@ -41,33 +41,44 @@ export default async (request, context) => {
 
     try {
         const body = await request.json();
-        const { participants } = body;
+        const { participants, participantsType } = body;
 
-        if (!Array.isArray(participants)) {
-            return new Response(JSON.stringify({ error: 'participants must be an array' }), { status: 400, headers });
-        }
-
-        // Trim, drop blanks, and de-duplicate case-insensitively while keeping entered casing.
-        const seen = new Set();
-        const cleanParticipants = [];
-        participants.forEach(entry => {
-            if (typeof entry !== 'string') return;
-            const trimmed = entry.trim();
-            if (!trimmed) return;
-            const key = normalizeParticipantName(trimmed);
-            if (seen.has(key)) return;
-            seen.add(key);
-            cleanParticipants.push(trimmed);
-        });
-
-        if (cleanParticipants.length === 0) {
-            return new Response(JSON.stringify({ error: 'At least one participant is required' }), { status: 400, headers });
-        }
-
-        if (cleanParticipants.length > MAX_PARTICIPANTS) {
+        // Opening up is one-way: going back to a named list would orphan responses
+        // from people who joined via the link.
+        if (participantsType !== undefined && participantsType !== 'open') {
             return new Response(JSON.stringify({
-                error: `A calendar can have at most ${MAX_PARTICIPANTS} participants.`
+                error: 'participantsType can only be changed to "open"'
             }), { status: 400, headers });
+        }
+        const makeOpen = participantsType === 'open';
+
+        const cleanParticipants = [];
+        if (!makeOpen) {
+            if (!Array.isArray(participants)) {
+                return new Response(JSON.stringify({ error: 'participants must be an array' }), { status: 400, headers });
+            }
+
+            // Trim, drop blanks, and de-duplicate case-insensitively while keeping entered casing.
+            const seen = new Set();
+            participants.forEach(entry => {
+                if (typeof entry !== 'string') return;
+                const trimmed = entry.trim();
+                if (!trimmed) return;
+                const key = normalizeParticipantName(trimmed);
+                if (seen.has(key)) return;
+                seen.add(key);
+                cleanParticipants.push(trimmed);
+            });
+
+            if (cleanParticipants.length === 0) {
+                return new Response(JSON.stringify({ error: 'At least one participant is required' }), { status: 400, headers });
+            }
+
+            if (cleanParticipants.length > MAX_PARTICIPANTS) {
+                return new Response(JSON.stringify({
+                    error: `A calendar can have at most ${MAX_PARTICIPANTS} participants.`
+                }), { status: 400, headers });
+            }
         }
 
         const calendarStore = getStore({
@@ -97,22 +108,30 @@ export default async (request, context) => {
             }), { status: 400, headers });
         }
 
-        // Drop submissions from participants who are no longer on the list.
-        if (calendar.unavailability) {
-            const allowed = new Set(cleanParticipants.map(normalizeParticipantName));
-            Object.keys(calendar.unavailability).forEach(name => {
-                if (!allowed.has(normalizeParticipantName(name))) {
-                    delete calendar.unavailability[name];
-                }
-            });
+        if (makeOpen) {
+            // Responses already collected stay valid: open calendars key on the name too.
+            calendar.participantsType = 'open';
+            calendar.participants = [];
+        } else {
+            // Drop submissions from participants who are no longer on the list.
+            if (calendar.unavailability) {
+                const allowed = new Set(cleanParticipants.map(normalizeParticipantName));
+                Object.keys(calendar.unavailability).forEach(name => {
+                    if (!allowed.has(normalizeParticipantName(name))) {
+                        delete calendar.unavailability[name];
+                    }
+                });
+            }
+
+            calendar.participants = cleanParticipants;
         }
 
-        calendar.participants = cleanParticipants;
         await calendarStore.setJSON(calendarId, calendar);
 
         return new Response(JSON.stringify({
             success: true,
-            participants: cleanParticipants
+            participants: calendar.participants,
+            participantsType: calendar.participantsType
         }), { status: 200, headers });
 
     } catch (error) {

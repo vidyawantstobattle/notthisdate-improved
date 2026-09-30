@@ -123,9 +123,9 @@ function DatePicker({
 
   return (
     <div className="date-picker-wrapper">
-      <p className="date-picker-hint">Click on dates to select/deselect them</p>
+      <p className="date-picker-hint">{t('calendarSubmit.pickerHint')}</p>
       <div id="date-picker-container">
-        <div className="ntd-picker-shell" role="application" aria-label="Date picker for selecting unavailable dates">
+        <div className="ntd-picker-shell" role="application" aria-label={t('calendarSubmit.pickerAriaLabel')}>
           <div className="ntd-picker-toolbar">
             <button
               type="button"
@@ -164,14 +164,14 @@ function DatePicker({
           </div>
         </div>
       </div>
-      <div className="date-picker-legend" role="region" aria-label="Date picker legend">
+      <div className="date-picker-legend" role="region" aria-label={t('calendarSubmit.legendAriaLabel')}>
         <span className="legend-item">
           <span className="legend-color pending" aria-hidden="true"></span>
-          <span>Pending selection</span>
+          <span>{t('calendarSubmit.legend.pendingSelection')}</span>
         </span>
         <span className="legend-item">
           <span className="legend-color submitted" aria-hidden="true"></span>
-          <span>Already submitted</span>
+          <span>{t('calendarSubmit.legend.alreadySubmitted')}</span>
         </span>
       </div>
     </div>

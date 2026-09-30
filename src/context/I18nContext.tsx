@@ -5,23 +5,27 @@
 //
 // Only English is fully translated; every other language falls back to English
 // per-key, then to the key itself.
+//
+// Which languages are offered lives in src/config/languages.ts.
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  DEFAULT_LANGUAGE,
+  FALLBACK_LANGUAGE,
+  LANGUAGES,
+  isEnabledLanguage,
+  type LanguageCode
+} from '../config/languages';
 
-export const LANGUAGES = [
-  { code: 'en', label: 'EN' },
-  { code: 'nl', label: 'NL' },
-  { code: 'mr', label: 'मराठी' }
-] as const;
-
-export type LanguageCode = (typeof LANGUAGES)[number]['code'];
+export { LANGUAGES, type LanguageCode };
 
 const STORAGE_KEY = 'ntd-lang';
-const FALLBACK_LANG: LanguageCode = 'en';
 
 type Catalog = Record<string, string>;
 
 // Eager glob: one flat catalog per language, merged from that language's sections.
+// Deliberately covers every locale folder, not just the enabled ones, so a language
+// can be switched back on in config alone.
 const modules = (import.meta as any).glob('../../public/locales/*/*.json', { eager: true }) as Record<
   string,
   { default: Catalog }
@@ -34,16 +38,13 @@ for (const [path, mod] of Object.entries(modules)) {
   catalogs[lang] = { ...catalogs[lang], ...mod.default };
 }
 
-function isSupported(lang: string | null): lang is LanguageCode {
-  return !!lang && LANGUAGES.some(l => l.code === lang);
-}
-
+// A stored language that has since been disabled falls back to the default.
 function readStoredLang(): LanguageCode {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return isSupported(stored) ? stored : FALLBACK_LANG;
+    return isEnabledLanguage(stored) ? stored : DEFAULT_LANGUAGE;
   } catch {
-    return FALLBACK_LANG;
+    return DEFAULT_LANGUAGE;
   }
 }
 
@@ -75,7 +76,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback<TranslateFn>(
     (key, params) => {
-      let str = catalogs[lang]?.[key] ?? catalogs[FALLBACK_LANG]?.[key] ?? key;
+      let str = catalogs[lang]?.[key] ?? catalogs[FALLBACK_LANGUAGE]?.[key] ?? key;
       if (params) {
         for (const [param, value] of Object.entries(params)) {
           str = str.split(`{${param}}`).join(String(value));
@@ -100,8 +101,8 @@ export function useI18n(): I18nContextValue {
 }
 
 // Some translations embed markup (e.g. "<strong>NOT available</strong>"). The
-// catalogs are developer-authored and bundled at build time — never user input —
-// so rendering them as HTML is safe. Plain strings render as text.
+// catalogs are developer-authored and bundled at build time, and never come from
+// user input, so rendering them as HTML is safe. Plain strings render as text.
 export function RichText({
   k,
   params,

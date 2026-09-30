@@ -1,18 +1,19 @@
 {
-    "landing.hero.title": "Free Group Scheduling Tool - Better Alternative to Doodle, Datumprikker & WhenIsGood",
+    "landing.hero.title": "Find a date that works for your whole group",
     "landing.hero.subtitle": "Coordinate group availability the easy way. Mark when you're <strong>NOT available</strong> and instantly find the perfect dates for trips, meetings, parties, and events. <strong>No signup required</strong> for participants!",
     "landing.hero.ctaSecondary": "Learn More",
     "landing.hero.illustrationAlt": "Illustration showing group calendar planning",
+    "landing.demo.title": "Summer Trip 2026",
 
     "landing.howItWorks.title": "How NotThisDate Works - Simple Group Scheduling in 3 Steps",
-    "landing.howItWorks.step1.title": "1. Create a Calendar",
+    "landing.howItWorks.step1.title": "Create a Calendar",
     "landing.howItWorks.step1.desc": "Set up your date range and add participants. Share a simple link - no signups required for your group members.",
-    "landing.howItWorks.step2.title": "2. Mark Unavailable Dates",
-    "landing.howItWorks.step2.desc": "Everyone marks when they <strong>CAN'T</strong> make it. It's faster than traditional availability polls - no more back-and-forth messaging.",
-    "landing.howItWorks.step3.title": "3. Find the Best Date",
+    "landing.howItWorks.step2.title": "Mark Unavailable Dates",
+    "landing.howItWorks.step2.desc": "Everyone marks when they <strong>CAN'T</strong> make it. It's faster than filling in every date you are free - no more back-and-forth messaging.",
+    "landing.howItWorks.step3.title": "Find the Best Date",
     "landing.howItWorks.step3.desc": "Our visual availability heatmap instantly shows which dates work for everyone. Green means everyone's available!",
 
-    "landing.benefits.title": "Why Choose NotThisDate Over Others?",
+    "landing.benefits.title": "Why Groups Choose NotThisDate",
     "landing.benefits.reverse.title": "Reverse Scheduling Logic",
     "landing.benefits.reverse.desc": "Instead of marking when you're available, mark when you're <strong>NOT</strong> available. It's faster and more intuitive for group trip planning.",
     "landing.benefits.noAccount.title": "No Account Required",
@@ -22,7 +23,7 @@
     "landing.benefits.heatmap.title": "Visual Heatmap",
     "landing.benefits.heatmap.desc": "Instantly see group availability with color-coded dates. Darker means more people are unavailable.",
 
-    "landing.useCases.title": "Perfect For Any Group Event",
+    "landing.useCases.title": "What do you want to schedule?",
     "landing.useCases.trips.title": "Group Trips",
     "landing.useCases.trips.desc": "Plan vacations, weekend getaways, and travel with friends",
     "landing.useCases.social.title": "Social Events",
@@ -30,5 +31,7 @@
     "landing.useCases.team.title": "Team Meetings",
     "landing.useCases.team.desc": "Schedule team meetings, workshops, and collaborative sessions",
     "landing.useCases.sports.title": "Sports & Activities",
-    "landing.useCases.sports.desc": "Coordinate game days, practices, and group activities"
+    "landing.useCases.sports.desc": "Coordinate game days, practices, and group activities",
+    "landing.useCases.other.title": "Something Else",
+    "landing.useCases.other.desc": "Anything else you need to find a date for"
 }

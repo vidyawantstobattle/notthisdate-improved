@@ -17,5 +17,24 @@
     "common.areYouSure": "Are you sure?",
     "common.confirm": "Confirm",
     "common.save": "Save",
-    "common.saving": "Saving..."
+    "common.saving": "Saving...",
+    "common.closeDialog": "Close dialog",
+    "common.dismiss": "Dismiss",
+    "common.retry": "Retry",
+    "common.ok": "OK",
+    "common.change": "Change",
+    "common.selectLanguage": "Select language",
+
+    "error.network.title": "No Internet Connection",
+    "error.network.message": "Please check your internet connection and try again.",
+    "error.timeout.title": "Request Timed Out",
+    "error.timeout.message": "The request took too long. Please try again.",
+    "error.server.title": "Server Error",
+    "error.server.message": "Something went wrong on our end. Please try again in a moment.",
+    "error.client.title": "Request Error",
+    "error.client.message": "There was a problem with your request.",
+    "error.unknown.title": "Something Went Wrong",
+    "error.unknown.message": "An unexpected error occurred. Please try again.",
+    "error.retryAria": "Retry the failed operation",
+    "error.dismissAria": "Dismiss this error message"
 }

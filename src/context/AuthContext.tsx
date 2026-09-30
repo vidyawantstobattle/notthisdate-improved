@@ -1,7 +1,7 @@
 // ===== AUTH ABSTRACTION =====
 // Every component in the app talks to auth ONLY through useAuth() / AuthProvider.
 // Netlify Identity is the current implementation, but it's fully contained in
-// this one file — swapping to Auth0, Firebase Auth, or a custom JWT backend
+// this one file, so swapping to Auth0, Firebase Auth, or a custom JWT backend
 // means rewriting this file only, with the AuthContextValue contract unchanged.
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useI18n } from '../context/I18nContext';
 import type { Calendar } from '../types';
 
 interface ParticipantInputProps {
@@ -18,6 +19,7 @@ function ParticipantInput({
   onReset,
   isResetting = false
 }: ParticipantInputProps) {
+  const { t } = useI18n();
   const [nameInput, setNameInput] = useState('');
   const [nameConfirmed, setNameConfirmed] = useState(false);
 
@@ -34,14 +36,14 @@ function ParticipantInput({
   if (calendar?.participantsType === 'defined' && calendar?.participants?.length > 0) {
     return (
       <div className="participant-section">
-        <label htmlFor="participant-select">Select your name:</label>
+        <label htmlFor="participant-select">{t('calendarSubmit.selectNameLabel')}</label>
         <select
           id="participant-select"
           className="participant-select"
           value={currentParticipant}
           onChange={(e) => onParticipantChange(e.target.value)}
         >
-          <option value="">Select your name...</option>
+          <option value="">{t('calendarSubmit.selectNamePlaceholder')}</option>
           {calendar.participants.map((name, idx) => (
             <option key={idx} value={name}>{name}</option>
           ))}
@@ -49,7 +51,7 @@ function ParticipantInput({
         {currentParticipant && submittedDates.length > 0 && (
           <div className="submission-status">
             <p className="form-hint info">
-              💡 You have already submitted {submittedDates.length} unavailable date(s). You can add more below.
+              {t('calendarSubmit.alreadySubmittedHint', { count: submittedDates.length })}
             </p>
             {onReset && (
               <button
@@ -58,16 +60,16 @@ function ParticipantInput({
                 onClick={onReset}
                 disabled={isResetting}
               >
-                {isResetting ? 'Resetting...' : 'Reset My Dates'}
+                {isResetting ? t('common.resetting') : t('calendarSubmit.resetBtn')}
               </button>
             )}
           </div>
         )}
         {currentParticipant && submittedDates.length === 0 && (
-          <p className="form-hint">Select dates below to mark when you're NOT available.</p>
+          <p className="form-hint">{t('calendarSubmit.selectDatesBelowHint')}</p>
         )}
         {!currentParticipant && (
-          <p className="form-hint">Select your name from the list to submit your unavailable dates.</p>
+          <p className="form-hint">{t('calendarSubmit.selectNameHint')}</p>
         )}
       </div>
     );
@@ -77,7 +79,7 @@ function ParticipantInput({
   if (!nameConfirmed || !currentParticipant) {
     return (
       <div className="participant-section">
-        <label htmlFor="participant-name-input">Enter your name:</label>
+        <label htmlFor="participant-name-input">{t('calendarSubmit.enterNameLabel')}</label>
         <div className="name-input-row">
           <input
             type="text"
@@ -91,7 +93,7 @@ function ParticipantInput({
                 setNameConfirmed(true);
               }
             }}
-            placeholder="Your name"
+            placeholder={t('calendarSubmit.namePlaceholder')}
           />
           <button
             className="btn btn-primary"
@@ -101,10 +103,10 @@ function ParticipantInput({
               setNameConfirmed(true);
             }}
           >
-            Continue
+            {t('calendarSubmit.welcome.continue')}
           </button>
         </div>
-        <p className="form-hint">Enter your name to submit your unavailable dates.</p>
+        <p className="form-hint">{t('calendarSubmit.welcome.desc')}</p>
       </div>
     );
   }
@@ -114,7 +116,7 @@ function ParticipantInput({
     <div className="participant-section">
       <div className="confirmed-participant">
         <div className="participant-info">
-          <span className="participant-label">Submitting as:</span>
+          <span className="participant-label">{t('calendarSubmit.submittingAs')}</span>
           <span className="participant-name">{currentParticipant}</span>
         </div>
         <button
@@ -126,13 +128,13 @@ function ParticipantInput({
             onParticipantChange('');
           }}
         >
-          Change
+          {t('calendarSubmit.changeBtn')}
         </button>
       </div>
       {submittedDates.length > 0 ? (
         <div className="submission-status">
           <p className="form-hint info">
-            💡 You have already submitted {submittedDates.length} unavailable date(s). You can add more below.
+            {t('calendarSubmit.alreadySubmittedHint', { count: submittedDates.length })}
           </p>
           {onReset && (
             <button
@@ -141,12 +143,12 @@ function ParticipantInput({
               onClick={onReset}
               disabled={isResetting}
             >
-              {isResetting ? 'Resetting...' : 'Reset My Dates'}
+              {isResetting ? t('common.resetting') : t('calendarSubmit.resetBtn')}
             </button>
           )}
         </div>
       ) : (
-        <p className="form-hint">Select dates below to mark when you're NOT available.</p>
+        <p className="form-hint">{t('calendarSubmit.selectDatesBelowHint')}</p>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, type FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth, consumePendingAction, consumePendingCalendarDraft, type PendingCalendarDraft } from '../context/AuthContext';
+import { useAuth, consumePendingAction } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 import LanguageSelector from '../components/LanguageSelector';
 import useDocumentTitle from '../hooks/useDocumentTitle';
@@ -9,10 +9,9 @@ import { useToast } from '../context/ToastContext';
 import ErrorMessage from '../components/ErrorMessage';
 import ConfirmDialog from '../components/ConfirmDialog';
 import TagsInput from '../components/TagsInput';
-import BlockedDatesInput from '../components/BlockedDatesInput';
 import Footer from '../components/Footer';
 import { formatDisplayDate } from '../core/dateRanges';
-import type { Calendar, CreateCalendarInput, ParticipantsType } from '../types';
+import type { Calendar, ParticipantsType } from '../types';
 
 function DashboardPage() {
   const { user, loading, logout, getAuthHeaders } = useAuth();
@@ -21,13 +20,12 @@ function DashboardPage() {
   const { showToast } = useToast();
   const [calendars, setCalendars] = useState<Calendar[]>([]);
   const [loadingCalendars, setLoadingCalendars] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [pendingDraft, setPendingDraft] = useState<PendingCalendarDraft | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [editCalendar, setEditCalendar] = useState<Calendar | null>(null);
   const [editParticipants, setEditParticipants] = useState<string[]>([]);
+  const [editParticipantsType, setEditParticipantsType] = useState<ParticipantsType>('defined');
   const [savingParticipants, setSavingParticipants] = useState(false);
   const [editParticipantsError, setEditParticipantsError] = useState('');
 
@@ -51,10 +49,10 @@ function DashboardPage() {
     if (user && !loading) {
       const action = consumePendingAction();
       if (action === 'createCalendar') {
-        setPendingDraft(consumePendingCalendarDraft());
-        setShowCreateForm(true);
+        navigate('/create', { replace: true });
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, loading]);
 
   const getToken = async (): Promise<string | null> => {
@@ -110,13 +108,16 @@ function DashboardPage() {
   const openEditParticipantsModal = (calendar: Calendar) => {
     setEditCalendar(calendar);
     setEditParticipants([...(calendar.participants || [])]);
+    setEditParticipantsType(calendar.participantsType);
     setEditParticipantsError('');
   };
 
   const saveParticipants = async () => {
     if (!editCalendar) return;
 
-    if (editParticipants.length === 0) {
+    const makeOpen = editParticipantsType === 'open';
+
+    if (!makeOpen && editParticipants.length === 0) {
       setEditParticipantsError(t('dashboard.editParticipants.errorEmpty'));
       return;
     }
@@ -126,15 +127,21 @@ function DashboardPage() {
 
     try {
       const token = await getToken();
-      const result = await calendarsApi.updateParticipants(editCalendar.id, editParticipants, token);
+      const result = await calendarsApi.updateParticipants(
+        editCalendar.id,
+        makeOpen ? { participantsType: 'open' } : { participants: editParticipants },
+        token
+      );
 
       setCalendars(prev => prev.map(cal => (
-        cal.id === editCalendar.id ? { ...cal, participants: result.participants } : cal
+        cal.id === editCalendar.id
+          ? { ...cal, participants: result.participants, participantsType: result.participantsType }
+          : cal
       )));
 
       setEditCalendar(null);
       setEditParticipants([]);
-      showToast(t('dashboard.editParticipants.saved'));
+      showToast(makeOpen ? t('dashboard.editParticipants.opened') : t('dashboard.editParticipants.saved'));
     } catch (err) {
       const message = (err as Error).message || t('dashboard.editParticipants.saveFailed');
       setEditParticipantsError(message);
@@ -149,7 +156,7 @@ function DashboardPage() {
       <div className="dashboard-page">
         <div className="loading-state">
           <div className="spinner"></div>
-          <p>Loading...</p>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -166,7 +173,7 @@ function DashboardPage() {
         <div className="header-content">
           <Link to="/" className="logo">
             <span className="logo-icon">📅</span>
-            <span>NotThisDate</span>
+            <span>{t('app.name')}</span>
           </Link>
           <nav className="header-nav">
             <Link to="/about" className="nav-link">{t('nav.about')}</Link>
@@ -188,7 +195,7 @@ function DashboardPage() {
               <p className="dashboard-subtitle">{t('dashboard.subtitle')}</p>
             </div>
             <div className="dashboard-actions">
-              <button className="btn btn-primary" onClick={() => setShowCreateForm(true)}>
+              <button className="btn btn-primary" onClick={() => navigate('/create')}>
                 + {t('dashboard.createNew')}
               </button>
             </div>
@@ -274,32 +281,13 @@ function DashboardPage() {
               <div className="empty-icon">📅</div>
               <h3>{t('dashboard.empty.title')}</h3>
               <p>{t('dashboard.empty.desc')}</p>
-              <button className="btn btn-primary" onClick={() => setShowCreateForm(true)}>
+              <button className="btn btn-primary" onClick={() => navigate('/create')}>
                 {t('dashboard.empty.cta')}
               </button>
             </div>
           )}
         </div>
       </main>
-
-      {/* Create Calendar Modal */}
-      {showCreateForm && (
-        <CreateCalendarModal
-          onClose={() => {
-            setShowCreateForm(false);
-            setPendingDraft(null);
-          }}
-          onCalendarCreated={async () => {
-            setLoadingCalendars(true);
-            setShowCreateForm(false);
-            setPendingDraft(null);
-            await loadUserCalendars();
-            setLoadingCalendars(false);
-          }}
-          getAuthHeaders={getAuthHeaders}
-          initialDraft={pendingDraft}
-        />
-      )}
 
       {/* Edit Participants Modal */}
       {editCalendar && (
@@ -313,6 +301,8 @@ function DashboardPage() {
           onSave={saveParticipants}
           participants={editParticipants}
           onParticipantsChange={setEditParticipants}
+          participantsType={editParticipantsType}
+          onParticipantsTypeChange={setEditParticipantsType}
           error={editParticipantsError}
           saving={savingParticipants}
         />
@@ -334,257 +324,13 @@ function DashboardPage() {
   );
 }
 
-interface CreateCalendarModalProps {
-  onClose: () => void;
-  onCalendarCreated: () => Promise<void>;
-  getAuthHeaders: () => Promise<Record<string, string>>;
-  initialDraft?: PendingCalendarDraft | null;
-}
-
-// Create Calendar Modal Component
-function CreateCalendarModal({ onClose, onCalendarCreated, getAuthHeaders, initialDraft = null }: CreateCalendarModalProps) {
-  const { t } = useI18n();
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    startDate: '',
-    endDate: ''
-  });
-  const [participantsType, setParticipantsType] = useState<ParticipantsType>('defined');
-  const [participants, setParticipants] = useState<string[]>([]);
-  const [blockedDates, setBlockedDates] = useState<string[]>([]);
-  const [requireEmailVerification, setRequireEmailVerification] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const nameInputRef = useRef<HTMLInputElement>(null);
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!formData.name.trim()) {
-      setError('Please enter a calendar name');
-      return;
-    }
-    if (!formData.startDate || !formData.endDate) {
-      setError(t('dashboard.createModal.errorMissingDates'));
-      return;
-    }
-    if (formData.startDate > formData.endDate) {
-      setError(t('dashboard.createModal.errorEndBeforeStart'));
-      return;
-    }
-    if (participantsType === 'defined' && participants.length === 0) {
-      setError(t('dashboard.createModal.errorNoParticipants'));
-      return;
-    }
-    if (blockedDates.some(d => d < formData.startDate || d > formData.endDate)) {
-      setError(t('dashboard.createModal.errorBlockedOutOfRange'));
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const headers = await getAuthHeaders();
-      const token = headers['Authorization']?.replace('Bearer ', '') || null;
-      const input: CreateCalendarInput = {
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        dateRangeType: 'custom',
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        participantsType,
-        participants: participantsType === 'defined' ? participants : [],
-        requireEmailVerification: participantsType === 'open' ? requireEmailVerification : false,
-        blockedDates
-      };
-      await calendarsApi.create(input, token);
-      await onCalendarCreated();
-    } catch (err) {
-      setError(t('dashboard.createModal.errorGeneric', { message: (err as Error).message || '' }));
-      console.error(err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Set default dates (today + 3 months)
-  useEffect(() => {
-    const today = new Date();
-    const threeMonthsLater = new Date();
-    threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
-
-    const defaultStartDate = formatDateInput(today);
-    const defaultEndDate = formatDateInput(threeMonthsLater);
-
-    setFormData({
-      name: initialDraft?.name || '',
-      description: initialDraft?.description || '',
-      startDate: initialDraft?.startDate || defaultStartDate,
-      endDate: initialDraft?.endDate || defaultEndDate
-    });
-    setParticipantsType(initialDraft?.participantsType || 'defined');
-    setParticipants(initialDraft?.participants || []);
-    setBlockedDates(initialDraft?.blockedDates || []);
-    setRequireEmailVerification(initialDraft?.requireEmailVerification || false);
-
-    if (nameInputRef.current) {
-      nameInputRef.current.focus();
-    }
-  }, [initialDraft]);
-
-  return (
-    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="create-calendar-title">
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose} aria-label="Close dialog">&times;</button>
-
-        <h2 id="create-calendar-title">{t('dashboard.createModal.title')}</h2>
-        <p className="modal-subtitle">{t('dashboard.createModal.subtitle')}</p>
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="cal-name">{t('dashboard.createModal.nameLabel')}</label>
-            <input
-              ref={nameInputRef}
-              id="cal-name"
-              type="text"
-              value={formData.name}
-              placeholder={t('dashboard.createModal.namePlaceholder')}
-              onChange={e => setFormData({ ...formData, name: e.target.value })}
-              required
-              disabled={submitting}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="cal-desc">{t('dashboard.createModal.descLabel')}</label>
-            <textarea
-              id="cal-desc"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder={t('dashboard.createModal.descPlaceholder')}
-              rows={3}
-            />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="cal-start">{t('dashboard.createModal.startDate')}</label>
-              <input
-                id="cal-start"
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="cal-end">{t('dashboard.createModal.endDate')}</label>
-              <input
-                id="cal-end"
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="cal-blocked-date">{t('dashboard.createModal.blockedDatesLabel')}</label>
-            <BlockedDatesInput
-              id="cal-blocked-date"
-              dates={blockedDates}
-              onChange={setBlockedDates}
-              min={formData.startDate}
-              max={formData.endDate}
-              disabled={submitting}
-            />
-            <p className="form-hint">{t('dashboard.createModal.blockedDatesHint')}</p>
-          </div>
-
-          <div className="form-group">
-            <label>{t('dashboard.createModal.participantsLabel')}</label>
-            <div className="radio-group">
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="participants-type"
-                  value="defined"
-                  checked={participantsType === 'defined'}
-                  onChange={() => setParticipantsType('defined')}
-                  disabled={submitting}
-                />
-                <span>{t('dashboard.createModal.specificPeople')}</span>
-              </label>
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="participants-type"
-                  value="open"
-                  checked={participantsType === 'open'}
-                  onChange={() => setParticipantsType('open')}
-                  disabled={submitting}
-                />
-                <span>{t('dashboard.createModal.anyoneWithLink')}</span>
-              </label>
-            </div>
-          </div>
-
-          {participantsType === 'defined' ? (
-            <div className="form-group">
-              <label htmlFor="cal-participants">{t('dashboard.createModal.participantsLabel')}</label>
-              <TagsInput
-                id="cal-participants"
-                tags={participants}
-                onChange={setParticipants}
-                placeholder={t('dashboard.createModal.participantsPlaceholder')}
-                disabled={submitting}
-              />
-              <p className="form-hint">{t('dashboard.createModal.participantsHint')}</p>
-            </div>
-          ) : (
-            <div className="form-group">
-              <label className="checkbox-option">
-                <input
-                  type="checkbox"
-                  checked={requireEmailVerification}
-                  onChange={(e) => setRequireEmailVerification(e.target.checked)}
-                  disabled={submitting}
-                />
-                <span>{t('dashboard.createModal.requireVerification')}</span>
-              </label>
-              <p className="form-hint">{t('dashboard.createModal.verificationHint')}</p>
-            </div>
-          )}
-
-          {error && <div className="form-error">{error}</div>}
-
-          <div className="form-actions">
-            <button type="button" className="btn btn-outline" onClick={onClose} disabled={submitting}>
-              {t('common.cancel')}
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? t('common.creating') : t('dashboard.createModal.submit')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function formatDateInput(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
 interface EditParticipantsModalProps {
   onClose: () => void;
   onSave: () => void;
   participants: string[];
   onParticipantsChange: (participants: string[]) => void;
+  participantsType: ParticipantsType;
+  onParticipantsTypeChange: (type: ParticipantsType) => void;
   error: string;
   saving: boolean;
 }
@@ -594,6 +340,8 @@ function EditParticipantsModal({
   onSave,
   participants,
   onParticipantsChange,
+  participantsType,
+  onParticipantsTypeChange,
   error,
   saving
 }: EditParticipantsModalProps) {
@@ -602,22 +350,54 @@ function EditParticipantsModal({
   return (
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="edit-participants-title">
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose} aria-label="Close dialog" disabled={saving}>&times;</button>
+        <button className="modal-close" onClick={onClose} aria-label={t('common.closeDialog')} disabled={saving}>&times;</button>
 
         <h2 id="edit-participants-title">{t('dashboard.editParticipants.title')}</h2>
         <p className="modal-subtitle">{t('dashboard.editParticipants.desc')}</p>
 
         <div className="form-group">
-          <label htmlFor="edit-participants-tags">{t('dashboard.createModal.participantsLabel')}</label>
-          <TagsInput
-            id="edit-participants-tags"
-            tags={participants}
-            onChange={onParticipantsChange}
-            placeholder={t('dashboard.createModal.participantsPlaceholder')}
-            disabled={saving}
-          />
-          <p className="form-hint">{t('dashboard.editParticipants.warning')}</p>
+          <label>{t('dashboard.editParticipants.whoLabel')}</label>
+          <div className="create-choice-group">
+            <label className={`create-choice${participantsType === 'defined' ? ' is-selected' : ''}`}>
+              <input
+                type="radio"
+                name="edit-participants-type"
+                checked={participantsType === 'defined'}
+                onChange={() => onParticipantsTypeChange('defined')}
+                disabled={saving}
+              />
+              <span className="create-choice-title">{t('dashboard.editParticipants.specificPeople')}</span>
+              <span className="create-choice-hint">{t('dashboard.editParticipants.specificPeopleHint')}</span>
+            </label>
+            <label className={`create-choice${participantsType === 'open' ? ' is-selected' : ''}`}>
+              <input
+                type="radio"
+                name="edit-participants-type"
+                checked={participantsType === 'open'}
+                onChange={() => onParticipantsTypeChange('open')}
+                disabled={saving}
+              />
+              <span className="create-choice-title">{t('dashboard.editParticipants.anyoneWithLink')}</span>
+              <span className="create-choice-hint">{t('dashboard.editParticipants.anyoneWithLinkHint')}</span>
+            </label>
+          </div>
         </div>
+
+        {participantsType === 'defined' ? (
+          <div className="form-group">
+            <label htmlFor="edit-participants-tags">{t('dashboard.createModal.participantsLabel')}</label>
+            <TagsInput
+              id="edit-participants-tags"
+              tags={participants}
+              onChange={onParticipantsChange}
+              placeholder={t('dashboard.createModal.participantsPlaceholder')}
+              disabled={saving}
+            />
+            <p className="form-hint">{t('dashboard.editParticipants.warning')}</p>
+          </div>
+        ) : (
+          <p className="form-hint form-hint-warning">{t('dashboard.editParticipants.openWarning')}</p>
+        )}
 
         {error && <div className="form-error">{error}</div>}
 

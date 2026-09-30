@@ -1,13 +1,13 @@
 import { useI18n, LANGUAGES, type LanguageCode } from '../context/I18nContext';
 
 function LanguageSelector() {
-  const { lang, setLang } = useI18n();
+  const { lang, setLang, t } = useI18n();
 
   return (
     <div className="language-toggle">
       <select
         className="lang-select"
-        aria-label="Select language"
+        aria-label={t('common.selectLanguage')}
         value={lang}
         onChange={(e) => setLang(e.target.value as LanguageCode)}
       >

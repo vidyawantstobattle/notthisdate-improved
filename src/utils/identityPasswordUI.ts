@@ -4,7 +4,7 @@
 // the app's stylesheets (the iframe inherits none of them).
 //
 // Note: the vanilla implementation queried the *parent* document, which never
-// matched the widget's inputs — this is the first working version.
+// matched the widget's inputs, so this is the first working version.
 
 import { PASSWORD_RULES, validatePassword } from '../core/password';
 
@@ -53,7 +53,7 @@ function isSignupForm(input: HTMLInputElement): boolean {
   return [...scope.querySelectorAll('input')].some(i => (i as HTMLInputElement).type === 'text');
 }
 
-// The widget is itself React-driven, so the input is never re-parented — doing so
+// The widget is itself React-driven, so the input is never re-parented; doing so
 // makes its reconciler duplicate the field. Additions are appended as siblings.
 function addToggle(input: HTMLInputElement, doc: Document): void {
   const host = input.parentElement;

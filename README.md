@@ -121,6 +121,67 @@ notthisdate-improved/
 └── README.md
 ```
 
+## Languages (i18n)
+
+### Turning a language on or off
+
+Every language in the dropdown is driven by one array in **`src/config/languages.ts`**:
+
+```ts
+// What the dropdown offers, in display order. Comment a line out to hide it.
+const ENABLED_LANGUAGES: LanguageCode[] = [
+  'en',
+  // 'nl',      <-- THIS is the line to comment out to disable Dutch
+  'mr'
+];
+```
+
+| Goal | What to do |
+|------|------------|
+| **Disable NL (Dutch)** | Comment out the `'nl',` line (it ships commented out today) |
+| **Re-enable NL** | Uncomment `'nl',`; nothing else needs changing |
+| **Reorder the dropdown** | Reorder the entries in the array |
+
+Commenting a language out **only hides it from the dropdown**. Its `LANGUAGE_REGISTRY`
+entry, its locale files, and its bundled catalog all stay in place, so `'nl'` remains a
+valid value for `setLang()` and `t()`. Anyone whose saved preference was a
+now-disabled language falls back to the default automatically.
+
+### Where the wording lives
+
+Translations are plain JSON under **`public/locales/<language-code>/`**:
+
+| Language | Folder |
+|----------|--------|
+| English | `public/locales/en/` |
+| Dutch | `public/locales/nl/` |
+| Marathi | `public/locales/mr/` |
+
+Each folder holds one file per area of the site, so a translator can work on one part at a time:
+
+| File | Covers |
+|------|--------|
+| `common.json` | Shared buttons, loading text, error titles/messages |
+| `header.json` | Top navigation |
+| `footer.json` | Footer |
+| `landing.json` | Landing page |
+| `about.json` | About page |
+| `dashboard.json` | Dashboard, create-calendar and edit-participants modals |
+| `calendarShell.json` | Calendar page frame |
+| `calendarSubmit.json` | Date-submission form and date picker |
+| `calendarView.json` | Availability grid |
+
+**English is the source of truth.** Any key missing from another language falls back to
+`en`, then to the key itself, so a partial translation file is safe to ship. Today
+`nl/` and `mr/` only contain `header.json` and `footer.json`; everything else renders in
+English until those files are added.
+
+### Adding a new language
+
+1. Add an entry to `LANGUAGE_REGISTRY` in `src/config/languages.ts` (code + dropdown label).
+2. Create `public/locales/<code>/` and copy the JSON files from `public/locales/en/` as a starting point.
+3. Add the code to `ENABLED_LANGUAGES`.
+
 ## Design System
 
 This app uses a **Stripe-inspired** design system:

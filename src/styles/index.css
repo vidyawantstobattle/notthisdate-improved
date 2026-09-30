@@ -11,6 +11,7 @@
 @import '../../public/styles/components/calendar.css';
 @import '../../public/styles/pages/landing.css';
 @import '../../public/styles/pages/dashboard.css';
+@import '../../public/styles/pages/create.css';
 @import '../../public/styles/responsive.css';
 /* React-specific overrides and additions can go here */
 

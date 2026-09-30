@@ -3,7 +3,7 @@
 // should only ever import from here, never call apiClient/fetch directly.
 
 import { apiClient } from './client';
-import type { Calendar, CreateCalendarInput } from '../types';
+import type { Calendar, CreateCalendarInput, ParticipantsType } from '../types';
 
 export const calendarsApi = {
   list(token?: string | null): Promise<{ calendars: Calendar[] }> {
@@ -22,11 +22,12 @@ export const calendarsApi = {
     return apiClient.delete(`/delete-calendar?id=${encodeURIComponent(calendarId)}`, token);
   },
 
+  // Passing participantsType: 'open' converts a named calendar to link-based; it is one-way.
   updateParticipants(
     calendarId: string,
-    participants: string[],
+    input: { participants?: string[]; participantsType?: ParticipantsType },
     token?: string | null
-  ): Promise<{ success: boolean; participants: string[] }> {
-    return apiClient.post(`/update-participants?id=${encodeURIComponent(calendarId)}`, { participants }, token);
+  ): Promise<{ success: boolean; participants: string[]; participantsType: ParticipantsType }> {
+    return apiClient.post(`/update-participants?id=${encodeURIComponent(calendarId)}`, input, token);
   }
 };
