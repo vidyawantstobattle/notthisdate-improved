@@ -7,6 +7,7 @@ interface DatePickerProps {
   selectedDates?: string[];
   submittedDates?: string[];
   blockedDates?: string[];
+  blockedDateReasons?: Record<string, string>;
   onDateSelect?: (dateStr: string) => void;
 }
 
@@ -78,6 +79,7 @@ function DatePicker({
   selectedDates = [],
   submittedDates = [],
   blockedDates = [],
+  blockedDateReasons = {},
   onDateSelect
 }: DatePickerProps) {
   const { t } = useI18n();
@@ -157,6 +159,7 @@ function DatePicker({
                 selectedDates={selectedDates}
                 submittedDates={submittedDates}
                 blockedDates={blockedDates}
+                blockedDateReasons={blockedDateReasons}
                 onDayClick={handleDayClick}
                 t={t}
               />
@@ -185,8 +188,9 @@ interface PickerMonthProps {
   selectedDates: string[];
   submittedDates: string[];
   blockedDates: string[];
+  blockedDateReasons: Record<string, string>;
   onDayClick: (dateStr: string) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 function PickerMonth({
@@ -196,6 +200,7 @@ function PickerMonth({
   selectedDates,
   submittedDates,
   blockedDates,
+  blockedDateReasons,
   onDayClick,
   t
 }: PickerMonthProps) {
@@ -232,7 +237,9 @@ function PickerMonth({
     } else if (isBlocked) {
       classNames.push('is-blocked');
       disabled = true;
-      title = t('calendarView.blocked.tooltip');
+      title = blockedDateReasons[dateStr]
+        ? t('calendarView.blocked.tooltipWithReason', { reason: blockedDateReasons[dateStr] })
+        : t('calendarView.blocked.tooltip');
     } else if (isSubmitted) {
       classNames.push('is-submitted');
       disabled = true;

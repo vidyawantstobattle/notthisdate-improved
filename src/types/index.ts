@@ -16,6 +16,8 @@ export interface Calendar {
   participantsType: ParticipantsType;
   participants: string[];
   blockedDates?: string[];
+  // Optional note per blocked date, keyed by the date string. Dates without a note are absent.
+  blockedDateReasons?: Record<string, string>;
   requireEmailVerification: boolean;
   ownerId: string;
   ownerEmail: string;
@@ -33,6 +35,7 @@ export interface CreateCalendarInput {
   participants?: string[];
   requireEmailVerification?: boolean;
   blockedDates?: string[];
+  blockedDateReasons?: Record<string, string>;
 }
 
 export interface Submission {

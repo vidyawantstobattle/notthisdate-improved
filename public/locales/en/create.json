@@ -30,8 +30,8 @@
 
     "create.dates.title": "Set the date window",
     "create.dates.subtitle": "Your group will mark the days they can't make inside this window.",
-    "create.dates.startLabel": "First possible date",
-    "create.dates.endLabel": "Last possible date",
+    "create.dates.startLabel": "Start date",
+    "create.dates.endLabel": "End date",
     "create.dates.quickLabel": "Quick pick",
     "create.dates.quickMonth": "Next month",
     "create.dates.quickThreeMonths": "Next 3 months",

@@ -39,6 +39,7 @@ export interface PendingCalendarDraft {
   participants: string[];
   requireEmailVerification: boolean;
   blockedDates: string[];
+  blockedDateReasons: Record<string, string>;
 }
 
 const PENDING_CALENDAR_DRAFT_KEY = 'ntd_pendingCalendarDraft';
@@ -59,6 +60,15 @@ export function consumePendingAction(): PendingAction | null {
   } catch {
     return null;
   }
+}
+
+function sanitizeBlockedDateReasons(raw: unknown): Record<string, string> {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const result: Record<string, string> = {};
+  Object.entries(raw as Record<string, unknown>).forEach(([date, reason]) => {
+    if (typeof reason === 'string' && reason.trim()) result[date] = reason.trim();
+  });
+  return result;
 }
 
 export function setPendingCalendarDraft(draft: PendingCalendarDraft): void {
@@ -99,7 +109,8 @@ export function consumePendingCalendarDraft(): PendingCalendarDraft | null {
       requireEmailVerification: parsed.requireEmailVerification,
       blockedDates: Array.isArray(parsed.blockedDates)
         ? parsed.blockedDates.filter(d => typeof d === 'string')
-        : []
+        : [],
+      blockedDateReasons: sanitizeBlockedDateReasons(parsed.blockedDateReasons)
     };
   } catch {
     return null;

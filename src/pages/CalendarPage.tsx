@@ -309,6 +309,7 @@ function CalendarPage() {
                           selectedDates={selectedDates}
                           submittedDates={submittedDates}
                           blockedDates={calendar.blockedDates}
+                          blockedDateReasons={calendar.blockedDateReasons}
                           onDateSelect={handleDateSelect}
                         />
                       </div>

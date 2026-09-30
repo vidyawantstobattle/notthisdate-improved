@@ -40,7 +40,7 @@ export default async (request, context) => {
 
     try {
         const body = await request.json();
-        const { name, description, dateRangeType, startDate, endDate, participantsType, participants, requireEmailVerification, blockedDates } = body;
+        const { name, description, dateRangeType, startDate, endDate, participantsType, participants, requireEmailVerification, blockedDates, blockedDateReasons } = body;
 
         if (!name || !name.trim()) {
             return new Response(JSON.stringify({ error: 'Calendar name is required' }), { status: 400, headers });
@@ -80,6 +80,17 @@ export default async (request, context) => {
             )).sort()
             : [];
 
+        // Only keep notes for dates that survived validation above.
+        const safeBlockedDateReasons = {};
+        if (blockedDateReasons && typeof blockedDateReasons === 'object' && !Array.isArray(blockedDateReasons)) {
+            safeBlockedDates.forEach(dateStr => {
+                const reason = blockedDateReasons[dateStr];
+                if (typeof reason !== 'string') return;
+                const trimmed = reason.trim().slice(0, MAX_BLOCKED_REASON_LENGTH);
+                if (trimmed) safeBlockedDateReasons[dateStr] = trimmed;
+            });
+        }
+
         const calendar = {
             id: calendarId,
             name: name.trim(),
@@ -90,6 +101,7 @@ export default async (request, context) => {
             participantsType,
             participants: participants || [],
             blockedDates: safeBlockedDates,
+            blockedDateReasons: safeBlockedDateReasons,
             requireEmailVerification: participantsType === 'open' ? (requireEmailVerification || false) : false,
             ownerId: userId,
             ownerEmail: userEmail,

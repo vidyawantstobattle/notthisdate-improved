@@ -59,6 +59,7 @@ function CreateCalendarPage() {
   const [participantsType, setParticipantsType] = useState<ParticipantsType>('defined');
   const [participants, setParticipants] = useState<string[]>([]);
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
+  const [blockedDateReasons, setBlockedDateReasons] = useState<Record<string, string>>({});
   const [requireEmailVerification, setRequireEmailVerification] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -84,6 +85,7 @@ function CreateCalendarPage() {
     setParticipantsType(draft.participantsType);
     setParticipants(draft.participants);
     setBlockedDates(draft.blockedDates);
+    setBlockedDateReasons(draft.blockedDateReasons);
     setRequireEmailVerification(draft.requireEmailVerification);
     setStep(STEPS.length - 1);
     setMaxStep(STEPS.length - 1);
@@ -130,7 +132,8 @@ function CreateCalendarPage() {
     participantsType,
     participants: participantsType === 'defined' ? participants : [],
     requireEmailVerification: participantsType === 'open' ? requireEmailVerification : false,
-    blockedDates
+    blockedDates,
+    blockedDateReasons
   });
 
   const submit = async () => {
@@ -420,6 +423,8 @@ function CreateCalendarPage() {
                   id="create-blocked"
                   dates={blockedDates}
                   onChange={setBlockedDates}
+                  reasons={blockedDateReasons}
+                  onReasonsChange={setBlockedDateReasons}
                   min={startDate}
                   max={endDate}
                   disabled={submitting}
@@ -439,6 +444,7 @@ function CreateCalendarPage() {
                     <span>{t('create.review.verificationLabel')}</span>
                   </label>
                   <p className="form-hint">{t('create.review.verificationHint')}</p>
+                  <p className="form-tip">{t('create.review.verificationTip')}</p>
                 </div>
               )}
 
