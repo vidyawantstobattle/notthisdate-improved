@@ -12,6 +12,7 @@ import AvailabilityView from '../components/AvailabilityView';
 import ErrorMessage from '../components/ErrorMessage';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Footer from '../components/Footer';
+import AdPlaceholder from '../components/AdPlaceholder';
 import { unavailabilityApi } from '../api/unavailability.api';
 import { normalizeSubmissions } from '../core/participants';
 import { formatDisplayDate } from '../core/dateRanges';
@@ -285,7 +286,12 @@ function CalendarPage() {
 
       {/* Calendar Content */}
       <main className="calendar-main">
-        <div className="calendar-container">
+        <div className="calendar-layout">
+          <div className="calendar-rail">
+            <AdPlaceholder variant="rail" />
+          </div>
+
+          <div className="calendar-container">
           {/* Calendar Header */}
           <div className="calendar-header-section">
             {isOwner && <Link to="/dashboard" className="back-link">← Back to Dashboard</Link>}
@@ -337,8 +343,6 @@ function CalendarPage() {
                     currentParticipant={currentParticipant}
                     onParticipantChange={handleParticipantChange}
                     submittedDates={submittedDates}
-                    onReset={handleReset}
-                    isResetting={submitting}
                     knownParticipants={knownParticipants}
                     isReturningVisitor={isReturningVisitor}
                   />
@@ -419,6 +423,11 @@ function CalendarPage() {
                 </div>
               )}
             </div>
+          </div>
+          </div>
+
+          <div className="calendar-rail">
+            <AdPlaceholder variant="rail" />
           </div>
         </div>
       </main>

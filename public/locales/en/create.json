@@ -53,7 +53,7 @@
     "create.review.subtitle": "All optional, and you can change any of this later.",
     "create.review.blockedLabel": "Blocked dates",
     "create.review.blockedHint": "Dates nobody can pick, shown as unavailable for everyone.",
-    "create.review.verificationLabel": "Require email verification before submitting",
+    "create.review.verificationLabel": "Require email verification",
     "create.review.verificationHint": "When enabled, participants must verify their email address before they can submit their unavailable dates.",
     "create.review.verificationTip": "Only worth turning on if you are sharing the link somewhere public. For friends, family, or colleagues you already trust, leave this unchecked so they can respond in one click.",
     "create.review.blockedReasonHint": "Add an optional reason so your group knows why a date is off the table.",

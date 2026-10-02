@@ -37,7 +37,9 @@ export default async (request, context) => {
         console.log(`Attempting to retrieve calendar: ${calendarId}`);
 
         try {
-            const calendar = await calendarStore.get(calendarId, { type: 'json' });
+            // Strong consistency: a calendar opened right after creation (e.g. redirected
+            // from signup) can otherwise hit an edge node that hasn't replicated it yet.
+            const calendar = await calendarStore.get(calendarId, { type: 'json', consistency: 'strong' });
             console.log(`Calendar retrieval result:`, calendar ? 'Found' : 'Not found');
 
             if (!calendar) {

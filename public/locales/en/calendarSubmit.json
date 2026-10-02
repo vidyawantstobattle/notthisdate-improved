@@ -34,9 +34,9 @@
     "calendarSubmit.alreadySubmittedHint": "💡 You have already submitted {count} unavailable date(s). You can add more below.",
     "calendarSubmit.selectDatesBelowHint": "Select dates below to mark when you're NOT available.",
 
-    "calendarSubmit.returning.selectLabel": "Been here before?",
+    "calendarSubmit.returning.selectLabel": "Have you submitted your dates already?",
     "calendarSubmit.returning.selectPlaceholder": "Select your name...",
-    "calendarSubmit.returning.selectHint": "Pick your name to see and update what you already submitted.",
+    "calendarSubmit.returning.selectHint": "Then pick your name to view and update what you have already submitted.",
     "calendarSubmit.returning.newNameLabel": "First time? Enter your name:",
     "calendarSubmit.returning.or": "or",
     "calendarSubmit.returning.welcomeBack": "👋 Welcome back,",

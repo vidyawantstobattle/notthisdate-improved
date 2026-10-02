@@ -10,10 +10,7 @@ export interface PasswordRule {
 
 export const PASSWORD_RULES: PasswordRule[] = [
   { id: 'minLength', message: 'At least 8 characters', test: p => p.length >= 8 },
-  { id: 'hasUppercase', message: 'One uppercase letter', test: p => /[A-Z]/.test(p) },
-  { id: 'hasLowercase', message: 'One lowercase letter', test: p => /[a-z]/.test(p) },
-  { id: 'hasNumber', message: 'One number', test: p => /\d/.test(p) },
-  { id: 'hasSpecial', message: 'One special character', test: p => /[!@#$%^&*(),.?":{}|<>]/.test(p) }
+  { id: 'hasLetterAndNumber', message: 'Letters and numbers', test: p => /[A-Za-z]/.test(p) && /\d/.test(p) }
 ];
 
 export interface PasswordRuleResult {

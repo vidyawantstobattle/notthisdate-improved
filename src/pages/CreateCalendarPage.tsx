@@ -475,7 +475,7 @@ function CreateCalendarPage() {
               </div>
 
               {participantsType === 'open' && (
-                <div className="form-group">
+                <div className="form-group verification-options">
                   <label className="checkbox-option">
                     <input
                       type="checkbox"

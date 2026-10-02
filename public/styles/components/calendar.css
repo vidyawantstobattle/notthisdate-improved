@@ -3,6 +3,21 @@
     max-width: 900px;
 }
 
+/* Flanks .calendar-container with ad rails, mirroring .create-layout. */
+.calendar-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 200px) minmax(0, 900px) minmax(0, 200px);
+    justify-content: center;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.calendar-rail {
+    position: sticky;
+    top: 1.5rem;
+    align-self: start;
+}
+
 .calendar-header-section {
     text-align: center;
     margin-bottom: 2rem;

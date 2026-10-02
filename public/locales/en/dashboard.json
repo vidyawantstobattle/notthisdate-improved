@@ -48,7 +48,7 @@
     "dashboard.createModal.participantsPlaceholder": "Type a name and press Enter",
     "dashboard.createModal.addAnotherPlaceholder": "Add another...",
     "dashboard.createModal.removeTag": "Remove {tag}",
-    "dashboard.createModal.requireVerification": "Require email verification before submitting",
+    "dashboard.createModal.requireVerification": "Require email verification",
     "dashboard.createModal.verificationHint": "When enabled, participants must verify their email address before they can submit their unavailable dates.",
     "dashboard.createModal.verificationTip": "Only worth turning on if you are sharing the link somewhere public. For friends, family, or colleagues you already trust, leave this unchecked so they can respond in one click.",
     "dashboard.createModal.submit": "Create Calendar",

@@ -212,10 +212,7 @@ class TagsInput {
 // ===== PASSWORD VALIDATION =====
 const passwordRules = {
     minLength: { test: (p) => p.length >= 8, message: 'At least 8 characters' },
-    hasUppercase: { test: (p) => /[A-Z]/.test(p), message: 'One uppercase letter' },
-    hasLowercase: { test: (p) => /[a-z]/.test(p), message: 'One lowercase letter' },
-    hasNumber: { test: (p) => /\d/.test(p), message: 'One number' },
-    hasSpecial: { test: (p) => /[!@#$%^&*(),.?":{}|<>]/.test(p), message: 'One special character' }
+    hasLetterAndNumber: { test: (p) => /[A-Za-z]/.test(p) && /\d/.test(p), message: 'Letters and numbers' }
 };
 
 function setupPasswordValidation() {

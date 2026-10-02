@@ -135,10 +135,7 @@ const participants = tagsInput.getTags();
 
 Password requirements:
 - At least 8 characters
-- One uppercase letter
-- One lowercase letter  
-- One number
-- One special character (!@#$%^&*(),.?":{}|<>)
+- Must contain both letters and numbers
 
 ## File Structure
 

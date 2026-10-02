@@ -7,8 +7,6 @@ interface ParticipantInputProps {
   currentParticipant: string;
   onParticipantChange: (name: string) => void;
   submittedDates?: string[];
-  onReset?: () => void;
-  isResetting?: boolean;
   knownParticipants?: string[];
   isReturningVisitor?: boolean;
 }
@@ -18,8 +16,6 @@ function ParticipantInput({
   currentParticipant,
   onParticipantChange,
   submittedDates = [],
-  onReset,
-  isResetting = false,
   knownParticipants = [],
   isReturningVisitor = false
 }: ParticipantInputProps) {
@@ -49,16 +45,6 @@ function ParticipantInput({
         <p className="form-hint info">
           {t('calendarSubmit.alreadySubmittedHint', { count: submittedDates.length })}
         </p>
-        {onReset && (
-          <button
-            type="button"
-            className="btn btn-outline btn-small btn-danger-outline"
-            onClick={onReset}
-            disabled={isResetting}
-          >
-            {isResetting ? t('common.resetting') : t('calendarSubmit.resetBtn')}
-          </button>
-        )}
       </div>
     ) : (
       <p className="form-hint">{t('calendarSubmit.selectDatesBelowHint')}</p>

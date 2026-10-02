@@ -649,6 +649,14 @@
     .create-rail {
         display: none;
     }
+
+    .calendar-layout {
+        grid-template-columns: minmax(0, 900px);
+    }
+
+    .calendar-rail {
+        display: none;
+    }
 }
 
 @media (max-width: 768px) {
