@@ -98,6 +98,7 @@ function LandingPage() {
 
       {/* How It Works */}
       <section id="how-it-works" className="steps-section">
+        <div className="steps-inner">
         <div className="steps-intro">
           <h2>{t('landing.howItWorks.title')}</h2>
         </div>
@@ -145,6 +146,7 @@ function LandingPage() {
 
         <div className="steps-cta">
           <button className="btn btn-primary btn-large" onClick={() => startCreateCalendar()}>{t('common.getStarted')}</button>
+        </div>
         </div>
       </section>
 

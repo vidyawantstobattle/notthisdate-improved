@@ -1,9 +1,10 @@
 /* ===== LANDING PAGE ===== */
+/* Each section below is full-bleed with its own background-color so the page
+   reads as distinct bands; .hero-inner/.steps-inner/.benefits-grid re-center the content. */
 .hero {
     position: relative;
     padding: 4rem 1rem 3rem;
-    max-width: 1100px;
-    margin: 0 auto;
+    background: var(--bg-white);
 }
 
 .hero-inner {
@@ -292,8 +293,14 @@
 }
 
 /* ===== HOW IT WORKS / STEPS ===== */
+/* Dark band is the second of the page's two alternating colors (white / navy);
+   the overrides below flip text/border colors for readability on the dark fill. */
 .steps-section {
     padding: 4rem 1rem;
+    background: var(--secondary-color);
+}
+
+.steps-inner {
     max-width: 1000px;
     margin: 0 auto;
 }
@@ -305,10 +312,11 @@
 }
 
 .steps-intro h2 {
-    font-size: 1.75rem;
-    color: var(--secondary-color);
-    letter-spacing: -0.01em;
-    line-height: 1.3;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-white, #fff);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
 }
 
 .steps-list {
@@ -325,7 +333,7 @@
 }
 
 .step-row + .step-row {
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .step-row-reversed .step-text {
@@ -358,14 +366,15 @@
 }
 
 .step-text h3 {
-    font-size: 1.35rem;
-    color: var(--secondary-color);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
     margin: 0;
-    letter-spacing: -0.01em;
+    letter-spacing: normal;
 }
 
 .step-text p {
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.72);
     line-height: 1.7;
 }
 
@@ -383,7 +392,8 @@
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--primary-bg) 0%, var(--bg-white) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: var(--shadow-sm);
     color: var(--icon-accent, var(--primary-color));
 }
@@ -399,8 +409,10 @@
 }
 
 /* ===== BENEFITS SECTION ===== */
+/* Back to the first of the two alternating colors (white). */
 .benefits-section {
     padding: 4rem 1rem;
+    background: var(--bg-white);
 }
 
 .benefits-section h2 {

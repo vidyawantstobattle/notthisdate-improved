@@ -49,7 +49,7 @@
     "create.dates.duration": "{count} days in range",
     "create.dates.durationOne": "1 day in range",
 
-    "create.review.title": "Review and fine-tune",
+    "create.review.title": "Extras and Summary",
     "create.review.subtitle": "All optional, and you can change any of this later.",
     "create.review.blockedLabel": "Blocked dates",
     "create.review.blockedHint": "Dates nobody can pick, shown as unavailable for everyone.",

@@ -1,4 +1,21 @@
 /* ===== CSS RESET & BASE STYLES ===== */
+/* Self-hosted (not Google Fonts) so EU visitors' requests never leave our origin. */
+@font-face {
+    font-family: 'Inter';
+    src: url('../../src/styles/fonts/Inter-Variable.ttf') format('truetype-variations');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('../../src/styles/fonts/Inter-Italic-Variable.ttf') format('truetype-variations');
+    font-weight: 100 900;
+    font-style: italic;
+    font-display: swap;
+}
+
 *,
 *::before,
 *::after {
@@ -19,6 +36,12 @@ body {
     background: var(--bg-primary);
     line-height: 1.5;
     min-height: 100vh;
+}
+
+/* Page-level CSS (landing/create/dashboard) relies on this instead of repeating
+   font-family on every heading selector. */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-heading);
 }
 
 .app-container {

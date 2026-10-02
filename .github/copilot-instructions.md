@@ -6,7 +6,7 @@ NotThisDate is a reverse-availability trip planner for coordinating group trips.
 
 ## Tech Stack
 
-- **Frontend**: HTML/CSS/JavaScript (current) + Migrate to React
+- **Frontend**: React + TypeScript, built with Vite
 - **Backend**: Netlify Functions (serverless)
 - **Database**: Netlify Blobs (built-in key-value storage)
 - **Authentication**: Netlify Identity
@@ -78,8 +78,8 @@ NotThisDate is a reverse-availability trip planner for coordinating group trips.
 
 ### Important Notes
 
-- **The developer does NOT have `netlify-cli` or `npx` installed locally**
-- For local development, use `npm start` which runs Python's built-in HTTP server
+- `src/` (React + TypeScript) is the **only** frontend. The old vanilla `public/*.html|*.js`
+  site has been deleted; `public/` now holds static assets only (images, locales, styles, robots/sitemap).
 - Netlify Identity requires the production site URL when running locally
 
 ### Running Locally
@@ -88,8 +88,8 @@ NotThisDate is a reverse-availability trip planner for coordinating group trips.
 # Install dependencies
 npm install
 
-# Start local server (uses Python 3 http.server)
-npm start
+# Start the Vite dev server
+npm run dev
 
 # Open http://localhost:8888
 ```
@@ -123,12 +123,12 @@ async function getAuthHeaders() {
 
 Used for adding participants. Type name + Enter to add, click × to remove.
 
-```javascript
-const tagsInput = new TagsInput(container, {
-    placeholder: 'Type a name and press Enter',
-    onTagsChange: (tags) => console.log(tags)
-});
-const participants = tagsInput.getTags();
+```tsx
+<TagsInput
+  tags={participants}
+  onChange={setParticipants}
+  placeholder="Type a name and press Enter"
+/>
 ```
 
 ### Password Validation
@@ -141,14 +141,21 @@ Password requirements:
 
 ```
 /
-├── public/
-│   ├── index.html      # Main landing + dashboard
-│   ├── calendar.html   # Calendar view page
-│   ├── styles.css      # Stripe-inspired styles
-│   ├── app.js          # Main app logic + TagsInput
-│   └── calendar.js     # Calendar page logic
+├── src/                 # React app (sole frontend)
+│   ├── index.html       # Single HTML entry point
+│   ├── api/             # Only layer that knows endpoint paths
+│   ├── core/            # Framework-agnostic pure logic
+│   ├── components/
+│   ├── context/
+│   ├── pages/
+│   └── styles/index.css # Imports the partials in public/styles/
+├── public/              # Static assets only
+│   ├── images/
+│   ├── locales/         # i18n JSON, bundled via import.meta.glob
+│   └── styles/          # Modular CSS partials
 ├── netlify/
 │   └── functions/      # Serverless API endpoints
 ├── netlify.toml        # Netlify config
+├── vite.config.js
 └── package.json
 ```

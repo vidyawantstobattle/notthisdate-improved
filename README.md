@@ -27,7 +27,6 @@ A reverse-availability trip planner for coordinating group events. Instead of ma
 ### Prerequisites
 
 - Node.js (for npm)
-- Python 3 (comes pre-installed on macOS)
 
 ### Quick Start
 
@@ -36,9 +35,9 @@ A reverse-availability trip planner for coordinating group events. Instead of ma
    npm install
    ```
 
-2. **Start local server:**
+2. **Start the dev server:**
    ```bash
-   npm start
+   npm run dev
    ```
 
 3. **Open in browser:**
@@ -52,13 +51,14 @@ A reverse-availability trip planner for coordinating group events. Instead of ma
 
 | Command | Description |
 |---------|-------------|
-| `npm start` | Start local server with `/c/:calendarId` route rewrite support |
-| `npm run start:plain` | Start plain Python http.server (no route rewrites) |
-| `npm run dev` | Start with Netlify CLI (if installed) |
+| `npm run dev` | Start the Vite dev server |
+| `npm run build` | Type-safe production build into `dist/` |
+| `npm run preview` | Serve the production build locally |
+| `npm run typecheck` | Run `tsc --noEmit` |
+| `npm run netlify-dev` | Start with Netlify CLI (if installed) |
 | `npm test` | Run all tests |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with coverage report |
-| `npm run build` | No build step required |
 
 ## Testing
 
@@ -99,12 +99,21 @@ See `tests/README.md` for detailed testing documentation.
 
 ```
 notthisdate-improved/
-├── public/
-│   ├── index.html       # Landing page + dashboard
-│   ├── calendar.html    # Calendar view
-│   ├── styles.css       # Stripe-inspired styles
-│   ├── app.js           # Main app logic
-│   └── calendar.js      # Calendar page logic
+├── src/                 # React app (sole frontend; built by Vite)
+│   ├── index.html       # Single HTML entry point
+│   ├── index.tsx
+│   ├── api/             # Only layer that knows endpoint paths
+│   ├── core/            # Framework-agnostic pure logic
+│   ├── components/
+│   ├── context/
+│   ├── pages/
+│   └── styles/index.css # Imports the partials in public/styles/
+├── public/              # Static assets consumed by the React build
+│   ├── images/
+│   ├── locales/         # i18n JSON, bundled via import.meta.glob
+│   ├── styles/          # Modular CSS partials
+│   ├── robots.txt
+│   └── sitemap.xml
 ├── netlify/
 │   └── functions/       # Serverless API endpoints
 │       ├── create-calendar.mjs
@@ -117,6 +126,7 @@ notthisdate-improved/
 ├── .github/
 │   └── copilot-instructions.md  # AI assistant context
 ├── netlify.toml         # Netlify configuration
+├── vite.config.js
 ├── package.json
 └── README.md
 ```

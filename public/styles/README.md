@@ -12,13 +12,15 @@ The styles have been split into smaller, maintainable files organized by purpose
 
 ## File Structure
 
+These partials are consumed exclusively by `src/styles/index.css`, which the React
+app imports in `src/index.tsx`. There is no standalone HTML entry point.
+
 ```
+src/styles/index.css        # Sole entry point: @imports everything below
 public/
-├── styles.css (legacy - kept for backwards compatibility)
-├── styles-modular.css (new main entry point)
 └── styles/
     ├── variables.css          # CSS custom properties (colors, spacing, etc.)
-    ├── base.css               # Reset, utilities, base styles
+    ├── base.css               # Reset, utilities, base styles, @font-face
     ├── components/
     │   ├── buttons.css        # Button styles
     │   ├── forms.css          # Form elements and inputs
@@ -29,7 +31,8 @@ public/
     │   └── footer.css         # Footer styles
     ├── pages/
     │   ├── landing.css        # Landing page styles
-    │   └── dashboard.css      # Dashboard page styles
+    │   ├── dashboard.css      # Dashboard page styles
+    │   └── create.css         # Create-calendar wizard styles
     └── responsive.css         # All media queries
 ```
 
@@ -122,37 +125,13 @@ Dashboard page styles:
 
 ## Usage
 
-### For HTML Files
-
-Replace the single `styles.css` import with the modular version:
-
-```html
-<!-- Old way -->
-<link rel="stylesheet" href="/styles.css">
-
-<!-- New way - imports all modules -->
-<link rel="stylesheet" href="/styles-modular.css">
-```
-
-### For React Components (src/)
-
-You can import specific modules in your components:
+The React app pulls in the whole bundle once, via `src/index.tsx`:
 
 ```jsx
-// Import only what you need
-import '../styles/components/buttons.css';
-import '../styles/components/forms.css';
-
-// Or import everything
-import '../styles/index.css';
+import './styles/index.css';
 ```
 
-## Migration Plan
-
-1. **Phase 1**: Keep both `styles.css` (legacy) and `styles-modular.css` (new)
-2. **Phase 2**: Update HTML files to use `styles-modular.css`
-3. **Phase 3**: Test thoroughly across all pages
-4. **Phase 4**: Remove old `styles.css` once migration is complete
+Any new partial must be added to `src/styles/index.css` to take effect.
 
 ## Benefits
 
@@ -175,7 +154,7 @@ When adding new styles:
 
 1. **Identify the category**: Component, layout, or page?
 2. **Choose the right file**: Add to existing or create new module
-3. **Update imports**: Add to `styles-modular.css` if new file
+3. **Update imports**: Add to `src/styles/index.css` if new file
 4. **Use variables**: Reference CSS custom properties from `variables.css`
 5. **Mobile-first**: Add responsive rules to `responsive.css`
 
@@ -190,12 +169,12 @@ When adding new styles:
 ## Troubleshooting
 
 ### Styles Not Loading
-- Check that `styles-modular.css` is in `/public/`
+- Verify the partial is `@import`ed in `src/styles/index.css`
 - Verify all `@import` paths are correct
 - Check browser console for 404 errors
 
 ### Import Order Issues
-The order in `styles-modular.css` matters:
+The order in `src/styles/index.css` matters:
 1. Variables first (needed by everything)
 2. Base/reset styles
 3. Layout components
