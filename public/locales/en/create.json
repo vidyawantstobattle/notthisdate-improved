@@ -4,6 +4,7 @@
     "create.steps.basics": "Basics",
     "create.steps.dates": "Dates",
     "create.steps.review": "Review",
+    "create.steps.account": "Account",
     "create.progressLabel": "Create calendar steps",
     "create.stepStatus": "Step {current} of {total}",
 
@@ -11,6 +12,15 @@
     "create.nav.back": "Back",
     "create.nav.next": "Next",
     "create.nav.submit": "Create calendar",
+    "create.nav.createAccount": "Create account and finish",
+
+    "create.account.title": "Just one more thing",
+    "create.account.subtitle": "Your calendar is ready. Create a free account so you can manage it and see everyone's answers.",
+    "create.account.reassureSaved": "Nothing is lost. Everything you filled in is saved, and the calendar is created the moment you finish signing up.",
+    "create.account.reassureParticipants": "Your participants never need an account. They open your link, mark the dates they can't make, and they're done.",
+    "create.account.reassureEditable": "Not quite right? Go back and change any detail before you sign up.",
+    "create.account.haveAccount": "Already have an account?",
+    "create.account.login": "Log in instead",
 
     "create.basics.title": "Start with the basics",
     "create.basics.subtitle": "Name your plan and choose who gets to respond.",
@@ -45,6 +55,8 @@
     "create.review.blockedHint": "Dates nobody can pick, shown as unavailable for everyone.",
     "create.review.verificationLabel": "Require email verification before submitting",
     "create.review.verificationHint": "When enabled, participants must verify their email address before they can submit their unavailable dates.",
+    "create.review.verificationTip": "Only worth turning on if you are sharing the link somewhere public. For friends, family, or colleagues you already trust, leave this unchecked so they can respond in one click.",
+    "create.review.blockedReasonHint": "Add an optional reason so your group knows why a date is off the table.",
     "create.review.summaryTitle": "Summary",
     "create.review.summaryName": "Title",
     "create.review.summaryDates": "Dates",
@@ -55,7 +67,7 @@
     "create.review.summaryPeople": "{count} people",
     "create.review.summaryPeopleOne": "1 person",
 
-    "create.signupNotice": "You will be asked to create an account on the last step so you can manage this calendar.",
+    "create.signupNotice": "One last step after this: create a free account so you can manage the calendar. Your participants will not need one.",
     "create.toast.created": "Calendar created!",
 
     "create.error.missingName": "Please enter a title",

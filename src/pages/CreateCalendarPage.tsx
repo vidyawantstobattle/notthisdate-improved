@@ -12,7 +12,8 @@ import { calendarsApi } from '../api/calendars.api';
 import { formatDisplayDate } from '../core/dateRanges';
 import type { CreateCalendarInput, ParticipantsType } from '../types';
 
-const STEPS = ['basics', 'dates', 'review'] as const;
+const BASE_STEPS = ['basics', 'dates', 'review'] as const;
+type StepKey = (typeof BASE_STEPS)[number] | 'account';
 
 // Categories the landing page can hand over; "other" deliberately has no prefill.
 const CATEGORY_TITLE_KEYS: Record<string, string> = {
@@ -43,7 +44,7 @@ function daysBetween(start: string, end: string): number {
 }
 
 function CreateCalendarPage() {
-  const { user, loading, signup, getAuthHeaders } = useAuth();
+  const { user, loading, login, signup, getAuthHeaders } = useAuth();
   const { t } = useI18n();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -87,8 +88,8 @@ function CreateCalendarPage() {
     setBlockedDates(draft.blockedDates);
     setBlockedDateReasons(draft.blockedDateReasons);
     setRequireEmailVerification(draft.requireEmailVerification);
-    setStep(STEPS.length - 1);
-    setMaxStep(STEPS.length - 1);
+    setStep(BASE_STEPS.length - 1);
+    setMaxStep(BASE_STEPS.length - 1);
     setAutoSubmit(true);
   }, []);
 
@@ -104,6 +105,16 @@ function CreateCalendarPage() {
   useEffect(() => {
     if (step === 0) nameInputRef.current?.focus();
   }, [step]);
+
+  // Guests get an extra step explaining the account before the Identity widget opens.
+  const needsAccountStep = !loading && !user;
+  const steps: StepKey[] = needsAccountStep ? [...BASE_STEPS, 'account'] : [...BASE_STEPS];
+  const lastIndex = steps.length - 1;
+
+  useEffect(() => {
+    if (step > lastIndex) setStep(lastIndex);
+    setMaxStep(current => Math.min(current, lastIndex));
+  }, [lastIndex, step]);
 
   const validateStep = (index: number): string => {
     if (index === 0) {
@@ -136,8 +147,8 @@ function CreateCalendarPage() {
     blockedDateReasons
   });
 
-  const submit = async () => {
-    for (let i = 0; i < STEPS.length; i++) {
+  const submit = async (authMode: 'signup' | 'login' = 'signup') => {
+    for (let i = 0; i < BASE_STEPS.length; i++) {
       const message = validateStep(i);
       if (message) {
         setStep(i);
@@ -148,11 +159,12 @@ function CreateCalendarPage() {
 
     const draft = buildDraft();
 
-    // Guests finish the journey after signup; the draft is replayed on return.
+    // Guests finish the journey after auth; the draft is replayed on return.
     if (!user) {
       setPendingCalendarDraft(draft);
       setPendingAction('createCalendar');
-      signup();
+      if (authMode === 'login') login();
+      else signup();
       return;
     }
 
@@ -186,7 +198,7 @@ function CreateCalendarPage() {
       return;
     }
     setError('');
-    if (step === STEPS.length - 1) {
+    if (step === lastIndex) {
       submit();
       return;
     }
@@ -227,6 +239,36 @@ function CreateCalendarPage() {
 
   const rangeDays = daysBetween(startDate, endDate);
 
+  const calendarSummary = (
+    <div className="create-summary">
+      <h2>{t('create.review.summaryTitle')}</h2>
+      <dl>
+        <div>
+          <dt>{t('create.review.summaryName')}</dt>
+          <dd>{name.trim() || t('create.review.summaryNone')}</dd>
+        </div>
+        <div>
+          <dt>{t('create.review.summaryDates')}</dt>
+          <dd>{formatDisplayDate(startDate)} – {formatDisplayDate(endDate)}</dd>
+        </div>
+        <div>
+          <dt>{t('create.review.summaryWho')}</dt>
+          <dd>
+            {participantsType === 'open'
+              ? t('create.review.summaryOpen')
+              : participants.length === 1
+                ? t('create.review.summaryPeopleOne')
+                : t('create.review.summaryPeople', { count: participants.length })}
+          </dd>
+        </div>
+        <div>
+          <dt>{t('create.review.summaryBlocked')}</dt>
+          <dd>{blockedDates.length > 0 ? blockedDates.length : t('create.review.summaryNone')}</dd>
+        </div>
+      </dl>
+    </div>
+  );
+
   return (
     <div className="create-page">
       <header className="app-header">
@@ -242,7 +284,7 @@ function CreateCalendarPage() {
       </header>
 
       <ol className="create-progress" aria-label={t('create.progressLabel')}>
-        {STEPS.map((key, index) => (
+        {steps.map((key, index) => (
           <li
             key={key}
             className={`create-progress-step${index === step ? ' is-active' : ''}${index !== step && index <= maxStep ? ' is-done' : ''}`}
@@ -269,7 +311,7 @@ function CreateCalendarPage() {
 
         <main className="create-main">
           <p className="create-step-status">
-            {t('create.stepStatus', { current: step + 1, total: STEPS.length })}
+            {t('create.stepStatus', { current: step + 1, total: steps.length })}
           </p>
 
           {step === 0 && (
@@ -429,7 +471,7 @@ function CreateCalendarPage() {
                   max={endDate}
                   disabled={submitting}
                 />
-                <p className="form-hint">{t('create.review.blockedHint')}</p>
+                <p className="form-hint">{t('create.review.blockedHint')} {t('create.review.blockedReasonHint')}</p>
               </div>
 
               {participantsType === 'open' && (
@@ -448,37 +490,33 @@ function CreateCalendarPage() {
                 </div>
               )}
 
-              <div className="create-summary">
-                <h2>{t('create.review.summaryTitle')}</h2>
-                <dl>
-                  <div>
-                    <dt>{t('create.review.summaryName')}</dt>
-                    <dd>{name.trim() || t('create.review.summaryNone')}</dd>
-                  </div>
-                  <div>
-                    <dt>{t('create.review.summaryDates')}</dt>
-                    <dd>{formatDisplayDate(startDate)} – {formatDisplayDate(endDate)}</dd>
-                  </div>
-                  <div>
-                    <dt>{t('create.review.summaryWho')}</dt>
-                    <dd>
-                      {participantsType === 'open'
-                        ? t('create.review.summaryOpen')
-                        : participants.length === 1
-                          ? t('create.review.summaryPeopleOne')
-                          : t('create.review.summaryPeople', { count: participants.length })}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{t('create.review.summaryBlocked')}</dt>
-                    <dd>{blockedDates.length > 0 ? blockedDates.length : t('create.review.summaryNone')}</dd>
-                  </div>
-                </dl>
-              </div>
+              {calendarSummary}
 
-              {!user && !loading && (
+              {needsAccountStep && (
                 <p className="create-signup-notice">{t('create.signupNotice')}</p>
               )}
+            </section>
+          )}
+
+          {steps[step] === 'account' && (
+            <section className="create-step">
+              <h1>{t('create.account.title')}</h1>
+              <p className="create-step-subtitle">{t('create.account.subtitle')}</p>
+
+              <ul className="create-reassure">
+                <li>{t('create.account.reassureSaved')}</li>
+                <li>{t('create.account.reassureParticipants')}</li>
+                <li>{t('create.account.reassureEditable')}</li>
+              </ul>
+
+              {calendarSummary}
+
+              <p className="create-account-alt">
+                {t('create.account.haveAccount')}{' '}
+                <button type="button" className="link-button" onClick={() => submit('login')}>
+                  {t('create.account.login')}
+                </button>
+              </p>
             </section>
           )}
 
@@ -498,9 +536,11 @@ function CreateCalendarPage() {
           <button type="button" className="btn btn-primary" onClick={goNext} disabled={submitting}>
             {submitting
               ? t('common.creating')
-              : step === STEPS.length - 1
-                ? t('create.nav.submit')
-                : t('create.nav.next')}
+              : step !== lastIndex
+                ? t('create.nav.next')
+                : steps[step] === 'account'
+                  ? t('create.nav.createAccount')
+                  : t('create.nav.submit')}
           </button>
         </div>
       </div>

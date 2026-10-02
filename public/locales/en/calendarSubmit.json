@@ -34,6 +34,14 @@
     "calendarSubmit.alreadySubmittedHint": "💡 You have already submitted {count} unavailable date(s). You can add more below.",
     "calendarSubmit.selectDatesBelowHint": "Select dates below to mark when you're NOT available.",
 
+    "calendarSubmit.returning.selectLabel": "Been here before?",
+    "calendarSubmit.returning.selectPlaceholder": "Select your name...",
+    "calendarSubmit.returning.selectHint": "Pick your name to see and update what you already submitted.",
+    "calendarSubmit.returning.newNameLabel": "First time? Enter your name:",
+    "calendarSubmit.returning.or": "or",
+    "calendarSubmit.returning.welcomeBack": "👋 Welcome back,",
+    "calendarSubmit.returning.noDatesYetHint": "💡 You haven't submitted any unavailable dates yet.",
+
     "calendarSubmit.selectDatesLabel": "Select dates you are <strong>NOT</strong> available",
     "calendarSubmit.selectDatesHint": "Click on dates to select/deselect them. Click multiple dates to mark them all as unavailable.",
     "calendarSubmit.pickerHint": "Click on dates to select/deselect them",

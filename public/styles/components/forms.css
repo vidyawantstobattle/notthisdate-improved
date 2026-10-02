@@ -52,6 +52,16 @@
     margin-top: 0.5rem;
 }
 
+.form-tip {
+    margin-top: 0.5rem;
+    padding: 0.75rem 0.875rem;
+    border-radius: var(--radius);
+    background: var(--primary-bg);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
 .hint {
     font-size: 0.85rem;
     color: var(--text-muted);
@@ -74,15 +84,21 @@
 
 .checkbox-option {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    align-items: flex-start;
+    gap: 0.75rem;
     padding: 0.5rem 0;
     cursor: pointer;
     font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 .checkbox-option input {
-    width: auto;
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    margin: 0;
+    /* Nudge down so the box lines up with the first line of a wrapping label. */
+    margin-top: 0.15rem;
     accent-color: var(--primary-color);
 }
 
@@ -97,6 +113,12 @@
 #open-participants-options .form-hint {
     margin-top: 0.25rem;
     margin-bottom: 0;
+}
+
+/* The panel is already tinted, so the tip needs its own surface to stay legible. */
+#open-participants-options .form-tip {
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
 }
 
 .date-range-options,
@@ -121,6 +143,7 @@
 /* ===== BLOCKED DATES INPUT ===== */
 .blocked-dates-input-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
     align-items: center;
 }
@@ -128,6 +151,11 @@
 .blocked-dates-input-row input[type="date"] {
     flex: 1;
     min-width: 0;
+}
+
+.blocked-date-reason-input {
+    flex: 2;
+    min-width: 10rem;
 }
 
 .blocked-dates-input-row .btn {
@@ -155,6 +183,13 @@
     color: var(--text-secondary);
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
+}
+
+.blocked-date-reason {
+    padding-left: 0.4rem;
+    border-left: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-style: italic;
 }
 
 .blocked-date-remove {
@@ -409,6 +444,34 @@
     color: var(--text-primary);
     background: var(--bg-white);
     font-weight: 500;
+}
+
+/* Returning visitor name picker (open calendars) */
+.returning-participant-picker {
+    margin-bottom: 0.5rem;
+}
+
+.returning-participant-picker .form-hint {
+    margin-top: 0.5rem;
+}
+
+.participant-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1rem 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.participant-divider::before,
+.participant-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
 }
 
 .name-input {

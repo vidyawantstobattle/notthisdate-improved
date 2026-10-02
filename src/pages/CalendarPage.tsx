@@ -15,6 +15,11 @@ import Footer from '../components/Footer';
 import { unavailabilityApi } from '../api/unavailability.api';
 import { normalizeSubmissions } from '../core/participants';
 import { formatDisplayDate } from '../core/dateRanges';
+import {
+  getRememberedParticipant,
+  rememberParticipant,
+  forgetParticipant
+} from '../utils/participantMemory';
 import type { DateRange, UnavailabilityByDate } from '../types';
 
 function CalendarPage() {
@@ -28,6 +33,8 @@ function CalendarPage() {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [submittedDates, setSubmittedDates] = useState<string[]>([]);
   const [allUnavailability, setAllUnavailability] = useState<UnavailabilityByDate>({});
+  const [knownParticipants, setKnownParticipants] = useState<string[]>([]);
+  const [isReturningVisitor, setIsReturningVisitor] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: string; text: string }>({ type: '', text: '' });
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState<Error | null>(null);
@@ -35,15 +42,33 @@ function CalendarPage() {
 
   useDocumentTitle(calendar?.name || 'Calendar');
 
+  // Restore the name this visitor last used on this calendar so they don't submit twice.
+  useEffect(() => {
+    if (!calendar?.id) return;
+    const remembered = getRememberedParticipant(calendar.id);
+    if (!remembered) return;
+
+    const isDefined = calendar.participantsType === 'defined' && calendar.participants?.length > 0;
+    if (isDefined && !calendar.participants.includes(remembered)) {
+      forgetParticipant(calendar.id);
+      return;
+    }
+
+    setCurrentParticipant(remembered);
+    setIsReturningVisitor(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calendar?.id]);
+
   useEffect(() => {
     if (currentParticipant && calendar?.id) {
+      rememberParticipant(calendar.id, currentParticipant);
       loadUserSubmissions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentParticipant, calendar?.id]);
 
   useEffect(() => {
-    if (calendar?.id && activeTab === 'view') {
+    if (calendar?.id) {
       loadAllUnavailability();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -78,8 +103,12 @@ function CalendarPage() {
 
       const unavailabilityByDate: UnavailabilityByDate = {};
       const rawUnavailability = data.unavailability || {};
+      const participantNames: string[] = [];
 
       Object.entries(rawUnavailability).forEach(([participant, info]) => {
+        if (!participantNames.includes(participant)) {
+          participantNames.push(participant);
+        }
         const dates: string[] = Array.isArray(info) ? info : ((info as any)?.dates || []);
         dates.forEach(date => {
           if (!unavailabilityByDate[date]) {
@@ -92,10 +121,12 @@ function CalendarPage() {
       });
 
       setAllUnavailability(unavailabilityByDate);
+      setKnownParticipants(participantNames.sort((a, b) => a.localeCompare(b)));
     } catch (err) {
       console.error('Failed to load unavailability:', err);
       setApiError(err as Error);
       setAllUnavailability({});
+      setKnownParticipants([]);
     }
   };
 
@@ -122,6 +153,16 @@ function CalendarPage() {
     setSelectedDates(filtered);
   };
 
+  const handleParticipantChange = (name: string) => {
+    setCurrentParticipant(name);
+    setSelectedDates([]);
+    if (!name) {
+      setIsReturningVisitor(false);
+      setSubmittedDates([]);
+      forgetParticipant(calendar?.id);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!currentParticipant || !calendar) {
       showStatus('error', t('calendarSubmit.errorEnterName'));
@@ -142,6 +183,7 @@ function CalendarPage() {
 
       setSubmittedDates(prev => Array.from(new Set([...prev, ...selectedDates])).sort());
       setSelectedDates([]);
+      loadAllUnavailability();
     } catch (err) {
       setApiError(err as Error);
       showStatus('error', t('calendarSubmit.errorSubmitFailed'));
@@ -173,6 +215,7 @@ function CalendarPage() {
       showStatus('success', t('calendarSubmit.successReset'));
       setSelectedDates([]);
       setSubmittedDates([]);
+      loadAllUnavailability();
     } catch (err) {
       setApiError(err as Error);
       showStatus('error', t('calendarSubmit.errorResetFailed'));
@@ -292,10 +335,12 @@ function CalendarPage() {
                   <ParticipantInput
                     calendar={calendar}
                     currentParticipant={currentParticipant}
-                    onParticipantChange={setCurrentParticipant}
+                    onParticipantChange={handleParticipantChange}
                     submittedDates={submittedDates}
                     onReset={handleReset}
                     isResetting={submitting}
+                    knownParticipants={knownParticipants}
+                    isReturningVisitor={isReturningVisitor}
                   />
 
                   {currentParticipant && (

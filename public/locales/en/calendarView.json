@@ -18,5 +18,6 @@
     "calendarView.pending.desc": "{count} of {total} participants haven't submitted their dates yet:",
     "calendarView.pending.allSubmitted": "Everyone has submitted their dates.",
     "calendarView.blocked.title": "Blocked dates",
-    "calendarView.blocked.tooltip": "Blocked by the organiser"
+    "calendarView.blocked.tooltip": "Blocked by the organiser",
+    "calendarView.blocked.tooltipWithReason": "Blocked by the organiser: {reason}"
 }

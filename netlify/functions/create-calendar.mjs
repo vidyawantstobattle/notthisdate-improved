@@ -2,6 +2,7 @@ import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
 
 const MAX_CALENDARS_PER_USER = 10;
+const MAX_BLOCKED_REASON_LENGTH = 100;
 
 export default async (request, context) => {
     const headers = {

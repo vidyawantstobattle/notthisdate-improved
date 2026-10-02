@@ -9,6 +9,8 @@ interface ParticipantInputProps {
   submittedDates?: string[];
   onReset?: () => void;
   isResetting?: boolean;
+  knownParticipants?: string[];
+  isReturningVisitor?: boolean;
 }
 
 function ParticipantInput({
@@ -17,7 +19,9 @@ function ParticipantInput({
   onParticipantChange,
   submittedDates = [],
   onReset,
-  isResetting = false
+  isResetting = false,
+  knownParticipants = [],
+  isReturningVisitor = false
 }: ParticipantInputProps) {
   const { t } = useI18n();
   const [nameInput, setNameInput] = useState('');
@@ -31,6 +35,35 @@ function ParticipantInput({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentParticipant]);
+
+  const confirmName = (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    onParticipantChange(trimmed);
+    setNameConfirmed(true);
+  };
+
+  const renderStatus = () => (
+    submittedDates.length > 0 ? (
+      <div className="submission-status">
+        <p className="form-hint info">
+          {t('calendarSubmit.alreadySubmittedHint', { count: submittedDates.length })}
+        </p>
+        {onReset && (
+          <button
+            type="button"
+            className="btn btn-outline btn-small btn-danger-outline"
+            onClick={onReset}
+            disabled={isResetting}
+          >
+            {isResetting ? t('common.resetting') : t('calendarSubmit.resetBtn')}
+          </button>
+        )}
+      </div>
+    ) : (
+      <p className="form-hint">{t('calendarSubmit.selectDatesBelowHint')}</p>
+    )
+  );
 
   // Defined participants - show dropdown
   if (calendar?.participantsType === 'defined' && calendar?.participants?.length > 0) {
@@ -48,29 +81,9 @@ function ParticipantInput({
             <option key={idx} value={name}>{name}</option>
           ))}
         </select>
-        {currentParticipant && submittedDates.length > 0 && (
-          <div className="submission-status">
-            <p className="form-hint info">
-              {t('calendarSubmit.alreadySubmittedHint', { count: submittedDates.length })}
-            </p>
-            {onReset && (
-              <button
-                type="button"
-                className="btn btn-outline btn-small btn-danger-outline"
-                onClick={onReset}
-                disabled={isResetting}
-              >
-                {isResetting ? t('common.resetting') : t('calendarSubmit.resetBtn')}
-              </button>
-            )}
-          </div>
-        )}
-        {currentParticipant && submittedDates.length === 0 && (
-          <p className="form-hint">{t('calendarSubmit.selectDatesBelowHint')}</p>
-        )}
-        {!currentParticipant && (
-          <p className="form-hint">{t('calendarSubmit.selectNameHint')}</p>
-        )}
+        {currentParticipant
+          ? renderStatus()
+          : <p className="form-hint">{t('calendarSubmit.selectNameHint')}</p>}
       </div>
     );
   }
@@ -79,7 +92,34 @@ function ParticipantInput({
   if (!nameConfirmed || !currentParticipant) {
     return (
       <div className="participant-section">
-        <label htmlFor="participant-name-input">{t('calendarSubmit.enterNameLabel')}</label>
+        {knownParticipants.length > 0 && (
+          <div className="returning-participant-picker">
+            <label htmlFor="returning-participant-select">
+              {t('calendarSubmit.returning.selectLabel')}
+            </label>
+            <select
+              id="returning-participant-select"
+              className="participant-select"
+              value=""
+              onChange={(e) => confirmName(e.target.value)}
+            >
+              <option value="">{t('calendarSubmit.returning.selectPlaceholder')}</option>
+              {knownParticipants.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+            <p className="form-hint">{t('calendarSubmit.returning.selectHint')}</p>
+            <div className="participant-divider">
+              <span>{t('calendarSubmit.returning.or')}</span>
+            </div>
+          </div>
+        )}
+
+        <label htmlFor="participant-name-input">
+          {knownParticipants.length > 0
+            ? t('calendarSubmit.returning.newNameLabel')
+            : t('calendarSubmit.enterNameLabel')}
+        </label>
         <div className="name-input-row">
           <input
             type="text"
@@ -87,21 +127,19 @@ function ParticipantInput({
             className="name-input"
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && nameInput.trim()) {
-                onParticipantChange(nameInput.trim());
-                setNameConfirmed(true);
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                confirmName(nameInput);
               }
             }}
             placeholder={t('calendarSubmit.namePlaceholder')}
+            autoComplete="name"
           />
           <button
             className="btn btn-primary"
             disabled={!nameInput.trim()}
-            onClick={() => {
-              onParticipantChange(nameInput.trim());
-              setNameConfirmed(true);
-            }}
+            onClick={() => confirmName(nameInput)}
           >
             {t('calendarSubmit.welcome.continue')}
           </button>
@@ -116,7 +154,9 @@ function ParticipantInput({
     <div className="participant-section">
       <div className="confirmed-participant">
         <div className="participant-info">
-          <span className="participant-label">{t('calendarSubmit.submittingAs')}</span>
+          <span className="participant-label">
+            {isReturningVisitor ? t('calendarSubmit.returning.welcomeBack') : t('calendarSubmit.submittingAs')}
+          </span>
           <span className="participant-name">{currentParticipant}</span>
         </div>
         <button
@@ -131,25 +171,10 @@ function ParticipantInput({
           {t('calendarSubmit.changeBtn')}
         </button>
       </div>
-      {submittedDates.length > 0 ? (
-        <div className="submission-status">
-          <p className="form-hint info">
-            {t('calendarSubmit.alreadySubmittedHint', { count: submittedDates.length })}
-          </p>
-          {onReset && (
-            <button
-              type="button"
-              className="btn btn-outline btn-small btn-danger-outline"
-              onClick={onReset}
-              disabled={isResetting}
-            >
-              {isResetting ? t('common.resetting') : t('calendarSubmit.resetBtn')}
-            </button>
-          )}
-        </div>
-      ) : (
-        <p className="form-hint">{t('calendarSubmit.selectDatesBelowHint')}</p>
+      {isReturningVisitor && submittedDates.length === 0 && (
+        <p className="form-hint info">{t('calendarSubmit.returning.noDatesYetHint')}</p>
       )}
+      {renderStatus()}
     </div>
   );
 }
