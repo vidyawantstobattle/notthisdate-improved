@@ -5,6 +5,7 @@ import {
     collapseParticipantKeys,
     toSubmissionEntry
 } from "./utils/participant-utils.mjs";
+import { MAX_PARTICIPANTS } from "./utils/limits.mjs";
 
 export default async (request, context) => {
     const headers = {
@@ -66,6 +67,15 @@ export default async (request, context) => {
 
         const enteredName = participantName.trim();
         const matchingKeys = findMatchingParticipantKeys(calendar.unavailability, enteredName);
+
+        // Open calendars have no pre-set list, so the cap is enforced as people join.
+        if (matchingKeys.length === 0 && Object.keys(calendar.unavailability).length >= MAX_PARTICIPANTS) {
+            return new Response(JSON.stringify({
+                error: `This calendar has reached its limit of ${MAX_PARTICIPANTS} participants.`,
+                code: 'PARTICIPANT_LIMIT_REACHED',
+                limit: MAX_PARTICIPANTS
+            }), { status: 403, headers });
+        }
 
         // Reuse an existing key for this user (case-insensitive) to avoid duplicates.
         const participantKey = chooseCanonicalParticipantKey(matchingKeys, enteredName);

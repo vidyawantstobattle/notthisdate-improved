@@ -5,6 +5,7 @@ import { useI18n, RichText } from '../context/I18nContext';
 import LanguageSelector from '../components/LanguageSelector';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import Footer from '../components/Footer';
+import { getAvailabilityColor, getAvailabilityTextColor, getGraynessRatio } from '../core/availability';
 
 const CATEGORIES = [
   { key: 'trips', icon: '✈️' },
@@ -113,7 +114,7 @@ function LandingPage() {
               <RichText as="p" k="landing.howItWorks.step1.desc" />
             </div>
             <div className="step-visual">
-              <div className="step-icon-panel icon-calendar" aria-hidden="true"></div>
+              <DemoCreateForm title={t('landing.demo.title')} />
             </div>
           </article>
 
@@ -126,7 +127,7 @@ function LandingPage() {
               <RichText as="p" k="landing.howItWorks.step2.desc" />
             </div>
             <div className="step-visual">
-              <DemoCalendar title={t('landing.demo.title')} unavailable={[3, 4, 10]} />
+              <DemoSubmitCalendar title={t('landing.demo.title')} />
             </div>
           </article>
 
@@ -139,7 +140,7 @@ function LandingPage() {
               <RichText as="p" k="landing.howItWorks.step3.desc" />
             </div>
             <div className="step-visual">
-              <DemoCalendar title={t('landing.demo.title')} unavailable={[3, 4, 10]} selected={7} />
+              <DemoHeatmapCalendar title={t('landing.demo.title')} />
             </div>
           </article>
         </div>
@@ -177,31 +178,158 @@ function LandingPage() {
   );
 }
 
-function DemoCalendar({
+// The three demos below are hand-built mock-ups rather than screenshots so they stay
+// in sync with the theme variables and translate with the rest of the page.
+const DEMO_WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const DEMO_DAYS_IN_MONTH = 31;
+// July 2026 starts on a Wednesday, so two blanks lead the grid.
+const DEMO_LEADING_BLANKS = 2;
+
+function DemoPanel({
   title,
-  unavailable = [],
-  selected
+  legend,
+  children
 }: {
   title: string;
-  unavailable?: number[];
-  selected?: number;
+  legend?: { color: string; label: string; outlined?: boolean }[];
+  children: React.ReactNode;
 }) {
   return (
-    <div className="demo-calendar">
-      <div className="demo-header">{title}</div>
-      <div className="demo-grid">
-        {Array.from({ length: 15 }, (_, i) => (
-          <div
-            key={i}
-            className={`demo-day${unavailable.includes(i) ? ' unavailable' : ''}${selected === i ? ' selected' : ''}`}
-          >
-            {i + 1}
-          </div>
-        ))}
-      </div>
+    <div className="demo-panel" aria-hidden="true">
+      <div className="demo-panel-header">{title}</div>
+      <div className="demo-panel-body">{children}</div>
+      {legend && (
+        <div className="demo-panel-legend">
+          {legend.map(({ color, label, outlined }) => (
+            <span key={label} className="demo-legend-item">
+              <span
+                className={`demo-legend-swatch${outlined ? ' is-outlined' : ''}`}
+                style={{ background: color }}
+              ></span>
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
+function DemoMonthGrid({ renderDay }: { renderDay: (day: number) => React.ReactNode }) {
+  return (
+    <div className="demo-month">
+      {DEMO_WEEKDAYS.map((label, i) => (
+        <span key={`wd-${i}`} className="demo-weekday">{label}</span>
+      ))}
+      {Array.from({ length: DEMO_LEADING_BLANKS }, (_, i) => (
+        <span key={`blank-${i}`} className="demo-cell is-blank"></span>
+      ))}
+      {Array.from({ length: DEMO_DAYS_IN_MONTH }, (_, i) => renderDay(i + 1))}
+    </div>
+  );
+}
+
+function DemoCreateForm({ title }: { title: string }) {
+  const { t } = useI18n();
+
+  return (
+    <DemoPanel title={t('landing.demo.create.header')}>
+      <div className="demo-field">
+        <span className="demo-field-label">{t('landing.demo.create.titleLabel')}</span>
+        <span className="demo-field-input is-typing">
+          {title}
+          <span className="demo-caret"></span>
+        </span>
+      </div>
+
+      <div className="demo-field-row">
+        <div className="demo-field">
+          <span className="demo-field-label">{t('landing.demo.create.fromLabel')}</span>
+          <span className="demo-field-input">{t('landing.demo.create.fromValue')}</span>
+        </div>
+        <div className="demo-field">
+          <span className="demo-field-label">{t('landing.demo.create.toLabel')}</span>
+          <span className="demo-field-input">{t('landing.demo.create.toValue')}</span>
+        </div>
+      </div>
+
+      <div className="demo-field">
+        <span className="demo-field-label">{t('landing.demo.create.participantsLabel')}</span>
+        <span className="demo-tag-row">
+          {['Vidya', 'Arjen', 'Vivian', 'Sahir'].map(person => (
+            <span key={person} className="demo-tag">
+              {person}<span className="demo-tag-x">×</span>
+            </span>
+          ))}
+        </span>
+      </div>
+
+      <span className="demo-cta">{t('landing.demo.create.cta')}</span>
+    </DemoPanel>
+  );
+}
+
+function DemoSubmitCalendar({ title }: { title: string }) {
+  const { t } = useI18n();
+  const submitted = [11, 12, 13];
+  const pending = [24, 25];
+
+  return (
+    <DemoPanel
+      title={title}
+      legend={[
+        { color: 'var(--danger-overlay-pending)', label: t('landing.demo.submit.pending'), outlined: true },
+        { color: 'var(--danger-color)', label: t('landing.demo.submit.submitted') }
+      ]}
+    >
+      <DemoMonthGrid
+        renderDay={day => {
+          const state = submitted.includes(day)
+            ? ' is-submitted'
+            : pending.includes(day)
+              ? ' is-pending'
+              : '';
+          return <span key={day} className={`demo-cell${state}`}>{day}</span>;
+        }}
+      />
+    </DemoPanel>
+  );
+}
+
+function DemoHeatmapCalendar({ title }: { title: string }) {
+  const { t } = useI18n();
+  // How many of the 4 demo participants are unavailable on each day.
+  const unavailableCounts: Record<number, number> = {
+    3: 1, 4: 2, 5: 4, 6: 4, 10: 1, 11: 3, 12: 3, 13: 2,
+    17: 1, 18: 4, 19: 4, 20: 2, 24: 2, 25: 1, 26: 3, 27: 4, 31: 2
+  };
+  const bestDay = 15;
+
+  return (
+    <DemoPanel
+      title={title}
+      legend={[
+        { color: getAvailabilityColor(0), label: t('landing.demo.heatmap.everyone') },
+        { color: getAvailabilityColor(0.4), label: t('landing.demo.heatmap.some') },
+        { color: getAvailabilityColor(1), label: t('landing.demo.heatmap.most') }
+      ]}
+    >
+      <DemoMonthGrid
+        renderDay={day => {
+          const ratio = getGraynessRatio(unavailableCounts[day] || 0, 4);
+          return (
+            <span
+              key={day}
+              className={`demo-cell is-heat${day === bestDay ? ' is-best' : ''}`}
+              style={{ background: getAvailabilityColor(ratio), color: getAvailabilityTextColor(ratio) }}
+            >
+              {day}
+            </span>
+          );
+        }}
+      />
+    </DemoPanel>
+  );
+}
 
 export default LandingPage;

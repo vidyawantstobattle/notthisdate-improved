@@ -1,7 +1,8 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
+import { normalizeParticipantName } from "./utils/participant-utils.mjs";
+import { MAX_CALENDARS_PER_USER, MAX_PARTICIPANTS } from "./utils/limits.mjs";
 
-const MAX_CALENDARS_PER_USER = 10;
 const MAX_BLOCKED_REASON_LENGTH = 100;
 
 export default async (request, context) => {
@@ -45,6 +46,29 @@ export default async (request, context) => {
 
         if (!name || !name.trim()) {
             return new Response(JSON.stringify({ error: 'Calendar name is required' }), { status: 400, headers });
+        }
+
+        // Trim, drop blanks, and de-duplicate case-insensitively while keeping entered casing.
+        const cleanParticipants = [];
+        if (participantsType !== 'open' && Array.isArray(participants)) {
+            const seen = new Set();
+            participants.forEach(entry => {
+                if (typeof entry !== 'string') return;
+                const trimmed = entry.trim();
+                if (!trimmed) return;
+                const key = normalizeParticipantName(trimmed);
+                if (seen.has(key)) return;
+                seen.add(key);
+                cleanParticipants.push(trimmed);
+            });
+        }
+
+        if (cleanParticipants.length > MAX_PARTICIPANTS) {
+            return new Response(JSON.stringify({
+                error: `A calendar can have at most ${MAX_PARTICIPANTS} participants.`,
+                code: 'PARTICIPANT_LIMIT_REACHED',
+                limit: MAX_PARTICIPANTS
+            }), { status: 400, headers });
         }
 
         const userStore = getStore({
@@ -100,7 +124,7 @@ export default async (request, context) => {
             startDate,
             endDate,
             participantsType,
-            participants: participants || [],
+            participants: cleanParticipants,
             blockedDates: safeBlockedDates,
             blockedDateReasons: safeBlockedDateReasons,
             requireEmailVerification: participantsType === 'open' ? (requireEmailVerification || false) : false,

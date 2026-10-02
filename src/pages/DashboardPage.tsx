@@ -11,6 +11,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import TagsInput from '../components/TagsInput';
 import Footer from '../components/Footer';
 import { formatDisplayDate } from '../core/dateRanges';
+import { MAX_PARTICIPANTS } from '../config/site';
 import type { Calendar, ParticipantsType } from '../types';
 
 function DashboardPage() {
@@ -119,6 +120,11 @@ function DashboardPage() {
 
     if (!makeOpen && editParticipants.length === 0) {
       setEditParticipantsError(t('dashboard.editParticipants.errorEmpty'));
+      return;
+    }
+
+    if (!makeOpen && editParticipants.length > MAX_PARTICIPANTS) {
+      setEditParticipantsError(t('dashboard.editParticipants.errorTooMany', { max: MAX_PARTICIPANTS }));
       return;
     }
 

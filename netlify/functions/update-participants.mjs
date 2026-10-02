@@ -1,7 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { normalizeParticipantName } from "./utils/participant-utils.mjs";
-
-const MAX_PARTICIPANTS = 50;
+import { MAX_PARTICIPANTS } from "./utils/limits.mjs";
 
 export default async (request, context) => {
     const headers = {

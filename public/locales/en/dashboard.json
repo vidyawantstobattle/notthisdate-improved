@@ -81,6 +81,7 @@
     "dashboard.editParticipants.opened": "Calendar is now open to anyone with the link.",
     "dashboard.editParticipants.warning": "Removing someone also deletes the dates they already submitted.",
     "dashboard.editParticipants.errorEmpty": "Add at least one participant.",
+    "dashboard.editParticipants.errorTooMany": "A calendar can have at most {max} participants.",
     "dashboard.editParticipants.saved": "Participants updated.",
     "dashboard.editParticipants.saveFailed": "Could not update participants. Please try again."
 }

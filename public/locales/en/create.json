@@ -74,6 +74,7 @@
     "create.error.missingDates": "Please select both a first and last date",
     "create.error.endBeforeStart": "The last date must be after the first date",
     "create.error.noParticipants": "Please add at least one participant",
+    "create.error.tooManyParticipants": "A calendar can have at most {max} participants.",
     "create.error.blockedOutOfRange": "Blocked dates must fall inside the calendar's date range.",
     "create.error.generic": "Failed to create calendar: {message}",
 

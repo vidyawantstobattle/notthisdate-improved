@@ -229,8 +229,7 @@
 }
 
 .feature-icon::before,
-.benefit-icon::before,
-.step-icon-panel::before {
+.benefit-icon::before {
     content: "";
     width: 1.6rem;
     height: 1.6rem;
@@ -384,25 +383,6 @@
     justify-content: center;
 }
 
-.step-icon-panel {
-    width: 100%;
-    max-width: 300px;
-    aspect-ratio: 4 / 3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: var(--shadow-sm);
-    color: var(--icon-accent, var(--primary-color));
-}
-
-.step-icon-panel::before {
-    width: 4rem;
-    height: 4rem;
-}
-
 .steps-cta {
     padding-top: 2.5rem;
     text-align: center;
@@ -532,50 +512,207 @@
     line-height: 1.65;
 }
 
-/* ===== DEMO CALENDAR ===== */
-.demo-calendar {
-    background: var(--bg-white);
-    border-radius: var(--radius);
-    padding: 1rem;
+/* ===== STEP DEMO PANELS =====
+   Mock-ups of the real create form / date picker / heatmap. Colors are pulled from
+   the same variables the live components use so the two can't drift apart. */
+.demo-panel {
     width: 100%;
-    max-width: 300px;
-    box-shadow: var(--shadow-sm);
+    max-width: 320px;
+    background: var(--bg-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
 }
 
-.demo-header {
+.demo-panel-header {
+    padding: 0.6rem 0.75rem;
+    background: var(--primary-color);
+    color: var(--color-white);
     text-align: center;
+    font-family: var(--font-family-heading);
+    font-size: 0.8rem;
     font-weight: 600;
-    color: var(--secondary-color);
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border-color);
+    letter-spacing: -0.01em;
 }
 
-.demo-grid {
+.demo-panel-body {
+    padding: 0.85rem;
+}
+
+.demo-panel-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+}
+
+.demo-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.demo-legend-swatch {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.demo-legend-swatch.is-outlined {
+    border: 1px solid var(--danger-overlay-border-lg);
+}
+
+/* --- Step 1: create form --- */
+.demo-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.demo-field + .demo-field,
+.demo-field-row + .demo-field,
+.demo-field + .demo-field-row {
+    margin-top: 0.6rem;
+}
+
+.demo-field-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.demo-field-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.demo-field-input {
+    display: flex;
+    align-items: center;
+    min-height: 1.9rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    font-size: 0.72rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.demo-field-input.is-typing {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-bg);
+}
+
+.demo-caret {
+    width: 1px;
+    height: 0.85rem;
+    margin-left: 2px;
+    background: var(--primary-color);
+    animation: demo-blink 1.1s steps(1) infinite;
+}
+
+@keyframes demo-blink {
+    50% { opacity: 0; }
+}
+
+.demo-tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.35rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+.demo-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 20px;
+    background: var(--primary-bg);
+    color: var(--primary-color);
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+.demo-tag-x {
+    opacity: 0.5;
+}
+
+.demo-cta {
+    display: block;
+    margin-top: 0.85rem;
+    padding: 0.45rem;
+    border-radius: var(--radius-sm);
+    background: var(--primary-color);
+    color: var(--color-white);
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+/* --- Steps 2 & 3: month grids --- */
+.demo-month {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 3px;
 }
 
-.demo-day {
+.demo-weekday {
+    text-align: center;
+    font-size: 0.55rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    padding-bottom: 0.2rem;
+}
+
+.demo-cell {
     aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-primary);
+    border: 1px solid transparent;
     border-radius: 4px;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
+    background: var(--bg-white);
+    font-size: 0.62rem;
+    font-weight: 500;
+    color: var(--text-primary);
 }
 
-.demo-day.unavailable {
-    background: var(--danger-bg);
+.demo-cell.is-blank {
+    background: transparent;
+}
+
+.demo-cell.is-pending {
+    background: var(--danger-overlay-pending);
+    border-color: var(--danger-overlay-border-lg);
     color: var(--danger-color);
 }
 
-.demo-day.selected {
-    background: var(--success-color);
-    color: white;
+.demo-cell.is-submitted {
+    background: var(--danger-color);
+    border-color: var(--danger-color);
+    color: var(--color-white);
+}
+
+.demo-cell.is-best {
+    box-shadow: 0 0 0 2px var(--secondary-color);
+    font-weight: 700;
 }
 
 /* ===== ABOUT PAGE ===== */

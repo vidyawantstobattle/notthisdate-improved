@@ -10,6 +10,7 @@ import AdPlaceholder from '../components/AdPlaceholder';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import { calendarsApi } from '../api/calendars.api';
 import { formatDisplayDate } from '../core/dateRanges';
+import { MAX_PARTICIPANTS } from '../config/site';
 import type { CreateCalendarInput, ParticipantsType } from '../types';
 
 const BASE_STEPS = ['basics', 'dates', 'review'] as const;
@@ -121,6 +122,9 @@ function CreateCalendarPage() {
       if (!name.trim()) return t('create.error.missingName');
       if (participantsType === 'defined' && participants.length === 0) {
         return t('create.error.noParticipants');
+      }
+      if (participants.length > MAX_PARTICIPANTS) {
+        return t('create.error.tooManyParticipants', { max: MAX_PARTICIPANTS });
       }
     }
     if (index === 1) {
