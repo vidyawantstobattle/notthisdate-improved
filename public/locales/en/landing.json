@@ -17,6 +17,7 @@
     "landing.demo.heatmap.everyone": "All free",
     "landing.demo.heatmap.some": "Some busy",
     "landing.demo.heatmap.most": "Most busy",
+    "landing.demo.heatmap.progress": "{count}/{total} replied",
 
     "landing.howItWorks.title": "Simple Group Scheduling in 3 Steps",
     "landing.howItWorks.step1.title": "Create a Calendar",

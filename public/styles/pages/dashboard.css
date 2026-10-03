@@ -51,6 +51,28 @@
     gap: 1.5rem;
 }
 
+.account-danger-zone {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    background: var(--bg-white);
+    border: 1px solid var(--danger-color);
+    border-radius: var(--radius-lg);
+}
+
+.account-danger-zone h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--danger-color);
+    margin: 0 0 0.5rem;
+}
+
+.account-danger-hint {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin: 0 0 1rem;
+    max-width: 60ch;
+}
+
 .calendar-card {
     display: flex;
     flex-direction: column;

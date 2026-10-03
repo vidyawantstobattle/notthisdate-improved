@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, type ReactElement } from 'react';
-import { getAvailabilityColor, getAvailabilityTextColor } from '../core/availability';
+import { getAvailabilityColor, getAvailabilityTextColor, findBestDates, type BestDatesResult } from '../core/availability';
+import { groupIntoRanges, formatDisplayDate, formatDateDisplay } from '../core/dateRanges';
 import { useI18n } from '../context/I18nContext';
 import type { Calendar, UnavailabilityByDate } from '../types';
 
@@ -33,10 +34,23 @@ function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps
     ? calendar.participants?.length || 1
     : Math.max(allParticipants.length, 1);
 
+  const blockedDates = calendar.blockedDates || [];
+  const blockedDateReasons = calendar.blockedDateReasons || {};
+
+  const hasSubmissions = Object.values(allUnavailability || {}).some(people => people?.length);
+  const bestDates = findBestDates(
+    calendar.startDate,
+    calendar.endDate,
+    allUnavailability,
+    totalPeople,
+    blockedDates
+  );
+
   return (
     <div className="availability-view">
       <div className="availability-header">
         <h3>{t('calendarShell.tabs.view')}</h3>
+        <BestDatesPanel result={bestDates} hasSubmissions={hasSubmissions} />
         <p className="availability-subtitle">{t('calendarView.legend.note')}</p>
       </div>
 
@@ -53,6 +67,12 @@ function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps
           <span className="legend-color" style={{ background: '#6b7280' }} aria-hidden="true"></span>
           <span>{t('calendarView.legend.manyUnavailable')}</span>
         </div>
+        {blockedDates.length > 0 && (
+          <div className="legend-item">
+            <span className="legend-color legend-color-blocked" aria-hidden="true"></span>
+            <span>{t('calendarView.legend.blocked')}</span>
+          </div>
+        )}
       </div>
 
       <div className="availability-months-grid">
@@ -65,7 +85,10 @@ function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps
             endDate={endDate}
             allUnavailability={allUnavailability}
             totalPeople={totalPeople}
+            blockedDates={blockedDates}
+            blockedDateReasons={blockedDateReasons}
             onDateClick={setSelectedDate}
+            t={t}
           />
         ))}
       </div>
@@ -82,6 +105,60 @@ function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps
   );
 }
 
+// How many tied ranges to spell out before collapsing the rest into a count.
+const MAX_BEST_RANGES_SHOWN = 3;
+
+function formatRange(start: string, end: string): string {
+  return start === end ? formatDisplayDate(start) : `${formatDateDisplay(start)} – ${formatDisplayDate(end)}`;
+}
+
+interface BestDatesPanelProps {
+  result: BestDatesResult | null;
+  hasSubmissions: boolean;
+}
+
+// The headline answer: which date(s) currently clash with the fewest people.
+function BestDatesPanel({ result, hasSubmissions }: BestDatesPanelProps) {
+  const { t } = useI18n();
+
+  if (!hasSubmissions) {
+    return (
+      <p className="best-dates-panel is-empty">{t('calendarView.best.awaitingSubmissions')}</p>
+    );
+  }
+
+  if (!result) return null;
+
+  if (result.availableCount === 0) {
+    return <p className="best-dates-panel is-empty">{t('calendarView.best.none')}</p>;
+  }
+
+  const ranges = groupIntoRanges(result.dates);
+  const shown = ranges.slice(0, MAX_BEST_RANGES_SHOWN);
+  const remaining = ranges.length - shown.length;
+
+  return (
+    <div className="best-dates-panel">
+      <span className="best-dates-label">{t('calendarView.best.title')}</span>
+      <ul className="best-dates-list">
+        {shown.map(range => (
+          <li key={`${range.start}-${range.end}`} className="best-dates-item">
+            {formatRange(range.start, range.end)}
+          </li>
+        ))}
+        {remaining > 0 && (
+          <li className="best-dates-item is-more">{t('calendarView.best.more', { count: remaining })}</li>
+        )}
+      </ul>
+      <span className="best-dates-count">
+        {result.unavailableCount === 0
+          ? t('calendarView.best.everyoneAvailable')
+          : t('calendarView.best.someAvailable', { available: result.availableCount, total: result.totalPeople })}
+      </span>
+    </div>
+  );
+}
+
 interface MonthCalendarProps {
   year: number;
   month: number;
@@ -89,10 +166,24 @@ interface MonthCalendarProps {
   endDate: Date;
   allUnavailability: UnavailabilityByDate;
   totalPeople: number;
+  blockedDates: string[];
+  blockedDateReasons: Record<string, string>;
   onDateClick: (dateStr: string) => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
-function MonthCalendar({ year, month, startDate, endDate, allUnavailability, totalPeople, onDateClick }: MonthCalendarProps) {
+function MonthCalendar({
+  year,
+  month,
+  startDate,
+  endDate,
+  allUnavailability,
+  totalPeople,
+  blockedDates,
+  blockedDateReasons,
+  onDateClick,
+  t
+}: MonthCalendarProps) {
   const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   const firstDayOfMonth = new Date(year, month, 1);
   const lastDayOfMonth = new Date(year, month + 1, 0);
@@ -126,6 +217,26 @@ function MonthCalendar({ year, month, startDate, endDate, allUnavailability, tot
 
     const unavailablePeople = allUnavailability[dateStr] || [];
     const unavailableCount = unavailablePeople.length;
+
+    if (blockedDates.includes(dateStr)) {
+      const reason = blockedDateReasons[dateStr];
+      calendarCells.push(
+        <div
+          key={day}
+          className="av-calendar-day in-range is-blocked"
+          title={reason
+            ? t('calendarView.blocked.tooltipWithReason', { reason })
+            : t('calendarView.blocked.tooltip')}
+          aria-label={`${monthName} ${day}. ${reason
+            ? t('calendarView.blocked.tooltipWithReason', { reason })
+            : t('calendarView.blocked.tooltip')}`}
+        >
+          <span className="day-number">{day}</span>
+        </div>
+      );
+      continue;
+    }
+
     const ratio = totalPeople > 0 ? unavailableCount / totalPeople : 0;
     const bgColor = getAvailabilityColor(ratio);
     const textColor = getAvailabilityTextColor(ratio);

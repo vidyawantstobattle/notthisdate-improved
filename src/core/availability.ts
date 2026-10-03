@@ -7,6 +7,9 @@
 //   0.5 <= ratio < 0.7 -> orange (#f97316)
 //   ratio >= 0.7      -> gray   (#6b7280) most/all unavailable
 
+import { formatDateLocal, parseDateLocal } from './dateRanges';
+import type { UnavailabilityByDate } from '../types';
+
 export function getGraynessRatio(unavailableCount: number, totalPeople: number): number {
   if (totalPeople <= 0) return 0;
   return Math.min(unavailableCount / totalPeople, 1);
@@ -22,4 +25,55 @@ export function getAvailabilityColor(ratio: number): string {
 
 export function getAvailabilityTextColor(ratio: number): string {
   return ratio > 0.5 ? '#ffffff' : '#2c3529';
+}
+
+// ===== BEST DATE SEARCH =====
+
+export interface BestDatesResult {
+  // Every date tied for the fewest clashes, ascending.
+  dates: string[];
+  unavailableCount: number;
+  availableCount: number;
+  totalPeople: number;
+}
+
+// Scans the calendar range for the date(s) that clash with the fewest people.
+// Blocked dates are excluded: nobody can pick them, so they are not a result.
+// Returns null when there is nothing meaningful to report yet.
+export function findBestDates(
+  startDate: string,
+  endDate: string,
+  allUnavailability: UnavailabilityByDate,
+  totalPeople: number,
+  blockedDates: string[] = []
+): BestDatesResult | null {
+  const start = parseDateLocal(startDate);
+  const end = parseDateLocal(endDate);
+  if (!start || !end || start > end) return null;
+
+  const blocked = new Set(blockedDates);
+  let best = Infinity;
+  let dates: string[] = [];
+
+  for (const cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
+    const dateStr = formatDateLocal(cursor);
+    if (blocked.has(dateStr)) continue;
+
+    const count = allUnavailability[dateStr]?.length || 0;
+    if (count < best) {
+      best = count;
+      dates = [dateStr];
+    } else if (count === best) {
+      dates.push(dateStr);
+    }
+  }
+
+  if (dates.length === 0) return null;
+
+  return {
+    dates,
+    unavailableCount: best,
+    availableCount: Math.max(totalPeople - best, 0),
+    totalPeople
+  };
 }

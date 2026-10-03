@@ -24,6 +24,18 @@
     "dashboard.confirmDelete.message": "This cannot be undone. All submitted dates will be permanently lost.",
     "dashboard.confirmDelete.confirmLabel": "Delete",
 
+    "dashboard.account.title": "Account",
+    "dashboard.account.deleteCta": "Delete my account",
+    "dashboard.account.deleteHint": "Permanently deletes your account and every calendar you created, including dates other people submitted to them.",
+    "dashboard.account.modalTitle": "Delete your account?",
+    "dashboard.account.modalWarning": "This is permanent and cannot be undone. Your account, your {count} calendar(s) and all dates submitted to them will be erased.",
+    "dashboard.account.confirmPrompt": "Type your email address to confirm:",
+    "dashboard.account.confirmMismatch": "That doesn't match your email address.",
+    "dashboard.account.confirmLabel": "Permanently delete",
+    "dashboard.account.deleting": "Deleting your account...",
+    "dashboard.account.deleteFailed": "Could not delete your account. Please try again.",
+    "dashboard.account.deleted": "Your account and all its data have been deleted.",
+
     "dashboard.createModal.title": "Create New Calendar",
     "dashboard.createModal.subtitle": "Set up a new group availability calendar",
     "dashboard.createModal.nameLabel": "Calendar Name *",

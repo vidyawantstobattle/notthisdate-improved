@@ -870,6 +870,65 @@
     font-size: 0.9rem;
 }
 
+/* Headline answer: the date(s) that clash with the fewest people. */
+.best-dates-panel {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem 0.75rem;
+    margin: 0 auto 0.75rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--success-bg);
+    border: 1px solid var(--success-color);
+    border-radius: var(--radius);
+}
+
+.best-dates-panel.is-empty {
+    display: block;
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.best-dates-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.best-dates-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.best-dates-item {
+    background: var(--bg-white);
+    border-radius: var(--radius-sm);
+    padding: 0.2rem 0.6rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+.best-dates-item.is-more {
+    background: transparent;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.best-dates-count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
 .legend {
     padding: 1rem 1.5rem;
     background: var(--bg-primary);
@@ -1085,6 +1144,36 @@
     z-index: 1;
 }
 
+/* Organiser-blocked dates: same hatched treatment as the submit calendar so the
+   two views read the same way. Not clickable - nobody can be (un)available. */
+.av-calendar-day.is-blocked {
+    background: repeating-linear-gradient(
+        45deg,
+        var(--bg-primary),
+        var(--bg-primary) 4px,
+        var(--border-color) 4px,
+        var(--border-color) 8px
+    );
+    color: var(--text-muted);
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.av-calendar-day.is-blocked:hover {
+    transform: none;
+    box-shadow: inset 0 0 0 1px var(--color-overlay-dark);
+}
+
+.legend-color-blocked {
+    background: repeating-linear-gradient(
+        45deg,
+        var(--bg-primary),
+        var(--bg-primary) 3px,
+        var(--border-color) 3px,
+        var(--border-color) 6px
+    );
+}
+
 .av-calendar-day .day-number {
     font-weight: 600;
     line-height: 1;
@@ -1251,7 +1340,7 @@
     width: 16px;
     height: 16px;
     transform: translateY(-50%);
-    background: no-repeat center / contain url('/images/Smileys_Unhappy_Outline.svg');
+    background: no-repeat center / contain url('/images/smiley_unhappy_outline.svg');
 }
 
 #date-details-content .available-people {
@@ -1273,7 +1362,7 @@
     width: 16px;
     height: 16px;
     transform: translateY(-50%);
-    background: no-repeat center / contain url('/images/Smileys_Happy_Outline.svg');
+    background: no-repeat center / contain url('/images/smiley_happy_outline.svg');
 }
 
 /* ===== BLOCKED DATES ===== */
@@ -1354,7 +1443,7 @@
     width: 16px;
     height: 16px;
     transform: translateY(-50%);
-    background: no-repeat center / contain url('/images/Smileys_Happy_Outline.svg');
+    background: no-repeat center / contain url('/images/smiley_happy_outline.svg');
 }
 
 .pending-list {

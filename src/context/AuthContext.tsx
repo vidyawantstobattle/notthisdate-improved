@@ -117,38 +117,67 @@ export function consumePendingCalendarDraft(): PendingCalendarDraft | null {
   }
 }
 
+// Tokens Netlify Identity hands back in the URL fragment (email confirmation,
+// invites, password recovery). They must survive until the widget has consumed
+// them, then be wiped so a reload can't replay the flow.
+const IDENTITY_HASH_TOKEN = /\b(confirmation_token|invite_token|recovery_token|email_change_token|access_token)=/;
+
+function clearIdentityHash(): void {
+  if (IDENTITY_HASH_TOKEN.test(window.location.hash)) {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+}
+
+// The widget lives in a full-screen fixed iframe that it only hides as part of
+// its own close animation. A programmatic close (which is what happens right
+// after the email-confirmation login) can leave that iframe on top of the page,
+// where it silently swallows every click until the next full reload.
+function setWidgetIframeHidden(hidden: boolean): void {
+  const iframe = document.querySelector<HTMLElement>('#netlify-identity-widget');
+  if (!iframe) return;
+  iframe.style.visibility = hidden ? 'hidden' : '';
+  iframe.style.pointerEvents = hidden ? 'none' : '';
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [netlifyIdentity, setNetlifyIdentity] = useState<any>(null);
 
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
-    script.async = true;
-    document.head.appendChild(script);
+    const existing = (window as any).netlifyIdentity;
+    let script: HTMLScriptElement | null = null;
 
-    script.onload = () => {
-      const identity = (window as any).netlifyIdentity;
+    const wireUp = (identity: any) => {
       setNetlifyIdentity(identity);
 
-      identity.on('init', (u: AuthUser) => {
+      identity.on('init', (u: AuthUser | null) => {
         setUser(u);
         setLoading(false);
       });
 
       identity.on('login', (u: AuthUser) => {
         setUser(u);
-        identity.close();
+        // Defer: closing synchronously from inside the event leaves the widget
+        // mid-animation, which is how the dead full-screen iframe appears.
+        setTimeout(() => {
+          identity.close();
+          setWidgetIframeHidden(true);
+        }, 0);
+        clearIdentityHash();
       });
 
       identity.on('logout', () => {
         setUser(null);
+        setWidgetIframeHidden(true);
       });
 
+      identity.on('open', () => setWidgetIframeHidden(false));
+      identity.on('close', () => setWidgetIframeHidden(true));
+
       // Identity has no endpoint to talk to on localhost, so point it at the
-      // deployed site (mirrors public/app.js). Without this the `init` event
-      // never fires and the UI hangs in its loading state.
+      // deployed site. Without this the `init` event never fires and the UI
+      // hangs in its loading state.
       const host = window.location.hostname;
       if (host === 'localhost' || host === '127.0.0.1') {
         identity.init({ APIUrl: 'https://reverse-date-picker.netlify.app/.netlify/identity' });
@@ -157,16 +186,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // Don't strand the UI in a loading state if the widget is blocked.
-    script.onerror = () => setLoading(false);
+    if (existing) {
+      wireUp(existing);
+    } else {
+      script = document.createElement('script');
+      script.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
+      script.async = true;
+      script.onload = () => wireUp((window as any).netlifyIdentity);
+      // Don't strand the UI in a loading state if the widget is blocked.
+      script.onerror = () => setLoading(false);
+      document.head.appendChild(script);
+    }
 
     const stopObservingPasswordFields = observeIdentityPasswordFields();
 
     return () => {
       stopObservingPasswordFields();
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
     };
   }, []);
 

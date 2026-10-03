@@ -5,6 +5,7 @@ import { useI18n } from '../context/I18nContext';
 import LanguageSelector from '../components/LanguageSelector';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import { calendarsApi } from '../api/calendars.api';
+import { accountApi } from '../api/account.api';
 import { useToast } from '../context/ToastContext';
 import ErrorMessage from '../components/ErrorMessage';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -29,6 +30,8 @@ function DashboardPage() {
   const [editParticipantsType, setEditParticipantsType] = useState<ParticipantsType>('defined');
   const [savingParticipants, setSavingParticipants] = useState(false);
   const [editParticipantsError, setEditParticipantsError] = useState('');
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useDocumentTitle(t('dashboard.title'));
 
@@ -104,6 +107,23 @@ function DashboardPage() {
     const url = `${window.location.origin}/c/${calendarId}`;
     navigator.clipboard.writeText(url);
     showToast(t('common.linkCopied'));
+  };
+
+  const performDeleteAccount = async () => {
+    setDeletingAccount(true);
+    try {
+      const token = await getToken();
+      await accountApi.remove(token);
+      setShowDeleteAccount(false);
+      showToast(t('dashboard.account.deleted'));
+      // The account no longer exists, so the cached session must go too.
+      logout();
+      navigate('/', { replace: true });
+    } catch (err) {
+      console.error('Failed to delete account:', err);
+      setDeletingAccount(false);
+      throw err;
+    }
   };
 
   const openEditParticipantsModal = (calendar: Calendar) => {
@@ -292,6 +312,18 @@ function DashboardPage() {
               </button>
             </div>
           )}
+
+          <section className="account-danger-zone" aria-labelledby="account-section-title">
+            <h2 id="account-section-title">{t('dashboard.account.title')}</h2>
+            <p className="account-danger-hint">{t('dashboard.account.deleteHint')}</p>
+            <button
+              type="button"
+              className="btn btn-danger btn-small"
+              onClick={() => setShowDeleteAccount(true)}
+            >
+              {t('dashboard.account.deleteCta')}
+            </button>
+          </section>
         </div>
       </main>
 
@@ -325,7 +357,86 @@ function DashboardPage() {
         />
       )}
 
+      {showDeleteAccount && (
+        <DeleteAccountModal
+          email={user.email}
+          calendarCount={calendars.length}
+          deleting={deletingAccount}
+          onConfirm={performDeleteAccount}
+          onClose={() => {
+            if (deletingAccount) return;
+            setShowDeleteAccount(false);
+          }}
+        />
+      )}
+
       <Footer />
+    </div>
+  );
+}
+
+interface DeleteAccountModalProps {
+  email: string;
+  calendarCount: number;
+  deleting: boolean;
+  onConfirm: () => Promise<void>;
+  onClose: () => void;
+}
+
+// Erasure is irreversible and wipes other people's submissions too, so it is
+// gated behind retyping the account email rather than a single click.
+function DeleteAccountModal({ email, calendarCount, deleting, onConfirm, onClose }: DeleteAccountModalProps) {
+  const { t } = useI18n();
+  const [confirmation, setConfirmation] = useState('');
+  const [error, setError] = useState('');
+
+  const matches = confirmation.trim().toLowerCase() === email.trim().toLowerCase();
+
+  const handleConfirm = async () => {
+    if (!matches) {
+      setError(t('dashboard.account.confirmMismatch'));
+      return;
+    }
+    setError('');
+    try {
+      await onConfirm();
+    } catch {
+      setError(t('dashboard.account.deleteFailed'));
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="delete-account-title">
+      <div className="modal-content confirm-modal-content" onClick={(e) => e.stopPropagation()}>
+        <h2 id="delete-account-title">{t('dashboard.account.modalTitle')}</h2>
+        <p>{t('dashboard.account.modalWarning', { count: calendarCount })}</p>
+
+        <div className="form-group">
+          <label htmlFor="delete-account-confirm">
+            {t('dashboard.account.confirmPrompt')}
+          </label>
+          <input
+            id="delete-account-confirm"
+            type="email"
+            value={confirmation}
+            onChange={(e) => setConfirmation(e.target.value)}
+            placeholder={email}
+            autoComplete="off"
+            disabled={deleting}
+          />
+        </div>
+
+        {error && <p className="form-error">{error}</p>}
+
+        <div className="modal-footer">
+          <button className="btn btn-outline" onClick={onClose} disabled={deleting}>
+            {t('common.cancel')}
+          </button>
+          <button className="btn btn-danger" onClick={handleConfirm} disabled={!matches || deleting}>
+            {deleting ? t('dashboard.account.deleting') : t('dashboard.account.confirmLabel')}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

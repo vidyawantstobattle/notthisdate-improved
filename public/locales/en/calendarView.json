@@ -7,6 +7,13 @@
     "calendarView.legend.blocked": "Blocked (event)",
     "calendarView.legend.note": "💡 Click on any date to see who's unavailable",
 
+    "calendarView.best.title": "Best so far",
+    "calendarView.best.everyoneAvailable": "Everyone is available",
+    "calendarView.best.someAvailable": "{available} of {total} available",
+    "calendarView.best.none": "No date works for the whole group yet.",
+    "calendarView.best.more": "+{count} more",
+    "calendarView.best.awaitingSubmissions": "Nobody has submitted their unavailable dates yet.",
+
     "calendarView.dateDetails.title": "Date Details",
     "calendarView.dateDetails.everyoneAvailable": "🎉 Everyone is available on this date!",
     "calendarView.dateDetails.unavailableCount": "{count} unavailable:",

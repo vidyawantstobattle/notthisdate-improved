@@ -1,18 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n, RichText } from '../context/I18nContext';
 import LanguageSelector from '../components/LanguageSelector';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+import usePrefersReducedMotion from '../hooks/usePrefersReducedMotion';
 import Footer from '../components/Footer';
 import { getAvailabilityColor, getAvailabilityTextColor, getGraynessRatio } from '../core/availability';
 
 const CATEGORIES = [
-  { key: 'trips', icon: '✈️' },
-  { key: 'social', icon: '🎉' },
-  { key: 'team', icon: '💼' },
-  { key: 'sports', icon: '🏃' },
-  { key: 'other', icon: '📅' }
+  { key: 'trips', iconClass: 'icon-airplane' },
+  { key: 'social', iconClass: 'icon-party' },
+  { key: 'team', iconClass: 'icon-meeting' },
+  { key: 'sports', iconClass: 'icon-run' },
+  { key: 'other', iconClass: 'icon-wildboar' }
 ] as const;
 
 function LandingPage() {
@@ -27,8 +28,11 @@ function LandingPage() {
   useDocumentTitle(t('landing.useCases.title'), true);
 
   useEffect(() => {
+    // `replace` keeps the landing page out of history: after an email
+    // confirmation the browser would otherwise bounce back here and redirect
+    // again, which reads as the page "redirecting two or three times".
     if (user && !loading) {
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     }
   }, [user, loading, navigate]);
 
@@ -74,7 +78,7 @@ function LandingPage() {
           <div className="hero-categories">
             <h2 className="category-prompt">{t('landing.useCases.title')}</h2>
             <ul className="category-grid">
-              {CATEGORIES.map(({ key, icon }) => (
+              {CATEGORIES.map(({ key, iconClass }) => (
                 <li key={key}>
                   <button
                     type="button"
@@ -82,7 +86,7 @@ function LandingPage() {
                     onClick={() => startCreateCalendar(key)}
                     title={t(`landing.useCases.${key}.desc`)}
                   >
-                    <span className="category-icon" aria-hidden="true">{icon}</span>
+                    <span className={`category-icon ${iconClass}`} aria-hidden="true"></span>
                     <span className="category-label">{t(`landing.useCases.${key}.title`)}</span>
                   </button>
                 </li>
@@ -185,18 +189,51 @@ const DEMO_DAYS_IN_MONTH = 31;
 // July 2026 starts on a Wednesday, so two blanks lead the grid.
 const DEMO_LEADING_BLANKS = 2;
 
+const DEMO_PEOPLE = ['Vidya', 'Arjen', 'Vivian', 'Sahir'];
+const DEMO_ALREADY_SUBMITTED = [11, 12, 13];
+const DEMO_PICKS = [24, 25];
+const DEMO_BEST_DAY = 15;
+// One row per participant: the days they can't make. Step 3 folds these in one
+// at a time, so the heatmap builds up instead of appearing fully formed.
+const DEMO_SUBMISSIONS = [
+  [3, 5, 6, 11, 12, 18, 19, 26, 27],
+  [4, 5, 6, 11, 12, 13, 18, 19, 20, 24, 27],
+  [5, 6, 11, 12, 18, 19, 20, 24, 26, 27, 31],
+  [4, 5, 6, 10, 13, 17, 18, 19, 25, 26, 27, 31]
+];
+
+// Drives a looping demo timeline. Returns the current step, or null when the
+// user prefers reduced motion, which callers read as "show the finished state".
+function useDemoLoop(steps: number, intervalMs: number): number | null {
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    const id = setInterval(() => setStep(current => (current + 1) % steps), intervalMs);
+    return () => clearInterval(id);
+  }, [prefersReducedMotion, steps, intervalMs]);
+
+  return prefersReducedMotion ? null : step;
+}
+
 function DemoPanel({
   title,
+  caption,
   legend,
   children
 }: {
   title: string;
+  caption?: string;
   legend?: { color: string; label: string; outlined?: boolean }[];
   children: React.ReactNode;
 }) {
   return (
     <div className="demo-panel" aria-hidden="true">
-      <div className="demo-panel-header">{title}</div>
+      <div className="demo-panel-header">
+        <span>{title}</span>
+        {caption && <span className="demo-panel-caption">{caption}</span>}
+      </div>
       <div className="demo-panel-body">{children}</div>
       {legend && (
         <div className="demo-panel-legend">
@@ -231,13 +268,16 @@ function DemoMonthGrid({ renderDay }: { renderDay: (day: number) => React.ReactN
 
 function DemoCreateForm({ title }: { title: string }) {
   const { t } = useI18n();
+  // Type the title a character at a time, hold the finished form, start over.
+  const step = useDemoLoop(title.length + 14, 130);
+  const typed = step === null ? title : title.slice(0, Math.min(step, title.length));
 
   return (
     <DemoPanel title={t('landing.demo.create.header')}>
       <div className="demo-field">
         <span className="demo-field-label">{t('landing.demo.create.titleLabel')}</span>
         <span className="demo-field-input is-typing">
-          {title}
+          {typed}
           <span className="demo-caret"></span>
         </span>
       </div>
@@ -256,7 +296,7 @@ function DemoCreateForm({ title }: { title: string }) {
       <div className="demo-field">
         <span className="demo-field-label">{t('landing.demo.create.participantsLabel')}</span>
         <span className="demo-tag-row">
-          {['Vidya', 'Arjen', 'Vivian', 'Sahir'].map(person => (
+          {DEMO_PEOPLE.map(person => (
             <span key={person} className="demo-tag">
               {person}<span className="demo-tag-x">×</span>
             </span>
@@ -271,8 +311,13 @@ function DemoCreateForm({ title }: { title: string }) {
 
 function DemoSubmitCalendar({ title }: { title: string }) {
   const { t } = useI18n();
-  const submitted = [11, 12, 13];
-  const pending = [24, 25];
+  // Timeline: tap each date, flip the selection to a submitted answer, hold, loop.
+  const step = useDemoLoop(DEMO_PICKS.length + 5, 620);
+  const done = step === null;
+
+  const pickedCount = done ? DEMO_PICKS.length : Math.min(step, DEMO_PICKS.length);
+  const picked = DEMO_PICKS.slice(0, pickedCount);
+  const confirmed = done || step > DEMO_PICKS.length;
 
   return (
     <DemoPanel
@@ -284,12 +329,19 @@ function DemoSubmitCalendar({ title }: { title: string }) {
     >
       <DemoMonthGrid
         renderDay={day => {
-          const state = submitted.includes(day)
-            ? ' is-submitted'
-            : pending.includes(day)
-              ? ' is-pending'
-              : '';
-          return <span key={day} className={`demo-cell${state}`}>{day}</span>;
+          let state = '';
+          if (DEMO_ALREADY_SUBMITTED.includes(day)) {
+            state = ' is-submitted';
+          } else if (picked.includes(day)) {
+            state = confirmed ? ' is-submitted' : ' is-pending';
+          }
+          // Only the newest pick pops, so the eye follows the selection.
+          const isLatest = !confirmed && day === picked[picked.length - 1];
+          return (
+            <span key={day} className={`demo-cell${state}${isLatest ? ' is-just-picked' : ''}`}>
+              {day}
+            </span>
+          );
         }}
       />
     </DemoPanel>
@@ -298,16 +350,30 @@ function DemoSubmitCalendar({ title }: { title: string }) {
 
 function DemoHeatmapCalendar({ title }: { title: string }) {
   const { t } = useI18n();
-  // How many of the 4 demo participants are unavailable on each day.
-  const unavailableCounts: Record<number, number> = {
-    3: 1, 4: 2, 5: 4, 6: 4, 10: 1, 11: 3, 12: 3, 13: 2,
-    17: 1, 18: 4, 19: 4, 20: 2, 24: 2, 25: 1, 26: 3, 27: 4, 31: 2
-  };
-  const bestDay = 15;
+  // Timeline: fold in one participant's answers per tick so the heatmap builds
+  // up the way it does in real life, then hold the result.
+  const step = useDemoLoop(DEMO_SUBMISSIONS.length + 1 + 4, 900);
+  const done = step === null;
+
+  const submittedCount = done
+    ? DEMO_SUBMISSIONS.length
+    : Math.min(step, DEMO_SUBMISSIONS.length);
+  const complete = submittedCount === DEMO_SUBMISSIONS.length;
+
+  const unavailableCounts: Record<number, number> = {};
+  for (const days of DEMO_SUBMISSIONS.slice(0, submittedCount)) {
+    for (const day of days) {
+      unavailableCounts[day] = (unavailableCounts[day] || 0) + 1;
+    }
+  }
 
   return (
     <DemoPanel
       title={title}
+      caption={t('landing.demo.heatmap.progress', {
+        count: submittedCount,
+        total: DEMO_SUBMISSIONS.length
+      })}
       legend={[
         { color: getAvailabilityColor(0), label: t('landing.demo.heatmap.everyone') },
         { color: getAvailabilityColor(0.4), label: t('landing.demo.heatmap.some') },
@@ -316,11 +382,13 @@ function DemoHeatmapCalendar({ title }: { title: string }) {
     >
       <DemoMonthGrid
         renderDay={day => {
-          const ratio = getGraynessRatio(unavailableCounts[day] || 0, 4);
+          const ratio = getGraynessRatio(unavailableCounts[day] || 0, DEMO_SUBMISSIONS.length);
+          // The winning date is only worth calling out once everyone has answered.
+          const isBest = complete && day === DEMO_BEST_DAY;
           return (
             <span
               key={day}
-              className={`demo-cell is-heat${day === bestDay ? ' is-best' : ''}`}
+              className={`demo-cell is-heat${isBest ? ' is-best' : ''}`}
               style={{ background: getAvailabilityColor(ratio), color: getAvailabilityTextColor(ratio) }}
             >
               {day}
