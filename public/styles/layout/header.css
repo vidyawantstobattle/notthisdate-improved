@@ -100,6 +100,111 @@
     white-space: nowrap;
 }
 
+.user-menu-dropdown {
+    position: relative;
+}
+
+.user-email-btn {
+    appearance: none;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.user-email-btn:hover {
+    color: var(--primary-color);
+}
+
+.user-email-btn:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.dropdown-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.75rem;
+    height: 0.75rem;
+    flex-shrink: 0;
+    -webkit-mask-image: url('/images/dropdown_outline.svg');
+    mask-image: url('/images/dropdown_outline.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    background: currentColor;
+    transition: transform 0.2s ease;
+}
+
+.user-menu-dropdown button[aria-expanded="true"] .dropdown-icon {
+    transform: rotate(180deg);
+}
+
+
+.user-menu-list {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    min-width: 160px;
+    z-index: 100;
+    animation: menu-appear 0.15s ease-out;
+}
+
+@keyframes menu-appear {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-menu-item {
+    display: block;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border: none;
+    background: none;
+    text-align: left;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.user-menu-item:hover {
+    background: var(--bg-primary);
+}
+
+.user-menu-item.is-danger {
+    color: var(--danger-color);
+}
+
+.user-menu-item.is-danger:hover {
+    background: var(--danger-bg);
+}
+
 #user-name {
     font-weight: 500;
     color: var(--text-primary);

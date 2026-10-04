@@ -5,7 +5,7 @@
     "calendarView.legend.manyUnavailable": "Many unavailable",
     "calendarView.legend.allUnavailable": "All unavailable",
     "calendarView.legend.blocked": "Blocked (event)",
-    "calendarView.legend.note": "💡 Click on any date to see who's unavailable",
+    "calendarView.legend.note": "Click on any date to see who's unavailable",
 
     "calendarView.best.title": "Best so far",
     "calendarView.best.everyoneAvailable": "Everyone is available",

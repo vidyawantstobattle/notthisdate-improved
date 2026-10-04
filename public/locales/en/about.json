@@ -22,6 +22,10 @@
     "about.whyReverse.p1": "Traditional scheduling polls ask you to mark every date you're available. But most of us have more free time than busy time - marking availability for a 3-month range is tedious!",
     "about.whyReverse.p2": "With NotThisDate, you only mark the dates you <em>can't</em> attend. For most people, that's just a handful of dates. It's faster, easier, and you're done in seconds instead of minutes.",
 
+    "about.stats.title": "Join Thousands of Planners",
+    "about.stats.users": "People Planning",
+    "about.stats.calendars": "Events Coordinated",
+
     "about.cta.title": "Ready to Plan Your Next Event?",
     "about.cta.desc": "Get started for free - no credit card required.",
     "about.cta.dashboard": "Go to Dashboard"

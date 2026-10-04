@@ -31,7 +31,7 @@
     "calendarSubmit.namePlaceholder": "Your name",
     "calendarSubmit.submittingAs": "Submitting as:",
     "calendarSubmit.changeBtn": "Change",
-    "calendarSubmit.alreadySubmittedHint": "💡 You have already submitted {count} unavailable date(s). You can add more below.",
+    "calendarSubmit.alreadySubmittedHint": "You have already submitted {count} unavailable date(s). You can add more below.",
     "calendarSubmit.selectDatesBelowHint": "Select dates below to mark when you're NOT available.",
 
     "calendarSubmit.returning.selectLabel": "Have you submitted your dates already?",
@@ -40,7 +40,7 @@
     "calendarSubmit.returning.newNameLabel": "First time? Enter your name:",
     "calendarSubmit.returning.or": "or",
     "calendarSubmit.returning.welcomeBack": "👋 Welcome back,",
-    "calendarSubmit.returning.noDatesYetHint": "💡 You haven't submitted any unavailable dates yet.",
+    "calendarSubmit.returning.noDatesYetHint": "You haven't submitted any unavailable dates yet.",
 
     "calendarSubmit.selectDatesLabel": "Select dates you are <strong>NOT</strong> available",
     "calendarSubmit.selectDatesHint": "Click on dates to select/deselect them. Click multiple dates to mark them all as unavailable.",
@@ -69,7 +69,7 @@
 
     "calendarSubmit.submitBtn": "Submit Unavailability",
     "calendarSubmit.resetBtn": "Reset My Dates",
-    "calendarSubmit.formHint": "💡 No pending dates selected? New users are marked available for all dates.",
+    "calendarSubmit.formHint": "No pending dates selected? New users are marked available for all dates.",
 
     "calendarSubmit.errorCalendarIdMissing": "Calendar ID not found. Please refresh the page.",
     "calendarSubmit.errorEnterName": "Please enter your name first",

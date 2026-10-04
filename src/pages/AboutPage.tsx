@@ -1,15 +1,71 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n, RichText } from '../context/I18nContext';
 import LanguageSelector from '../components/LanguageSelector';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import Footer from '../components/Footer';
+import { statsApi } from '../api/stats.api';
+
+interface AppStats {
+  users: number;
+  calendars: number;
+  timestamp: string;
+}
+
+const STATS_CACHE_KEY = 'notthisdate_app_stats';
+const STATS_CACHE_TTL = 3600000; // 1 hour in milliseconds
 
 function AboutPage() {
   const { user, loading, login, signup, logout } = useAuth();
   const { t } = useI18n();
+  const [stats, setStats] = useState<AppStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
 
   useDocumentTitle('About');
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoadingStats(true);
+      try {
+        // Check cache first
+        const cached = localStorage.getItem(STATS_CACHE_KEY);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          const age = Date.now() - timestamp;
+          
+          if (age < STATS_CACHE_TTL) {
+            setStats(data);
+            setLoadingStats(false);
+            return;
+          }
+        }
+
+        // Fetch fresh stats
+        const freshStats = await statsApi.getStats();
+        
+        // Cache the stats with timestamp
+        localStorage.setItem(STATS_CACHE_KEY, JSON.stringify({
+          data: freshStats,
+          timestamp: Date.now()
+        }));
+
+        setStats(freshStats);
+      } catch (error) {
+        console.error('Failed to fetch app statistics:', error);
+        // Still use cached data even if fetch fails
+        const cached = localStorage.getItem(STATS_CACHE_KEY);
+        if (cached) {
+          const { data } = JSON.parse(cached);
+          setStats(data);
+        }
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   return (
     <div className="about-page">
@@ -17,7 +73,7 @@ function AboutPage() {
       <header className="app-header">
         <div className="header-content">
           <Link to="/" className="logo">
-            <span className="logo-icon">📅</span>
+            <img src="/images/date_range_outline.svg" alt="Calendar" className="logo-icon" />
             <span>{t('app.name')}</span>
           </Link>
           <nav className="header-nav">
@@ -92,6 +148,24 @@ function AboutPage() {
             <h2>{t('about.whyReverse.title')}</h2>
             <RichText as="p" k="about.whyReverse.p1" />
             <RichText as="p" k="about.whyReverse.p2" />
+          </section>
+
+          <section className="about-section about-stats">
+            <h2>{t('about.stats.title')}</h2>
+            {loadingStats ? (
+              <div className="stats-loading">{t('common.loading')}</div>
+            ) : stats ? (
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div className="stat-number">{stats.users.toLocaleString()}</div>
+                  <div className="stat-label">{t('about.stats.users')}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-number">{stats.calendars.toLocaleString()}</div>
+                  <div className="stat-label">{t('about.stats.calendars')}</div>
+                </div>
+              </div>
+            ) : null}
           </section>
 
           <section className="about-cta">

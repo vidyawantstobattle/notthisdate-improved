@@ -278,7 +278,7 @@ function CreateCalendarPage() {
       <header className="app-header">
         <div className="header-content">
           <Link to="/" className="logo">
-            <span className="logo-icon">📅</span>
+            <img src="/images/date_range_outline.svg" alt="Calendar" className="logo-icon" />
             <span>{t('app.name')}</span>
           </Link>
           <nav className="header-nav">

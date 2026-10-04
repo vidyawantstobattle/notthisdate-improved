@@ -51,28 +51,6 @@
     gap: 1.5rem;
 }
 
-.account-danger-zone {
-    margin-top: 3rem;
-    padding: 1.5rem;
-    background: var(--bg-white);
-    border: 1px solid var(--danger-color);
-    border-radius: var(--radius-lg);
-}
-
-.account-danger-zone h2 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--danger-color);
-    margin: 0 0 0.5rem;
-}
-
-.account-danger-hint {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    margin: 0 0 1rem;
-    max-width: 60ch;
-}
-
 .calendar-card {
     display: flex;
     flex-direction: column;
@@ -180,6 +158,35 @@
     display: flex;
     align-items: center;
     gap: 0.25rem;
+}
+
+.meta-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}
+
+.meta-icon.date-range {
+    -webkit-mask-image: url('/images/date_range_outline.svg');
+    mask-image: url('/images/date_range_outline.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    background: var(--text-muted);
+}
+
+.meta-icon.people {
+    -webkit-mask-image: url('/images/people_outline.svg');
+    mask-image: url('/images/people_outline.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    background: var(--text-muted);
 }
 
 .calendar-card-actions {

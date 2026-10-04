@@ -32,6 +32,7 @@ function DashboardPage() {
   const [editParticipantsError, setEditParticipantsError] = useState('');
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
 
   useDocumentTitle(t('dashboard.title'));
 
@@ -47,6 +48,21 @@ function DashboardPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, loading]);
+
+  // Close account menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const userMenu = document.querySelector('.user-menu-dropdown');
+      if (userMenu && !userMenu.contains(event.target as Node)) {
+        setShowAccountMenu(false);
+      }
+    };
+
+    if (showAccountMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showAccountMenu]);
 
   // Replay a create-calendar intent parked before the user signed up.
   useEffect(() => {
@@ -198,14 +214,38 @@ function DashboardPage() {
       <header className="app-header">
         <div className="header-content">
           <Link to="/" className="logo">
-            <span className="logo-icon">📅</span>
+            <img src="/images/date_range_outline.svg" alt="Calendar" className="logo-icon" />
             <span>{t('app.name')}</span>
           </Link>
           <nav className="header-nav">
             <Link to="/about" className="nav-link">{t('nav.about')}</Link>
             <LanguageSelector />
             <div className="user-menu">
-              <span className="user-email">{user.email}</span>
+              <div className="user-menu-dropdown">
+                <button
+                  className="user-email-btn"
+                  onClick={() => setShowAccountMenu(!showAccountMenu)}
+                  aria-expanded={showAccountMenu}
+                  aria-haspopup="menu"
+                >
+                  {user.email}
+                  <span className="dropdown-icon" aria-hidden="true"></span>
+                </button>
+                {showAccountMenu && (
+                  <div className="user-menu-list" role="menu">
+                    <button
+                      className="user-menu-item is-danger"
+                      onClick={() => {
+                        setShowDeleteAccount(true);
+                        setShowAccountMenu(false);
+                      }}
+                      role="menuitem"
+                    >
+                      {t('dashboard.account.deleteCta')}
+                    </button>
+                  </div>
+                )}
+              </div>
               <button className="btn btn-outline btn-small" onClick={logout}>{t('nav.logout')}</button>
             </div>
           </nav>
@@ -264,10 +304,12 @@ function DashboardPage() {
                   )}
                   <div className="calendar-card-meta">
                     <span className="meta-item">
-                      📅 {formatDisplayDate(calendar.startDate)} - {formatDisplayDate(calendar.endDate)}
+                      <span className="meta-icon date-range"></span>
+                      {formatDisplayDate(calendar.startDate)} - {formatDisplayDate(calendar.endDate)}
                     </span>
                     <span className="meta-item">
-                      👥 {(() => {
+                      <span className="meta-icon people"></span>
+                      {(() => {
                         const submittedCount = calendar.submittedParticipantsCount || 0;
                         const totalParticipants = Math.max(calendar.participants?.length || 0, submittedCount);
                         return calendar.participantsType === 'defined'
@@ -312,18 +354,6 @@ function DashboardPage() {
               </button>
             </div>
           )}
-
-          <section className="account-danger-zone" aria-labelledby="account-section-title">
-            <h2 id="account-section-title">{t('dashboard.account.title')}</h2>
-            <p className="account-danger-hint">{t('dashboard.account.deleteHint')}</p>
-            <button
-              type="button"
-              className="btn btn-danger btn-small"
-              onClick={() => setShowDeleteAccount(true)}
-            >
-              {t('dashboard.account.deleteCta')}
-            </button>
-          </section>
         </div>
       </main>
 
@@ -369,8 +399,6 @@ function DashboardPage() {
           }}
         />
       )}
-
-      <Footer />
     </div>
   );
 }

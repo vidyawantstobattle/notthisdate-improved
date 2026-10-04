@@ -274,7 +274,7 @@ function CalendarPage() {
       <header className="app-header">
         <div className="header-content">
           <Link to="/" className="logo">
-            <span className="logo-icon">📅</span>
+            <img src="/images/date_range_outline.svg" alt="Calendar" className="logo-icon" />
             <span>{t('app.name')}</span>
           </Link>
           <nav className="header-nav">
@@ -298,7 +298,8 @@ function CalendarPage() {
             <h1>{calendar.name}</h1>
             {calendar.description && <p className="calendar-description">{calendar.description}</p>}
             <p className="calendar-date-range">
-              📅 {formatDisplayDate(calendar.startDate)} - {formatDisplayDate(calendar.endDate)}
+              <span className="meta-icon date-range"></span>
+              {formatDisplayDate(calendar.startDate)} - {formatDisplayDate(calendar.endDate)}
             </p>
           </div>
 

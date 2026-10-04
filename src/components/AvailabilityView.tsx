@@ -51,7 +51,7 @@ function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps
       <div className="availability-header">
         <h3>{t('calendarShell.tabs.view')}</h3>
         <BestDatesPanel result={bestDates} hasSubmissions={hasSubmissions} />
-        <p className="availability-subtitle">{t('calendarView.legend.note')}</p>
+        <p className="form-hint info">{t('calendarView.legend.note')}</p>
       </div>
 
       <div className="availability-legend" role="region" aria-label={t('calendarView.legend.title')}>
