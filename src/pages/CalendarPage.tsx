@@ -409,7 +409,6 @@ function CalendarPage() {
   // with different availability is never nudged after they've answered.
   const showSyncOffer = Boolean(
     user &&
-    currentParticipant &&
     submittedDates.length === 0 &&
     syncCandidates.length > 0 &&
     !syncDismissed &&
@@ -523,25 +522,25 @@ function CalendarPage() {
                     isReturningVisitor={isReturningVisitor}
                   />
 
+                  {showSyncOffer && (
+                    <div className="sync-offer" role="region" aria-label={t('calendarSubmit.sync.title')}>
+                      <div className="sync-offer-body">
+                        <h4>{t('calendarSubmit.sync.title')}</h4>
+                        <p>{t('calendarSubmit.sync.desc', { count: syncCandidates.length })}</p>
+                      </div>
+                      <div className="sync-offer-actions">
+                        <button type="button" className="btn btn-primary btn-small" onClick={applySync}>
+                          {t('calendarSubmit.sync.apply')}
+                        </button>
+                        <button type="button" className="btn btn-outline btn-small" onClick={dismissSync}>
+                          {t('calendarSubmit.sync.dismiss')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {currentParticipant && (
                     <>
-                      {showSyncOffer && (
-                        <div className="sync-offer" role="region" aria-label={t('calendarSubmit.sync.title')}>
-                          <div className="sync-offer-body">
-                            <h4>{t('calendarSubmit.sync.title')}</h4>
-                            <p>{t('calendarSubmit.sync.desc', { count: syncCandidates.length })}</p>
-                          </div>
-                          <div className="sync-offer-actions">
-                            <button type="button" className="btn btn-primary btn-small" onClick={applySync}>
-                              {t('calendarSubmit.sync.apply')}
-                            </button>
-                            <button type="button" className="btn btn-outline btn-small" onClick={dismissSync}>
-                              {t('calendarSubmit.sync.dismiss')}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
                       <div className="date-picker-section">
                         <RichText as="h3" k="calendarSubmit.selectDatesLabel" />
                         <p className="form-hint">{t('calendarSubmit.selectDatesHint')}</p>
