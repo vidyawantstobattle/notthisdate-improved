@@ -190,10 +190,11 @@
 }
 
 .blocked-dates-input-row input[type="date"]:disabled {
-    background: var(--bg-primary);
-    color: var(--text-muted);
-    cursor: not-allowed;
-    opacity: 0.7;
+    background: #e9ecef !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    border-color: #dee2e6 !important;
+    opacity: 1;
 }
 
 .blocked-date-reason-input {
@@ -214,10 +215,11 @@
 }
 
 .blocked-date-reason-input:disabled {
-    background: var(--bg-primary);
-    color: var(--text-muted);
-    cursor: not-allowed;
-    opacity: 0.7;
+    background: #e9ecef !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    border-color: #dee2e6 !important;
+    opacity: 1;
 }
 
 .blocked-date-reason-input:focus {
