@@ -159,7 +159,18 @@ function CalendarPage() {
         await Promise.all(otherCalendars.map(async (entry) => {
           try {
             const data = await unavailabilityApi.getOwnSubmissionsByEmail(entry.id, token);
-            const submissions = normalizeSubmissions(data.submissions);
+            let submissions = normalizeSubmissions(data.submissions);
+
+            // Submissions made before emails were recorded can only be found by the
+            // name this browser remembers using on that calendar.
+            if (submissions.length === 0) {
+              const rememberedName = getRememberedParticipant(entry.id);
+              if (rememberedName) {
+                const byName = await unavailabilityApi.getUserSubmissions(entry.id, rememberedName);
+                submissions = normalizeSubmissions(byName.submissions, rememberedName);
+              }
+            }
+
             submissions.forEach(submission => {
               (submission.dates || []).forEach(date => dateSet.add(date));
             });
@@ -287,6 +298,12 @@ function CalendarPage() {
       return;
     }
 
+    // Nothing pending on top of dates already on record, so submitting would be a no-op.
+    if (selectedDates.length === 0 && datesToRemove.length === 0 && submittedDates.length > 0) {
+      showStatus('info', t('calendarSubmit.successNoNewDates'));
+      return;
+    }
+
     setSubmitting(true);
     setApiError(null);
 
@@ -300,7 +317,7 @@ function CalendarPage() {
       let message = t('calendarSubmit.successSubmitted');
       if (datesToRemove.length > 0) {
         message = t('calendarSubmit.successUpdated');
-      } else if (selectedDates.length === 0) {
+      } else if (nextSubmitted.length === 0) {
         message = t('calendarSubmit.successAllAvailable');
       }
 
@@ -598,7 +615,7 @@ function CalendarPage() {
                         <button
                           className="btn btn-primary btn-large submit-availability-btn"
                           onClick={handleSubmit}
-                          disabled={submitting}
+                          disabled={submitting || (pendingChanges === 0 && submittedDates.length > 0)}
                         >
                           {submitting ? t('common.submitting') : t('calendarSubmit.submitBtn')}
                         </button>

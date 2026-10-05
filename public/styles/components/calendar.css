@@ -484,6 +484,12 @@
     border: 1px solid var(--danger-color);
 }
 
+.status-message.info {
+    background: var(--primary-bg);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+
 #date-selection-step > .form-hint {
     margin-top: 1rem;
     margin-bottom: 0;
