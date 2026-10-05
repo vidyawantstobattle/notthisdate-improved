@@ -14,9 +14,6 @@ This folder contains images for the NotThisDate app. Replace the placeholder ref
 - `feature-block.svg` (64x64px) - Marking unavailable dates  
 - `feature-check.svg` (64x64px) - Finding best dates
 
-### Background Patterns (optional)
-- `pattern-dots.svg` - Subtle dot pattern for backgrounds
-- `pattern-grid.svg` - Light grid pattern
 
 ### Social/Meta
 - `og-image.png` (1200x630px) - Open Graph image for social sharing

@@ -20,6 +20,7 @@ function LandingPage() {
   const { user, loading, login, signup, logout } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const [redirecting, setRedirecting] = useState(false);
 
   const startCreateCalendar = (category?: string) => {
     navigate(category ? `/create?category=${encodeURIComponent(category)}` : '/create');
@@ -30,6 +31,14 @@ function LandingPage() {
   const primaryCta = user
     ? { label: t('common.goToDashboard'), onClick: () => navigate('/dashboard') }
     : { label: t('common.getStarted'), onClick: () => startCreateCalendar() };
+
+  // Redirect to dashboard after login
+  useEffect(() => {
+    if (user && !loading && !redirecting) {
+      setRedirecting(true);
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, loading, navigate, redirecting]);
 
   return (
     <div className="landing-page">

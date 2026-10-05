@@ -80,12 +80,6 @@
     min-width: 0;
 }
 
-.calendar-card-buttons {
-    display: flex;
-    gap: 0.5rem;
-    flex-shrink: 0;
-}
-
 .calendar-card-edit-btn {
     flex-shrink: 0;
     display: flex;
@@ -124,20 +118,6 @@
 }
 
 .calendar-card-edit-btn:hover .icon-settings {
-    background: var(--primary-color);
-}
-
-.calendar-card-edit-btn .icon-participants {
-    width: 16px;
-    height: 16px;
-    display: block;
-    background: var(--text-secondary);
-    -webkit-mask: url('/images/people_outline.svg') no-repeat center / contain;
-    mask: url('/images/people_outline.svg') no-repeat center / contain;
-    transition: background 0.15s ease;
-}
-
-.calendar-card-edit-btn:hover .icon-participants {
     background: var(--primary-color);
 }
 

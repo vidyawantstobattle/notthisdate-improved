@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n, RichText } from '../context/I18nContext';
 import LanguageSelector from '../components/LanguageSelector';
@@ -19,10 +19,20 @@ const STATS_CACHE_TTL = 3600000; // 1 hour in milliseconds
 function AboutPage() {
   const { user, loading, login, signup, logout } = useAuth();
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<AppStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [redirecting, setRedirecting] = useState(false);
 
   useDocumentTitle('About');
+
+  // Redirect to dashboard after login
+  useEffect(() => {
+    if (user && !loading && !redirecting) {
+      setRedirecting(true);
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, loading, navigate, redirecting]);
 
   useEffect(() => {
     const fetchStats = async () => {

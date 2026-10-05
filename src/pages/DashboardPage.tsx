@@ -10,11 +10,9 @@ import { useToast } from '../context/ToastContext';
 import ErrorMessage from '../components/ErrorMessage';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EditCalendarModal from '../components/EditCalendarModal';
-import TagsInput from '../components/TagsInput';
 import Footer from '../components/Footer';
 import { formatDisplayDate } from '../core/dateRanges';
-import { MAX_PARTICIPANTS } from '../config/site';
-import type { Calendar, ParticipantsType } from '../types';
+import type { Calendar } from '../types';
 
 function DashboardPage() {
   const { user, loading, logout, getAuthHeaders } = useAuth();
@@ -27,11 +25,6 @@ function DashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [editCalendar, setEditCalendar] = useState<Calendar | null>(null);
-  const [editCalendarModal, setEditCalendarModal] = useState<Calendar | null>(null);
-  const [editParticipants, setEditParticipants] = useState<string[]>([]);
-  const [editParticipantsType, setEditParticipantsType] = useState<ParticipantsType>('defined');
-  const [savingParticipants, setSavingParticipants] = useState(false);
-  const [editParticipantsError, setEditParticipantsError] = useState('');
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
@@ -144,55 +137,10 @@ function DashboardPage() {
     }
   };
 
-  const openEditParticipantsModal = (calendar: Calendar) => {
-    setEditCalendar(calendar);
-    setEditParticipants([...(calendar.participants || [])]);
-    setEditParticipantsType(calendar.participantsType);
-    setEditParticipantsError('');
-  };
-
-  const saveParticipants = async () => {
-    if (!editCalendar) return;
-
-    const makeOpen = editParticipantsType === 'open';
-
-    if (!makeOpen && editParticipants.length === 0) {
-      setEditParticipantsError(t('dashboard.editParticipants.errorEmpty'));
-      return;
-    }
-
-    if (!makeOpen && editParticipants.length > MAX_PARTICIPANTS) {
-      setEditParticipantsError(t('dashboard.editParticipants.errorTooMany', { max: MAX_PARTICIPANTS }));
-      return;
-    }
-
-    setSavingParticipants(true);
-    setEditParticipantsError('');
-
-    try {
-      const token = await getToken();
-      const result = await calendarsApi.updateParticipants(
-        editCalendar.id,
-        makeOpen ? { participantsType: 'open' } : { participants: editParticipants },
-        token
-      );
-
-      setCalendars(prev => prev.map(cal => (
-        cal.id === editCalendar.id
-          ? { ...cal, participants: result.participants, participantsType: result.participantsType }
-          : cal
-      )));
-
-      setEditCalendar(null);
-      setEditParticipants([]);
-      showToast(makeOpen ? t('dashboard.editParticipants.opened') : t('dashboard.editParticipants.saved'));
-    } catch (err) {
-      const message = (err as Error).message || t('dashboard.editParticipants.saveFailed');
-      setEditParticipantsError(message);
-      console.error('Failed to update participants:', err);
-    } finally {
-      setSavingParticipants(false);
-    }
+  const handleCalendarSaved = (updated: Calendar, message: string) => {
+    setCalendars(prev => prev.map(cal => (cal.id === updated.id ? updated : cal)));
+    setEditCalendar(null);
+    showToast(message);
   };
 
   if (loading) {
@@ -288,30 +236,16 @@ function DashboardPage() {
                 <div key={calendar.id} className="calendar-card">
                   <div className="calendar-card-header calendar-card-heading">
                     <h3>{calendar.name}</h3>
-                    <div className="calendar-card-buttons">
-                      <button
-                        type="button"
-                        className="calendar-card-edit-btn"
-                        onClick={() => setEditCalendarModal(calendar)}
-                        title={t('dashboard.card.editCalendar')}
-                        aria-label={t('dashboard.card.editCalendar')}
-                        disabled={deletingId !== null}
-                      >
-                        <span className="icon-settings" aria-hidden="true"></span>
-                      </button>
-                      {calendar.participantsType === 'defined' && (
-                        <button
-                          type="button"
-                          className="calendar-card-edit-btn"
-                          onClick={() => openEditParticipantsModal(calendar)}
-                          title={t('dashboard.card.editParticipants')}
-                          aria-label={t('dashboard.card.editParticipants')}
-                          disabled={deletingId !== null}
-                        >
-                          <span className="icon-participants" aria-hidden="true"></span>
-                        </button>
-                      )}
-                    </div>
+                    <button
+                      type="button"
+                      className="calendar-card-edit-btn"
+                      onClick={() => setEditCalendar(calendar)}
+                      title={t('dashboard.card.editCalendar')}
+                      aria-label={t('dashboard.card.editCalendar')}
+                      disabled={deletingId !== null}
+                    >
+                      <span className="icon-settings" aria-hidden="true"></span>
+                    </button>
                   </div>
                   {calendar.description && (
                     <p className="calendar-card-description">{calendar.description}</p>
@@ -371,22 +305,13 @@ function DashboardPage() {
         </div>
       </main>
 
-      {/* Edit Participants Modal */}
+      {/* Edit Calendar Modal */}
       {editCalendar && (
-        <EditParticipantsModal
-          onClose={() => {
-            if (savingParticipants) return;
-            setEditCalendar(null);
-            setEditParticipants([]);
-            setEditParticipantsError('');
-          }}
-          onSave={saveParticipants}
-          participants={editParticipants}
-          onParticipantsChange={setEditParticipants}
-          participantsType={editParticipantsType}
-          onParticipantsTypeChange={setEditParticipantsType}
-          error={editParticipantsError}
-          saving={savingParticipants}
+        <EditCalendarModal
+          calendar={editCalendar}
+          getToken={getToken}
+          onClose={() => setEditCalendar(null)}
+          onSaved={handleCalendarSaved}
         />
       )}
 
@@ -410,16 +335,6 @@ function DashboardPage() {
           onClose={() => {
             if (deletingAccount) return;
             setShowDeleteAccount(false);
-          }}
-        />
-      )}
-
-      {editCalendarModal && (
-        <EditCalendarModal
-          calendar={editCalendarModal}
-          onClose={() => setEditCalendarModal(null)}
-          onSave={(updated) => {
-            setCalendars(calendars.map(c => c.id === updated.id ? updated : c));
           }}
         />
       )}
@@ -486,96 +401,6 @@ function DeleteAccountModal({ email, calendarCount, deleting, onConfirm, onClose
           </button>
           <button className="btn btn-danger" onClick={handleConfirm} disabled={!matches || deleting}>
             {deleting ? t('dashboard.account.deleting') : t('dashboard.account.confirmLabel')}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface EditParticipantsModalProps {
-  onClose: () => void;
-  onSave: () => void;
-  participants: string[];
-  onParticipantsChange: (participants: string[]) => void;
-  participantsType: ParticipantsType;
-  onParticipantsTypeChange: (type: ParticipantsType) => void;
-  error: string;
-  saving: boolean;
-}
-
-function EditParticipantsModal({
-  onClose,
-  onSave,
-  participants,
-  onParticipantsChange,
-  participantsType,
-  onParticipantsTypeChange,
-  error,
-  saving
-}: EditParticipantsModalProps) {
-  const { t } = useI18n();
-
-  return (
-    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="edit-participants-title">
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose} aria-label={t('common.closeDialog')} disabled={saving}>&times;</button>
-
-        <h2 id="edit-participants-title">{t('dashboard.editParticipants.title')}</h2>
-        <p className="modal-subtitle">{t('dashboard.editParticipants.desc')}</p>
-
-        <div className="form-group">
-          <label>{t('dashboard.editParticipants.whoLabel')}</label>
-          <div className="create-choice-group">
-            <label className={`create-choice${participantsType === 'defined' ? ' is-selected' : ''}`}>
-              <input
-                type="radio"
-                name="edit-participants-type"
-                checked={participantsType === 'defined'}
-                onChange={() => onParticipantsTypeChange('defined')}
-                disabled={saving}
-              />
-              <span className="create-choice-title">{t('dashboard.editParticipants.specificPeople')}</span>
-              <span className="create-choice-hint">{t('dashboard.editParticipants.specificPeopleHint')}</span>
-            </label>
-            <label className={`create-choice${participantsType === 'open' ? ' is-selected' : ''}`}>
-              <input
-                type="radio"
-                name="edit-participants-type"
-                checked={participantsType === 'open'}
-                onChange={() => onParticipantsTypeChange('open')}
-                disabled={saving}
-              />
-              <span className="create-choice-title">{t('dashboard.editParticipants.anyoneWithLink')}</span>
-              <span className="create-choice-hint">{t('dashboard.editParticipants.anyoneWithLinkHint')}</span>
-            </label>
-          </div>
-        </div>
-
-        {participantsType === 'defined' ? (
-          <div className="form-group">
-            <label htmlFor="edit-participants-tags">{t('dashboard.createModal.participantsLabel')}</label>
-            <TagsInput
-              id="edit-participants-tags"
-              tags={participants}
-              onChange={onParticipantsChange}
-              placeholder={t('dashboard.createModal.participantsPlaceholder')}
-              disabled={saving}
-            />
-            <p className="form-hint">{t('dashboard.editParticipants.warning')}</p>
-          </div>
-        ) : (
-          <p className="form-hint form-hint-warning">{t('dashboard.editParticipants.openWarning')}</p>
-        )}
-
-        {error && <div className="form-error">{error}</div>}
-
-        <div className="form-actions">
-          <button type="button" className="btn btn-outline" onClick={onClose} disabled={saving}>
-            {t('common.cancel')}
-          </button>
-          <button type="button" className="btn btn-primary" onClick={onSave} disabled={saving}>
-            {saving ? t('common.saving') : t('common.save')}
           </button>
         </div>
       </div>
