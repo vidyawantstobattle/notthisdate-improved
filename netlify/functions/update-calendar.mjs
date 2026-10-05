@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import { MAX_CALENDAR_HORIZON_DAYS } from "./utils/limits.mjs";
 
 const MAX_BLOCKED_REASON_LENGTH = 100;
 
@@ -41,7 +42,7 @@ export default async (request, context) => {
 
     try {
         const body = await request.json();
-        const { name, description, blockedDates, blockedDateReasons } = body;
+        const { name, description, endDate, blockedDates, blockedDateReasons } = body;
 
         if (!name || typeof name !== 'string') {
             return new Response(JSON.stringify({ error: 'Calendar name is required' }), { status: 400, headers });
@@ -76,12 +77,26 @@ export default async (request, context) => {
             return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
         }
 
-        // Keep only well-formed dates that sit inside the calendar's own range.
+        // Validate and set end date
+        let safeEndDate = existing.endDate;
+        if (endDate && typeof endDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+            if (endDate >= existing.startDate) {
+                const start = new Date(existing.startDate + 'T00:00:00');
+                const end = new Date(endDate + 'T00:00:00');
+                const diffMs = end.getTime() - start.getTime();
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                if (diffDays <= MAX_CALENDAR_HORIZON_DAYS) {
+                    safeEndDate = endDate;
+                }
+            }
+        }
+
+        // Keep only well-formed dates that sit inside the calendar's new range.
         const safeBlockedDates = Array.isArray(blockedDates)
             ? Array.from(new Set(
                 blockedDates.filter(d => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)
                     && (!existing.startDate || d >= existing.startDate)
-                    && (!existing.endDate || d <= existing.endDate))
+                    && (!safeEndDate || d <= safeEndDate))
             )).sort()
             : [];
 
@@ -100,6 +115,7 @@ export default async (request, context) => {
             ...existing,
             name: name.trim(),
             description: description ? description.trim() : '',
+            endDate: safeEndDate,
             blockedDates: safeBlockedDates,
             blockedDateReasons: safeBlockedDateReasons
         };

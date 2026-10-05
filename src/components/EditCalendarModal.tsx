@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { calendarsApi } from '../api/calendars.api';
-import { MAX_PARTICIPANTS } from '../config/site';
+import { MAX_PARTICIPANTS, MAX_CALENDAR_HORIZON_DAYS } from '../config/site';
 import type { Calendar, ParticipantsType } from '../types';
 import BlockedDatesInput from './BlockedDatesInput';
 import TagsInput from './TagsInput';
@@ -17,6 +17,7 @@ function EditCalendarModal({ calendar, getToken, onClose, onSaved }: EditCalenda
   const { t } = useI18n();
   const [name, setName] = useState(calendar.name);
   const [description, setDescription] = useState(calendar.description || '');
+  const [endDate, setEndDate] = useState(calendar.endDate);
   const [blockedDates, setBlockedDates] = useState<string[]>(calendar.blockedDates || []);
   const [blockedDateReasons, setBlockedDateReasons] = useState<Record<string, string>>(
     calendar.blockedDateReasons || {}
@@ -30,9 +31,29 @@ function EditCalendarModal({ calendar, getToken, onClose, onSaved }: EditCalenda
   const canEditParticipants = calendar.participantsType === 'defined';
   const makeOpen = participantsType === 'open';
 
+  const validateEndDate = (): string | null => {
+    if (!endDate) return t('dashboard.editCalendar.errorEndDateRequired');
+    if (endDate < calendar.startDate) return t('dashboard.editCalendar.errorEndDateBeforeStart');
+
+    const start = new Date(calendar.startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    const diffMs = end.getTime() - start.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays > MAX_CALENDAR_HORIZON_DAYS) {
+      return t('dashboard.editCalendar.errorHorizonExceeded', { max: MAX_CALENDAR_HORIZON_DAYS });
+    }
+    return null;
+  };
+
   const handleSave = async () => {
     if (!name.trim()) {
       setError(t('dashboard.editCalendar.errorNameRequired'));
+      return;
+    }
+
+    const endDateError = validateEndDate();
+    if (endDateError) {
+      setError(endDateError);
       return;
     }
 
@@ -55,7 +76,7 @@ function EditCalendarModal({ calendar, getToken, onClose, onSaved }: EditCalenda
 
       const { calendar: updated } = await calendarsApi.update(
         calendar.id,
-        { name: name.trim(), description: description.trim(), blockedDates, blockedDateReasons },
+        { name: name.trim(), description: description.trim(), endDate, blockedDates, blockedDateReasons },
         token
       );
 
@@ -114,6 +135,19 @@ function EditCalendarModal({ calendar, getToken, onClose, onSaved }: EditCalenda
             rows={3}
             disabled={saving}
           />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="edit-calendar-endDate">{t('dashboard.editCalendar.endDateLabel')}</label>
+          <input
+            id="edit-calendar-endDate"
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            min={calendar.startDate}
+            disabled={saving}
+          />
+          <p className="form-hint">{t('dashboard.editCalendar.endDateHint')}</p>
         </div>
 
         <div className="form-group">

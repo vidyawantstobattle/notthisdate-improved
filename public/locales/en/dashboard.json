@@ -29,6 +29,11 @@
     "dashboard.editCalendar.title": "Edit Calendar",
     "dashboard.editCalendar.desc": "Update the title, description, blocked dates and who can respond.",
     "dashboard.editCalendar.errorNameRequired": "Please enter a title",
+    "dashboard.editCalendar.endDateLabel": "Calendar End Date",
+    "dashboard.editCalendar.endDateHint": "Extends up to 1 year from the start date. Shortening won't delete submissions, just hide dates outside the new range.",
+    "dashboard.editCalendar.errorEndDateRequired": "Please select an end date",
+    "dashboard.editCalendar.errorEndDateBeforeStart": "End date must be on or after the start date",
+    "dashboard.editCalendar.errorHorizonExceeded": "Date range cannot exceed {max} days",
     "dashboard.card.updateFailed": "Failed to update calendar. Please try again.",
 
     "dashboard.account.title": "Account",

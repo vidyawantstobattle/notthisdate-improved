@@ -36,6 +36,7 @@ export const calendarsApi = {
     input: {
       name: string;
       description?: string;
+      endDate?: string;
       blockedDates?: string[];
       blockedDateReasons?: Record<string, string>;
     },
