@@ -56,17 +56,19 @@ function ParticipantInput({
     return (
       <div className="participant-section">
         <label htmlFor="participant-select">{t('calendarSubmit.selectNameLabel')}</label>
-        <select
-          id="participant-select"
-          className="participant-select"
-          value={currentParticipant}
-          onChange={(e) => onParticipantChange(e.target.value)}
-        >
-          <option value="">{t('calendarSubmit.selectNamePlaceholder')}</option>
-          {calendar.participants.map((name, idx) => (
-            <option key={idx} value={name}>{name}</option>
-          ))}
-        </select>
+        <div className="participant-select-wrapper">
+          <select
+            id="participant-select"
+            className="participant-select"
+            value={currentParticipant}
+            onChange={(e) => onParticipantChange(e.target.value)}
+          >
+            <option value="">{t('calendarSubmit.selectNamePlaceholder')}</option>
+            {calendar.participants.map((name, idx) => (
+              <option key={idx} value={name}>{name}</option>
+            ))}
+          </select>
+        </div>
         {currentParticipant
           ? renderStatus()
           : <p className="form-hint">{t('calendarSubmit.selectNameHint')}</p>}
@@ -83,17 +85,19 @@ function ParticipantInput({
             <label htmlFor="returning-participant-select">
               {t('calendarSubmit.returning.selectLabel')}
             </label>
-            <select
-              id="returning-participant-select"
-              className="participant-select"
-              value=""
-              onChange={(e) => confirmName(e.target.value)}
-            >
-              <option value="">{t('calendarSubmit.returning.selectPlaceholder')}</option>
-              {knownParticipants.map((name) => (
-                <option key={name} value={name}>{name}</option>
-              ))}
-            </select>
+            <div className="participant-select-wrapper">
+              <select
+                id="returning-participant-select"
+                className="participant-select"
+                value=""
+                onChange={(e) => confirmName(e.target.value)}
+              >
+                <option value="">{t('calendarSubmit.returning.selectPlaceholder')}</option>
+                {knownParticipants.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            </div>
             <p className="form-hint">{t('calendarSubmit.returning.selectHint')}</p>
             <div className="participant-divider">
               <span>{t('calendarSubmit.returning.or')}</span>

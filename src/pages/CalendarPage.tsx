@@ -387,7 +387,7 @@ function CalendarPage() {
 
                       <div className="action-buttons">
                         <button
-                          className="btn btn-primary btn-large"
+                          className="btn btn-primary btn-large submit-availability-btn"
                           onClick={handleSubmit}
                           disabled={submitting}
                         >
@@ -399,6 +399,20 @@ function CalendarPage() {
                           disabled={submitting}
                         >
                           {t('calendarSubmit.resetBtn')}
+                        </button>
+                      </div>
+
+                      {/* Mobile-only: keeps the submit action in view so pending dates aren't left unsubmitted. */}
+                      <div className="mobile-submit-bar" role="region" aria-label={t('calendarSubmit.submitBtn')}>
+                        <span className="mobile-submit-bar-count">
+                          {t('calendarSubmit.pendingCount', { count: selectedDates.length })}
+                        </span>
+                        <button
+                          className="btn btn-primary"
+                          onClick={handleSubmit}
+                          disabled={submitting || selectedDates.length === 0}
+                        >
+                          {submitting ? t('common.submitting') : t('calendarSubmit.submitBtn')}
                         </button>
                       </div>
                     </>

@@ -249,6 +249,41 @@
         width: 100%;
     }
 
+    /* Submit moves into the sticky bar so it is always reachable. */
+    .action-buttons .submit-availability-btn {
+        display: none;
+    }
+
+    .mobile-submit-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+        background: var(--bg-white);
+        border-top: 1px solid var(--border-color);
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .mobile-submit-bar-count {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .mobile-submit-bar .btn {
+        flex-shrink: 0;
+    }
+
+    .submit-tab-content {
+        padding-bottom: 5rem;
+    }
+
     .button-group {
         flex-direction: column;
         gap: 0.75rem;

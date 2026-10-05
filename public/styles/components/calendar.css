@@ -477,6 +477,11 @@
     min-width: 150px;
 }
 
+/* Shown only on narrow viewports (see responsive.css). */
+.mobile-submit-bar {
+    display: none;
+}
+
 /* ===== STATUS MESSAGE ===== */
 .status-message {
     padding: 1rem;

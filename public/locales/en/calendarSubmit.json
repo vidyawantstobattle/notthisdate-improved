@@ -24,7 +24,7 @@
     "calendarSubmit.welcome.continue": "Continue",
 
     "calendarSubmit.yourName": "Your Name",
-    "calendarSubmit.selectNamePlaceholder": "Select your name...",
+    "calendarSubmit.selectNamePlaceholder": "Choose your name from the list",
     "calendarSubmit.selectNameHint": "Select your name from the list to submit your unavailable dates.",
     "calendarSubmit.selectNameLabel": "Select your name:",
     "calendarSubmit.enterNameLabel": "Enter your name:",
@@ -35,7 +35,7 @@
     "calendarSubmit.selectDatesBelowHint": "Select dates below to mark when you're NOT available.",
 
     "calendarSubmit.returning.selectLabel": "Have you submitted your dates already?",
-    "calendarSubmit.returning.selectPlaceholder": "Select your name...",
+    "calendarSubmit.returning.selectPlaceholder": "Choose your name from the list",
     "calendarSubmit.returning.selectHint": "Then pick your name to view and update what you have already submitted.",
     "calendarSubmit.returning.newNameLabel": "First time? Enter your name:",
     "calendarSubmit.returning.or": "or",
@@ -68,6 +68,7 @@
     "calendarSubmit.showNextMonth": "Show next month",
 
     "calendarSubmit.submitBtn": "Submit Unavailability",
+    "calendarSubmit.pendingCount": "{count} date(s) not submitted yet",
     "calendarSubmit.resetBtn": "Reset My Dates",
     "calendarSubmit.formHint": "No pending dates selected? New users are marked available for all dates.",
 
