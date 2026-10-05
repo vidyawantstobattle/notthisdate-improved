@@ -18,6 +18,9 @@ function EditCalendarModal({ calendar, getToken, onClose, onSaved }: EditCalenda
   const [name, setName] = useState(calendar.name);
   const [description, setDescription] = useState(calendar.description || '');
   const [blockedDates, setBlockedDates] = useState<string[]>(calendar.blockedDates || []);
+  const [blockedDateReasons, setBlockedDateReasons] = useState<Record<string, string>>(
+    calendar.blockedDateReasons || {}
+  );
   const [participants, setParticipants] = useState<string[]>([...(calendar.participants || [])]);
   const [participantsType, setParticipantsType] = useState<ParticipantsType>(calendar.participantsType);
   const [error, setError] = useState('');
@@ -52,7 +55,7 @@ function EditCalendarModal({ calendar, getToken, onClose, onSaved }: EditCalenda
 
       const { calendar: updated } = await calendarsApi.update(
         calendar.id,
-        { name: name.trim(), description: description.trim(), blockedDates },
+        { name: name.trim(), description: description.trim(), blockedDates, blockedDateReasons },
         token
       );
 
@@ -119,6 +122,8 @@ function EditCalendarModal({ calendar, getToken, onClose, onSaved }: EditCalenda
             id="edit-calendar-blocked"
             dates={blockedDates}
             onChange={setBlockedDates}
+            reasons={blockedDateReasons}
+            onReasonsChange={setBlockedDateReasons}
             min={calendar.startDate}
             max={calendar.endDate}
             disabled={saving}

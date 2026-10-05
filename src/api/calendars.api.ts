@@ -33,7 +33,12 @@ export const calendarsApi = {
 
   update(
     calendarId: string,
-    input: { name: string; description?: string; blockedDates?: string[] },
+    input: {
+      name: string;
+      description?: string;
+      blockedDates?: string[];
+      blockedDateReasons?: Record<string, string>;
+    },
     token?: string | null
   ): Promise<{ success: boolean; calendar: Calendar }> {
     return apiClient.post(`/update-calendar?id=${encodeURIComponent(calendarId)}`, input, token);

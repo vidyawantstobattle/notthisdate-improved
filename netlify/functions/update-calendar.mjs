@@ -1,5 +1,7 @@
 import { getStore } from "@netlify/blobs";
 
+const MAX_BLOCKED_REASON_LENGTH = 100;
+
 export default async (request, context) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -39,7 +41,7 @@ export default async (request, context) => {
 
     try {
         const body = await request.json();
-        const { name, description, blockedDates } = body;
+        const { name, description, blockedDates, blockedDateReasons } = body;
 
         if (!name || typeof name !== 'string') {
             return new Response(JSON.stringify({ error: 'Calendar name is required' }), { status: 400, headers });
@@ -74,12 +76,32 @@ export default async (request, context) => {
             return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
         }
 
-        // Update calendar
+        // Keep only well-formed dates that sit inside the calendar's own range.
+        const safeBlockedDates = Array.isArray(blockedDates)
+            ? Array.from(new Set(
+                blockedDates.filter(d => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)
+                    && (!existing.startDate || d >= existing.startDate)
+                    && (!existing.endDate || d <= existing.endDate))
+            )).sort()
+            : [];
+
+        // Only keep notes for dates that survived validation above.
+        const safeBlockedDateReasons = {};
+        if (blockedDateReasons && typeof blockedDateReasons === 'object' && !Array.isArray(blockedDateReasons)) {
+            safeBlockedDates.forEach(dateStr => {
+                const reason = blockedDateReasons[dateStr];
+                if (typeof reason !== 'string') return;
+                const trimmed = reason.trim().slice(0, MAX_BLOCKED_REASON_LENGTH);
+                if (trimmed) safeBlockedDateReasons[dateStr] = trimmed;
+            });
+        }
+
         const updated = {
             ...existing,
             name: name.trim(),
             description: description ? description.trim() : '',
-            blockedDates: Array.isArray(blockedDates) ? blockedDates : []
+            blockedDates: safeBlockedDates,
+            blockedDateReasons: safeBlockedDateReasons
         };
 
         await calendarStore.setJSON(calendarId, updated);

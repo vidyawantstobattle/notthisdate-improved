@@ -57,6 +57,7 @@
     "dashboard.createModal.blockedDatesLabel": "Blocked dates (optional)",
     "dashboard.createModal.addBlockedDate": "Add",
     "dashboard.createModal.blockedReasonPlaceholder": "Reason (optional)",
+    "dashboard.createModal.blockedReasonAria": "Reason for blocking {date}",
     "dashboard.createModal.blockedDatesHint": "Dates nobody can pick, shown as unavailable for everyone.",
     "dashboard.createModal.removeBlockedDate": "Remove {date}",
     "dashboard.createModal.errorBlockedOutOfRange": "Blocked dates must fall inside the calendar's date range.",

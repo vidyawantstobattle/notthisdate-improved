@@ -1,4 +1,3 @@
-import { useState, type KeyboardEvent } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { formatDisplayDate } from '../core/dateRanges';
 
@@ -26,24 +25,15 @@ function BlockedDatesInput({
   disabled = false
 }: BlockedDatesInputProps) {
   const { t } = useI18n();
-  const [pendingDate, setPendingDate] = useState('');
-  const [pendingReason, setPendingReason] = useState('');
 
-  const addDate = () => {
-    if (!pendingDate || dates.includes(pendingDate)) {
-      setPendingDate('');
-      setPendingReason('');
-      return;
-    }
-    onChange([...dates, pendingDate].sort());
-
-    const reason = pendingReason.trim();
-    if (reason && onReasonsChange) {
-      onReasonsChange({ ...reasons, [pendingDate]: reason });
-    }
-
-    setPendingDate('');
-    setPendingReason('');
+  // Dates commit the moment they are picked, so a half-filled row can never be
+  // silently dropped when the surrounding form is submitted.
+  const addDate = (dateStr: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return;
+    if (min && dateStr < min) return;
+    if (max && dateStr > max) return;
+    if (dates.includes(dateStr)) return;
+    onChange([...dates, dateStr].sort());
   };
 
   const removeDate = (dateStr: string) => {
@@ -56,12 +46,12 @@ function BlockedDatesInput({
     }
   };
 
-  // Enter would otherwise submit the surrounding create-calendar form.
-  const addOnEnter = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addDate();
-    }
+  const setReason = (dateStr: string, reason: string) => {
+    if (!onReasonsChange) return;
+    const next = { ...reasons };
+    if (reason.trim()) next[dateStr] = reason;
+    else delete next[dateStr];
+    onReasonsChange(next);
   };
 
   return (
@@ -70,41 +60,28 @@ function BlockedDatesInput({
         <input
           id={id}
           type="date"
-          value={pendingDate}
+          value=""
           min={min}
           max={max}
-          onChange={(e) => setPendingDate(e.target.value)}
-          onKeyDown={addOnEnter}
+          onChange={(e) => addDate(e.target.value)}
           disabled={disabled}
         />
-        {onReasonsChange && (
-          <input
-            type="text"
-            className="blocked-date-reason-input"
-            value={pendingReason}
-            maxLength={MAX_REASON_LENGTH}
-            placeholder={t('dashboard.createModal.blockedReasonPlaceholder')}
-            aria-label={t('dashboard.createModal.blockedReasonPlaceholder')}
-            onChange={(e) => setPendingReason(e.target.value)}
-            onKeyDown={addOnEnter}
-            disabled={disabled || !pendingDate}
-          />
-        )}
-        <button
-          type="button"
-          className="btn btn-outline btn-small"
-          onClick={addDate}
-          disabled={disabled || !pendingDate}
-        >
-          {t('dashboard.createModal.addBlockedDate')}
-        </button>
       </div>
       <div className="blocked-dates-list">
         {dates.map(dateStr => (
-          <span key={dateStr} className="blocked-date-tag">
-            {formatDisplayDate(dateStr)}
-            {reasons[dateStr] && (
-              <span className="blocked-date-reason">{reasons[dateStr]}</span>
+          <div key={dateStr} className="blocked-date-tag">
+            <span className="blocked-date-label">{formatDisplayDate(dateStr)}</span>
+            {onReasonsChange && (
+              <input
+                type="text"
+                className="blocked-date-reason-input"
+                value={reasons[dateStr] || ''}
+                maxLength={MAX_REASON_LENGTH}
+                placeholder={t('dashboard.createModal.blockedReasonPlaceholder')}
+                aria-label={t('dashboard.createModal.blockedReasonAria', { date: formatDisplayDate(dateStr) })}
+                onChange={(e) => setReason(dateStr, e.target.value)}
+                disabled={disabled}
+              />
             )}
             <button
               type="button"
@@ -115,7 +92,7 @@ function BlockedDatesInput({
             >
               &times;
             </button>
-          </span>
+          </div>
         ))}
       </div>
     </>
