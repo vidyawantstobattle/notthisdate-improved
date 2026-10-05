@@ -35,6 +35,15 @@ export const unavailabilityApi = {
       ? `?calendarId=${encodeURIComponent(calendarId)}&participant=${encodeURIComponent(participant)}`
       : `?calendarId=${encodeURIComponent(calendarId)}`;
     return apiClient.get(`/get-user-submissions${query}`);
+  },
+
+  // Matches on the email in the caller's token, so a user is recognised even if
+  // they used a different display name on that calendar.
+  getOwnSubmissionsByEmail(calendarId: string, token?: string | null): Promise<{ submissions: unknown }> {
+    return apiClient.get(
+      `/get-user-submissions?calendarId=${encodeURIComponent(calendarId)}&matchBy=email`,
+      token
+    );
   }
 };
 

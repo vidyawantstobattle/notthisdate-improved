@@ -1,28 +1,12 @@
-// Shared helpers for the per-user availability profile: the set of dates a
-// signed-in user treats as their default "not available", reusable across the
-// calendars they participate in.
+// Shared helpers for the per-user sync preferences: which calendars the user has
+// told us not to offer cross-calendar date suggestions on.
 
 export const AVAILABILITY_PROFILE_STORE = 'user-availability';
 
-// One year of dates plus headroom; bounds what a single profile can store.
-export const MAX_PROFILE_DATES = 400;
 export const MAX_DISMISSED_CALENDARS = 50;
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
 export function emptyProfile() {
-    return { dates: [], dismissedCalendars: [], updatedAt: null };
-}
-
-export function sanitizeDates(value) {
-    if (!Array.isArray(value)) return [];
-    const unique = new Set();
-    for (const entry of value) {
-        if (typeof entry !== 'string' || !DATE_PATTERN.test(entry)) continue;
-        unique.add(entry);
-        if (unique.size >= MAX_PROFILE_DATES) break;
-    }
-    return Array.from(unique).sort();
+    return { dismissedCalendars: [], updatedAt: null };
 }
 
 export function sanitizeCalendarIds(value) {
@@ -41,7 +25,6 @@ export function sanitizeCalendarIds(value) {
 export function normalizeProfile(raw) {
     if (!raw || typeof raw !== 'object') return emptyProfile();
     return {
-        dates: sanitizeDates(raw.dates),
         dismissedCalendars: sanitizeCalendarIds(raw.dismissedCalendars),
         updatedAt: typeof raw.updatedAt === 'string' ? raw.updatedAt : null
     };

@@ -924,18 +924,6 @@
     margin-bottom: 0.75rem;
 }
 
-.save-default-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.625rem;
-    margin-bottom: 1.5rem;
-}
-
-.save-default-option .form-hint {
-    display: block;
-    margin: 0.125rem 0 0;
-}
-
 /* ===== AVAILABILITY VIEW ===== */
 .availability-view {
     max-width: 100%;
@@ -1293,6 +1281,28 @@
     font-weight: 600;
     margin-bottom: 1.5rem;
     text-align: center;
+}
+
+.blocked-date-notice {
+    padding: 1rem;
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-color);
+    border-radius: var(--radius);
+    margin-bottom: 1.5rem;
+}
+
+.blocked-label {
+    color: var(--danger-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin: 0 0 0.5rem;
+}
+
+.blocked-reason {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin: 0;
+    font-style: italic;
 }
 
 .all-available-message {

@@ -3,7 +3,8 @@ import {
     findMatchingParticipantKeys,
     chooseCanonicalParticipantKey,
     collapseParticipantKeys,
-    toSubmissionEntry
+    toSubmissionEntry,
+    readUserEmail
 } from "./utils/participant-utils.mjs";
 import { MAX_PARTICIPANTS } from "./utils/limits.mjs";
 
@@ -86,6 +87,7 @@ export default async (request, context) => {
 
         // Preserve existing dates across all case variants before key collapse.
         const existingDates = [];
+        let existingEmail = null;
         matchingKeys.forEach(name => {
             const existingEntry = toSubmissionEntry(name, calendar.unavailability[name]);
             existingEntry.dates.forEach(date => {
@@ -93,6 +95,9 @@ export default async (request, context) => {
                     existingDates.push(date);
                 }
             });
+            if (!existingEmail && existingEntry.userEmail) {
+                existingEmail = existingEntry.userEmail;
+            }
         });
 
         // Collapse historical casing duplicates into one canonical participant key.
@@ -108,7 +113,8 @@ export default async (request, context) => {
         // Store participant's unavailability
         calendar.unavailability[participantKey] = {
             dates: mergedDates,
-            submittedAt: new Date().toISOString()
+            submittedAt: new Date().toISOString(),
+            userEmail: readUserEmail(request) || existingEmail || null
         };
 
         // Save updated calendar

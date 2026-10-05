@@ -1,9 +1,14 @@
 import { getStore } from "@netlify/blobs";
 import {
     findMatchingParticipantKeys,
+    findParticipantKeysByEmail,
     toSubmissionEntry,
-    mergeSubmissionEntries
+    mergeSubmissionEntries,
+    readUserEmail
 } from "./utils/participant-utils.mjs";
+
+// Emails are only ever used for server-side matching, never returned to callers.
+const stripEmail = ({ userEmail, ...entry }) => entry;
 
 export default async (request, context) => {
     const headers = {
@@ -25,9 +30,17 @@ export default async (request, context) => {
     const url = new URL(request.url);
     const calendarId = url.searchParams.get('calendarId');
     const participantName = url.searchParams.get('participant');
+    const matchBy = url.searchParams.get('matchBy');
 
     if (!calendarId) {
         return new Response(JSON.stringify({ error: 'Calendar ID is required' }), { status: 400, headers });
+    }
+
+    // The email is read from the verified token, never from the query string, so
+    // a caller can only ever look up their own submissions.
+    const tokenEmail = matchBy === 'email' ? readUserEmail(request) : null;
+    if (matchBy === 'email' && !tokenEmail) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
     }
 
     try {
@@ -43,10 +56,19 @@ export default async (request, context) => {
                 return new Response(JSON.stringify({ error: 'Calendar not found' }), { status: 404, headers });
             }
 
+            const unavailability = calendar.unavailability || {};
             let submissions;
-            if (participantName) {
+
+            if (tokenEmail) {
+                const matchingKeys = findParticipantKeysByEmail(unavailability, tokenEmail);
+                submissions = matchingKeys.length === 0
+                    ? []
+                    : [mergeSubmissionEntries(
+                        matchingKeys.map(name => toSubmissionEntry(name, unavailability[name])),
+                        matchingKeys[0]
+                    )];
+            } else if (participantName) {
                 // Get specific participant submission with case/trim-insensitive matching.
-                const unavailability = calendar.unavailability || {};
                 const matchingKeys = findMatchingParticipantKeys(unavailability, participantName);
 
                 if (matchingKeys.length === 0) {
@@ -57,11 +79,11 @@ export default async (request, context) => {
                 }
             } else {
                 // Get all submissions as an array of normalized entries.
-                submissions = Object.entries(calendar.unavailability || {})
+                submissions = Object.entries(unavailability)
                     .map(([name, value]) => toSubmissionEntry(name, value));
             }
 
-            return new Response(JSON.stringify({ submissions }), { status: 200, headers });
+            return new Response(JSON.stringify({ submissions: submissions.map(stripEmail) }), { status: 200, headers });
         } catch (e) {
             return new Response(JSON.stringify({ error: 'Calendar not found' }), { status: 404, headers });
         }

@@ -32,9 +32,8 @@ function readLocalProfile(): AvailabilityProfile | null {
     const raw = localStorage.getItem(LOCAL_PROFILE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<AvailabilityProfile>;
-    if (!Array.isArray(parsed.dates) || !Array.isArray(parsed.dismissedCalendars)) return null;
+    if (!Array.isArray(parsed.dismissedCalendars)) return null;
     return {
-      dates: parsed.dates.filter((entry): entry is string => typeof entry === 'string').sort(),
       dismissedCalendars: parsed.dismissedCalendars.filter((entry): entry is string => typeof entry === 'string'),
       updatedAt: typeof parsed.updatedAt === 'string' ? parsed.updatedAt : null
     };
@@ -72,7 +71,6 @@ function CalendarPage() {
   const [profile, setProfile] = useState<AvailabilityProfile | null>(null);
   const [historicalSuggestionDates, setHistoricalSuggestionDates] = useState<string[]>([]);
   const [syncDismissed, setSyncDismissed] = useState(false);
-  const [saveAsDefault, setSaveAsDefault] = useState(false);
 
   useDocumentTitle(calendar?.name || 'Calendar');
 
@@ -81,8 +79,7 @@ function CalendarPage() {
     return headers['Authorization']?.replace('Bearer ', '') || null;
   };
 
-  // A signed-in user's saved dates are only a suggestion; they are never applied
-  // automatically, so availability can still differ per group.
+  // Remembers only which calendars the user has turned the suggestion down on.
   useEffect(() => {
     if (!user) {
       setProfile(null);
@@ -97,14 +94,12 @@ function CalendarPage() {
         if (!cancelled) {
           setProfile(data.profile);
           writeLocalProfile(data.profile);
-          setSaveAsDefault(data.profile.dates.length === 0);
         }
       } catch (err) {
         console.error('Failed to load availability profile:', err);
         const fallback = readLocalProfile();
         if (!cancelled && fallback) {
           setProfile(fallback);
-          setSaveAsDefault(fallback.dates.length === 0);
         }
       }
     })();
@@ -145,8 +140,10 @@ function CalendarPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [calendar?.id, activeTab]);
 
+  // Matched on the signed-in email, so dates carry over even when the user went
+  // by a different display name on those calendars.
   useEffect(() => {
-    if (!user || !calendar?.id || !currentParticipant) {
+    if (!user || !calendar?.id) {
       setHistoricalSuggestionDates([]);
       return;
     }
@@ -161,8 +158,8 @@ function CalendarPage() {
 
         await Promise.all(otherCalendars.map(async (entry) => {
           try {
-            const data = await unavailabilityApi.getUserSubmissions(entry.id, currentParticipant);
-            const submissions = normalizeSubmissions(data.submissions, currentParticipant);
+            const data = await unavailabilityApi.getOwnSubmissionsByEmail(entry.id, token);
+            const submissions = normalizeSubmissions(data.submissions);
             submissions.forEach(submission => {
               (submission.dates || []).forEach(date => dateSet.add(date));
             });
@@ -184,7 +181,7 @@ function CalendarPage() {
 
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, calendar?.id, currentParticipant]);
+  }, [user, calendar?.id]);
 
   const loadUserSubmissions = async () => {
     if (!calendar) return;
@@ -300,25 +297,6 @@ function CalendarPage() {
         .filter(d => !datesToRemove.includes(d))
         .sort();
 
-      if (user && saveAsDefault) {
-        try {
-          const token = await getToken();
-          const { profile: saved } = await availabilityProfileApi.save({ dates: nextSubmitted }, token);
-          setProfile(saved);
-          writeLocalProfile(saved);
-        } catch (err) {
-          const local: AvailabilityProfile = {
-            dates: nextSubmitted,
-            dismissedCalendars: profile?.dismissedCalendars || [],
-            updatedAt: new Date().toISOString()
-          };
-          setProfile(local);
-          writeLocalProfile(local);
-          // Saving the reusable profile is a convenience; the submission itself already succeeded.
-          console.error('Failed to save availability profile:', err);
-        }
-      }
-
       let message = t('calendarSubmit.successSubmitted');
       if (datesToRemove.length > 0) {
         message = t('calendarSubmit.successUpdated');
@@ -417,13 +395,9 @@ function CalendarPage() {
   );
 
   const blockedSet = new Set(calendar.blockedDates || []);
-  const suggestionPool = Array.from(new Set([
-    ...(profile?.dates || []),
-    ...historicalSuggestionDates
-  ])).sort();
 
   // Only suggestion dates that fit this calendar are worth offering.
-  const syncCandidates = suggestionPool.filter(d =>
+  const syncCandidates = historicalSuggestionDates.filter(d =>
     d >= calendar.startDate &&
     d <= calendar.endDate &&
     !blockedSet.has(d) &&
@@ -451,7 +425,6 @@ function CalendarPage() {
     setSyncDismissed(true);
 
     const nextProfile: AvailabilityProfile = {
-      dates: profile?.dates || [],
       dismissedCalendars: Array.from(new Set([...(profile?.dismissedCalendars || []), calendar.id])),
       updatedAt: new Date().toISOString()
     };
@@ -614,21 +587,6 @@ function CalendarPage() {
                             {t('calendarSubmit.removal.undo')}
                           </button>
                         </div>
-                      )}
-
-                      {user && (
-                        <label className="checkbox-option save-default-option">
-                          <input
-                            type="checkbox"
-                            checked={saveAsDefault}
-                            onChange={e => setSaveAsDefault(e.target.checked)}
-                            disabled={submitting}
-                          />
-                          <span>
-                            <strong>{t('calendarSubmit.saveDefault.label')}</strong>
-                            <span className="form-hint">{t('calendarSubmit.saveDefault.hint')}</span>
-                          </span>
-                        </label>
                       )}
 
                       {statusMessage.text && (

@@ -74,13 +74,10 @@
     "calendarSubmit.removal.hint": "These dates stay in place until you submit again.",
     "calendarSubmit.removal.undo": "Keep all submitted dates",
 
-    "calendarSubmit.sync.title": "Reuse your usual unavailable dates?",
-    "calendarSubmit.sync.desc": "{count} of your saved date(s) fall inside this calendar. They'll be added as pending so you can adjust them before submitting.",
+    "calendarSubmit.sync.title": "Reuse dates from your other calendars?",
+    "calendarSubmit.sync.desc": "{count} date(s) you marked unavailable on your other calendars fall inside this one. They'll be added as pending so you can adjust them before submitting.",
     "calendarSubmit.sync.apply": "Add them",
     "calendarSubmit.sync.dismiss": "Not for this group",
-
-    "calendarSubmit.saveDefault.label": "Save these dates as my default availability",
-    "calendarSubmit.saveDefault.hint": "We'll offer them on your other calendars. Each calendar stays independent.",
 
     "calendarSubmit.submitBtn": "Submit Unavailability",
     "calendarSubmit.pendingCount": "{count} date(s) not submitted yet",

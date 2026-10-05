@@ -4,8 +4,7 @@ import {
     MAX_DISMISSED_CALENDARS,
     emptyProfile,
     normalizeProfile,
-    readUserId,
-    sanitizeDates
+    readUserId
 } from "./utils/availability-profile.mjs";
 
 export default async (request, context) => {
@@ -31,11 +30,7 @@ export default async (request, context) => {
 
     try {
         const body = await request.json();
-        const { dates, dismissCalendarId, undismissCalendarId } = body || {};
-
-        if (dates !== undefined && !Array.isArray(dates)) {
-            return new Response(JSON.stringify({ error: 'Dates must be an array' }), { status: 400, headers });
-        }
+        const { dismissCalendarId, undismissCalendarId } = body || {};
 
         const store = getStore({
             name: AVAILABILITY_PROFILE_STORE,
@@ -49,10 +44,6 @@ export default async (request, context) => {
             if (raw) profile = normalizeProfile(raw);
         } catch {
             // First write for this user; start from the empty profile.
-        }
-
-        if (dates !== undefined) {
-            profile.dates = sanitizeDates(dates);
         }
 
         if (typeof dismissCalendarId === 'string' && dismissCalendarId.trim()) {

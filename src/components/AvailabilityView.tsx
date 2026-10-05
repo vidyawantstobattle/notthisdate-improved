@@ -220,19 +220,24 @@ function MonthCalendar({
 
     if (blockedDates.includes(dateStr)) {
       const reason = blockedDateReasons[dateStr];
+      const tooltipText = reason
+        ? t('calendarView.blocked.tooltipWithReason', { reason })
+        : t('calendarView.blocked.tooltip');
       calendarCells.push(
-        <div
+        <button
           key={day}
           className="av-calendar-day in-range is-blocked"
-          title={reason
-            ? t('calendarView.blocked.tooltipWithReason', { reason })
-            : t('calendarView.blocked.tooltip')}
-          aria-label={`${monthName} ${day}. ${reason
-            ? t('calendarView.blocked.tooltipWithReason', { reason })
-            : t('calendarView.blocked.tooltip')}`}
+          title={tooltipText}
+          aria-label={`${monthName} ${day}. ${tooltipText}`}
+          onClick={() => {
+            // On mobile, show the reason in the modal;
+            // on desktop, the title tooltip already displays it.
+            if (reason) onDateClick(dateStr);
+          }}
+          style={{ cursor: reason ? 'pointer' : 'default' }}
         >
           <span className="day-number">{day}</span>
-        </div>
+        </button>
       );
       continue;
     }
@@ -274,10 +279,11 @@ interface DateDetailsModalProps {
   dateStr: string;
   calendar: Calendar;
   allUnavailability: UnavailabilityByDate;
+  blockedDateReason?: string;
   onClose: () => void;
 }
 
-function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }: DateDetailsModalProps) {
+function DateDetailsModal({ dateStr, calendar, allUnavailability, blockedDateReason, onClose }: DateDetailsModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const { t, lang } = useI18n();
 
@@ -287,6 +293,7 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }: Dat
   }, []);
 
   const unavailablePeople = allUnavailability[dateStr] || [];
+  const isBlocked = calendar.blockedDates?.includes(dateStr);
   const date = new Date(dateStr + 'T12:00:00');
   const dateDisplay = date.toLocaleDateString(lang, {
     weekday: 'long',
@@ -306,6 +313,13 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, onClose }: Dat
       <div className="modal-content date-details-modal" onClick={(e) => e.stopPropagation()} ref={modalRef}>
         <button className="modal-close" onClick={onClose} aria-label={t('common.closeDialog')}>&times;</button>
         <h3 id="date-details-title">{dateDisplay}</h3>
+
+        {isBlocked && (
+          <div className="blocked-date-notice">
+            <p className="blocked-label">{t('calendarView.blocked.tooltip')}</p>
+            {blockedDateReason && <p className="blocked-reason">{blockedDateReason}</p>}
+          </div>
+        )}
 
         {unavailablePeople.length === 0 ? (
           <div className="all-available-message">

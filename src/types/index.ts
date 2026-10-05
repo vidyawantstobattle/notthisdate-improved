@@ -44,9 +44,9 @@ export interface Submission {
   timestamp: string | null;
 }
 
-// A signed-in user's reusable unavailable dates, shared across their calendars.
+// Per-user sync preferences: calendars where the cross-calendar date suggestion
+// has been turned down.
 export interface AvailabilityProfile {
-  dates: string[];
   dismissedCalendars: string[];
   updatedAt: string | null;
 }

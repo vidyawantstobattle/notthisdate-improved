@@ -1,6 +1,6 @@
 // ===== AVAILABILITY PROFILE API =====
-// A signed-in user's reusable "usually not available" dates, offered as an
-// optional starting point on every calendar they join.
+// Tracks which calendars a signed-in user has dismissed the cross-calendar date
+// suggestion on.
 
 import { apiClient } from './client';
 import type { AvailabilityProfile } from '../types';
@@ -11,7 +11,7 @@ export const availabilityProfileApi = {
   },
 
   save(
-    input: { dates?: string[]; dismissCalendarId?: string; undismissCalendarId?: string },
+    input: { dismissCalendarId?: string; undismissCalendarId?: string },
     token?: string | null
   ): Promise<{ success: boolean; profile: AvailabilityProfile }> {
     return apiClient.post('/save-availability-profile', input, token);
