@@ -928,6 +928,16 @@
     font-size: 0.95rem;
 }
 
+.stats-error {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    padding: 1rem;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    text-align: center;
+}
+
 /* About CTA */
 .about-cta {
     text-align: center;

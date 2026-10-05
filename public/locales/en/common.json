@@ -1,6 +1,7 @@
 {
     "app.name": "NotThisDate",
     "common.getStarted": "Get Started - It's Free",
+    "common.goToDashboard": "Go to Dashboard",
     "common.cancel": "Cancel",
     "common.delete": "Delete",
     "common.done": "Done",

@@ -12,6 +12,7 @@
     "dashboard.card.shareLink": "Share Link",
     "dashboard.card.delete": "Delete",
     "dashboard.card.editParticipants": "Edit participants",
+    "dashboard.card.editCalendar": "Edit calendar",
     "dashboard.card.joined": "{count} joined",
     "dashboard.card.submitted": "{submitted}/{total} submitted",
     "dashboard.card.openEnded": "Open-ended",
@@ -19,10 +20,14 @@
 
     "dashboard.toast.deleted": "Calendar deleted.",
     "dashboard.toast.deleteFailed": "Failed to delete calendar. Please try again.",
+    "dashboard.toast.updated": "Calendar updated successfully.",
 
     "dashboard.confirmDelete.title": "Delete this calendar?",
     "dashboard.confirmDelete.message": "This cannot be undone. All submitted dates will be permanently lost.",
     "dashboard.confirmDelete.confirmLabel": "Delete",
+
+    "dashboard.editCalendar.title": "Edit Calendar",
+    "dashboard.card.updateFailed": "Failed to update calendar. Please try again.",
 
     "dashboard.account.title": "Account",
     "dashboard.account.deleteCta": "Delete my account",

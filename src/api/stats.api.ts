@@ -8,6 +8,14 @@ interface AppStats {
 
 export const statsApi = {
   async getStats(token?: string | null): Promise<AppStats> {
-    return apiClient.get<AppStats>('/get-stats', token);
+    console.log('Fetching stats from API...');
+    try {
+      const stats = await apiClient.get<AppStats>('/get-stats', token);
+      console.log('Stats received:', stats);
+      return stats;
+    } catch (error) {
+      console.error('Stats API error:', error);
+      throw error;
+    }
   }
 };

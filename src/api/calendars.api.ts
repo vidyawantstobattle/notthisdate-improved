@@ -29,5 +29,13 @@ export const calendarsApi = {
     token?: string | null
   ): Promise<{ success: boolean; participants: string[]; participantsType: ParticipantsType }> {
     return apiClient.post(`/update-participants?id=${encodeURIComponent(calendarId)}`, input, token);
+  },
+
+  update(
+    calendarId: string,
+    input: { name: string; description?: string; blockedDates?: string[] },
+    token?: string | null
+  ): Promise<{ success: boolean; calendar: Calendar }> {
+    return apiClient.post(`/update-calendar?id=${encodeURIComponent(calendarId)}`, input, token);
   }
 };

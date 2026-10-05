@@ -9,6 +9,7 @@ import { accountApi } from '../api/account.api';
 import { useToast } from '../context/ToastContext';
 import ErrorMessage from '../components/ErrorMessage';
 import ConfirmDialog from '../components/ConfirmDialog';
+import EditCalendarModal from '../components/EditCalendarModal';
 import TagsInput from '../components/TagsInput';
 import Footer from '../components/Footer';
 import { formatDisplayDate } from '../core/dateRanges';
@@ -26,6 +27,8 @@ function DashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [editCalendar, setEditCalendar] = useState<Calendar | null>(null);
+  const [editCalendarModal, setEditCalendarModal] = useState<Calendar | null>(null);
+  const [savingCalendar, setSavingCalendar] = useState(false);
   const [editParticipants, setEditParticipants] = useState<string[]>([]);
   const [editParticipantsType, setEditParticipantsType] = useState<ParticipantsType>('defined');
   const [savingParticipants, setSavingParticipants] = useState(false);
@@ -286,18 +289,30 @@ function DashboardPage() {
                 <div key={calendar.id} className="calendar-card">
                   <div className="calendar-card-header calendar-card-heading">
                     <h3>{calendar.name}</h3>
-                    {calendar.participantsType === 'defined' && (
+                    <div className="calendar-card-buttons">
                       <button
                         type="button"
                         className="calendar-card-edit-btn"
-                        onClick={() => openEditParticipantsModal(calendar)}
-                        title={t('dashboard.card.editParticipants')}
-                        aria-label={t('dashboard.card.editParticipants')}
+                        onClick={() => setEditCalendarModal(calendar)}
+                        title={t('dashboard.card.editCalendar')}
+                        aria-label={t('dashboard.card.editCalendar')}
                         disabled={deletingId !== null}
                       >
                         <span className="icon-settings" aria-hidden="true"></span>
                       </button>
-                    )}
+                      {calendar.participantsType === 'defined' && (
+                        <button
+                          type="button"
+                          className="calendar-card-edit-btn"
+                          onClick={() => openEditParticipantsModal(calendar)}
+                          title={t('dashboard.card.editParticipants')}
+                          aria-label={t('dashboard.card.editParticipants')}
+                          disabled={deletingId !== null}
+                        >
+                          <span className="icon-settings" aria-hidden="true"></span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {calendar.description && (
                     <p className="calendar-card-description">{calendar.description}</p>
@@ -346,7 +361,7 @@ function DashboardPage() {
             </div>
           ) : (
             <div className="empty-state">
-              <div className="empty-icon">📅</div>
+              <img src="/images/date_range_outline.svg" alt="" className="empty-icon" />
               <h3>{t('dashboard.empty.title')}</h3>
               <p>{t('dashboard.empty.desc')}</p>
               <button className="btn btn-primary" onClick={() => navigate('/create')}>
@@ -397,6 +412,17 @@ function DashboardPage() {
             if (deletingAccount) return;
             setShowDeleteAccount(false);
           }}
+        />
+      )}
+
+      {editCalendarModal && (
+        <EditCalendarModal
+          calendar={editCalendarModal}
+          onClose={() => setEditCalendarModal(null)}
+          onSave={(updated) => {
+            setCalendars(calendars.map(c => c.id === updated.id ? updated : c));
+          }}
+          saving={savingCalendar}
         />
       )}
     </div>

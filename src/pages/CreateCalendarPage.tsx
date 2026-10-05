@@ -63,6 +63,7 @@ function CreateCalendarPage() {
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [blockedDateReasons, setBlockedDateReasons] = useState<Record<string, string>>({});
   const [requireEmailVerification, setRequireEmailVerification] = useState(false);
+  const [selectedQuickPick, setSelectedQuickPick] = useState<'month' | 'threeMonths' | 'sixMonths' | null>(null);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [autoSubmit, setAutoSubmit] = useState(false);
@@ -428,22 +429,34 @@ function CreateCalendarPage() {
                 <div className="create-quick-picks">
                   <button
                     type="button"
-                    className="btn btn-outline btn-small"
-                    onClick={() => { setStartDate(formatDateInput(new Date())); setEndDate(addMonths(1)); }}
+                    className={`btn btn-outline btn-small ${selectedQuickPick === 'month' ? 'btn-selected' : ''}`}
+                    onClick={() => { 
+                      setSelectedQuickPick('month');
+                      setStartDate(formatDateInput(new Date())); 
+                      setEndDate(addMonths(1)); 
+                    }}
                   >
                     {t('create.dates.quickMonth')}
                   </button>
                   <button
                     type="button"
-                    className="btn btn-outline btn-small"
-                    onClick={() => { setStartDate(formatDateInput(new Date())); setEndDate(addMonths(3)); }}
+                    className={`btn btn-outline btn-small ${selectedQuickPick === 'threeMonths' ? 'btn-selected' : ''}`}
+                    onClick={() => { 
+                      setSelectedQuickPick('threeMonths');
+                      setStartDate(formatDateInput(new Date())); 
+                      setEndDate(addMonths(3)); 
+                    }}
                   >
                     {t('create.dates.quickThreeMonths')}
                   </button>
                   <button
                     type="button"
-                    className="btn btn-outline btn-small"
-                    onClick={() => { setStartDate(formatDateInput(new Date())); setEndDate(addMonths(6)); }}
+                    className={`btn btn-outline btn-small ${selectedQuickPick === 'sixMonths' ? 'btn-selected' : ''}`}
+                    onClick={() => { 
+                      setSelectedQuickPick('sixMonths');
+                      setStartDate(formatDateInput(new Date())); 
+                      setEndDate(addMonths(6)); 
+                    }}
                   >
                     {t('create.dates.quickSixMonths')}
                   </button>

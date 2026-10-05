@@ -37,22 +37,34 @@ export default async (request, context) => {
 
         // Count unique users (one entry per user in user-calendars store)
         let userCount = 0;
-        for await (const blob of userStore.list()) {
-            userCount++;
+        try {
+            for await (const entry of userStore.list()) {
+                userCount++;
+            }
+        } catch (e) {
+            console.warn('Error counting users:', e);
         }
 
         // Count total calendars (one entry per calendar in calendars store)
         let calendarCount = 0;
-        for await (const blob of calendarStore.list()) {
-            calendarCount++;
+        try {
+            for await (const entry of calendarStore.list()) {
+                calendarCount++;
+            }
+        } catch (e) {
+            console.warn('Error counting calendars:', e);
         }
 
+        const stats = {
+            users: userCount,
+            calendars: calendarCount,
+            timestamp: new Date().toISOString()
+        };
+
+        console.log('Returning stats:', stats);
+
         return new Response(
-            JSON.stringify({
-                users: userCount,
-                calendars: calendarCount,
-                timestamp: new Date().toISOString()
-            }),
+            JSON.stringify(stats),
             {
                 status: 200,
                 headers
@@ -60,9 +72,15 @@ export default async (request, context) => {
         );
     } catch (error) {
         console.error('Failed to fetch stats:', error);
+        // Return default stats (0) rather than erroring
         return new Response(
-            JSON.stringify({ error: 'Failed to fetch statistics' }),
-            { status: 500, headers }
+            JSON.stringify({
+                users: 0,
+                calendars: 0,
+                timestamp: new Date().toISOString()
+            }),
+            { status: 200, headers }
         );
     }
 };
+

@@ -35,6 +35,7 @@ function AboutPage() {
           const age = Date.now() - timestamp;
           
           if (age < STATS_CACHE_TTL) {
+            console.log('Using cached stats:', data);
             setStats(data);
             setLoadingStats(false);
             return;
@@ -42,7 +43,9 @@ function AboutPage() {
         }
 
         // Fetch fresh stats
+        console.log('Fetching fresh stats from API...');
         const freshStats = await statsApi.getStats();
+        console.log('Fresh stats received:', freshStats);
         
         // Cache the stats with timestamp
         localStorage.setItem(STATS_CACHE_KEY, JSON.stringify({
@@ -57,7 +60,10 @@ function AboutPage() {
         const cached = localStorage.getItem(STATS_CACHE_KEY);
         if (cached) {
           const { data } = JSON.parse(cached);
+          console.log('Using stale cached stats due to fetch error:', data);
           setStats(data);
+        } else {
+          console.log('No cached stats available, stats will be null');
         }
       } finally {
         setLoadingStats(false);
@@ -154,7 +160,7 @@ function AboutPage() {
             <h2>{t('about.stats.title')}</h2>
             {loadingStats ? (
               <div className="stats-loading">{t('common.loading')}</div>
-            ) : stats ? (
+            ) : stats !== null ? (
               <div className="stats-grid">
                 <div className="stat-card">
                   <div className="stat-number">{stats.users.toLocaleString()}</div>
@@ -165,7 +171,9 @@ function AboutPage() {
                   <div className="stat-label">{t('about.stats.calendars')}</div>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="stats-error">{t('about.stats.unavailable')}</div>
+            )}
           </section>
 
           <section className="about-cta">

@@ -27,14 +27,9 @@ function LandingPage() {
 
   useDocumentTitle(t('landing.useCases.title'), true);
 
-  useEffect(() => {
-    // `replace` keeps the landing page out of history: after an email
-    // confirmation the browser would otherwise bounce back here and redirect
-    // again, which reads as the page "redirecting two or three times".
-    if (user && !loading) {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [user, loading, navigate]);
+  const primaryCta = user
+    ? { label: t('common.goToDashboard'), onClick: () => navigate('/dashboard') }
+    : { label: t('common.getStarted'), onClick: () => startCreateCalendar() };
 
   return (
     <div className="landing-page">
@@ -46,6 +41,7 @@ function LandingPage() {
             <span>{t('app.name')}</span>
           </Link>
           <nav className="header-nav">
+            {user && <Link to="/dashboard" className="nav-link">{t('nav.dashboard')}</Link>}
             <Link to="/about" className="nav-link">{t('nav.about')}</Link>
             <LanguageSelector />
             {loading ? null : user ? (
@@ -95,7 +91,7 @@ function LandingPage() {
           </div>
 
           <div className="hero-actions">
-            <button className="btn btn-primary btn-large" onClick={() => startCreateCalendar()}>{t('common.getStarted')}</button>
+            <button className="btn btn-primary btn-large" onClick={primaryCta.onClick}>{primaryCta.label}</button>
             <a href="#how-it-works" className="btn btn-outline btn-large">{t('landing.hero.ctaSecondary')}</a>
           </div>
         </div>
@@ -150,7 +146,7 @@ function LandingPage() {
         </div>
 
         <div className="steps-cta">
-          <button className="btn btn-primary btn-large" onClick={() => startCreateCalendar()}>{t('common.getStarted')}</button>
+          <button className="btn btn-primary btn-large" onClick={primaryCta.onClick}>{primaryCta.label}</button>
         </div>
         </div>
       </section>
