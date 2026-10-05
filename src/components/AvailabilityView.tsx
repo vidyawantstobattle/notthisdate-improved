@@ -321,29 +321,33 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, blockedDateRea
           </div>
         )}
 
-        {unavailablePeople.length === 0 ? (
-          <div className="all-available-message">
-            <span className="success-icon">🎉</span>
-            <p>{t('calendarView.dateDetails.everyoneAvailable')}</p>
-          </div>
-        ) : (
-          <div className="availability-details">
-            <div className="detail-section unavailable">
-              <h4>❌ {t('calendarView.dateDetails.unavailableCount', { count: unavailablePeople.length })}</h4>
-              <ul>
-                {unavailablePeople.map((person, idx) => (
-                  <li key={idx}>{person}</li>
-                ))}
-              </ul>
-            </div>
+        {!isBlocked && (
+          <>
+            {unavailablePeople.length === 0 ? (
+              <div className="all-available-message">
+                <span className="success-icon">🎉</span>
+                <p>{t('calendarView.dateDetails.everyoneAvailable')}</p>
+              </div>
+            ) : (
+              <div className="availability-details">
+                <div className="detail-section unavailable">
+                  <h4>❌ {t('calendarView.dateDetails.unavailableCount', { count: unavailablePeople.length })}</h4>
+                  <ul>
+                    {unavailablePeople.map((person, idx) => (
+                      <li key={idx}>{person}</li>
+                    ))}
+                  </ul>
+                </div>
 
-            {availablePeople.length > 0 && (
-              <div className="detail-section available">
-                <h4>✅ {t('calendarView.dateDetails.availableCount', { count: availablePeople.length })}</h4>
-                <p>{availablePeople.join(', ')}</p>
+                {availablePeople.length > 0 && (
+                  <div className="detail-section available">
+                    <h4>✅ {t('calendarView.dateDetails.availableCount', { count: availablePeople.length })}</h4>
+                    <p>{availablePeople.join(', ')}</p>
+                  </div>
+                )}
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
     </div>
