@@ -27,25 +27,6 @@
     padding: 1.5rem 8px 0 8px;
 }
 
-.calendar-header-section .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    color: var(--primary-color);
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 1rem;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-sm);
-    transition: background 0.2s ease, color 0.2s ease;
-}
-
-.calendar-header-section .back-link:hover {
-    background: var(--primary-bg);
-    color: var(--primary-dark);
-}
-
 .calendar-header-section h1 {
     font-family: var(--font-family-heading);
     color: var(--secondary-color);
