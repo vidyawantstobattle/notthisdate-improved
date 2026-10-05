@@ -98,6 +98,7 @@ function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps
           dateStr={selectedDate}
           calendar={calendar}
           allUnavailability={allUnavailability}
+          blockedDateReason={blockedDateReasons[selectedDate]}
           onClose={() => setSelectedDate(null)}
         />
       )}
