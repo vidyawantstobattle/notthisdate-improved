@@ -27,6 +27,7 @@
     "dashboard.confirmDelete.confirmLabel": "Delete",
 
     "dashboard.editCalendar.title": "Edit Calendar",
+    "dashboard.editCalendar.desc": "Update the title, description and blocked dates for this calendar.",
     "dashboard.card.updateFailed": "Failed to update calendar. Please try again.",
 
     "dashboard.account.title": "Account",

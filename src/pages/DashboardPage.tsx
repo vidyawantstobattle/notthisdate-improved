@@ -28,7 +28,6 @@ function DashboardPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [editCalendar, setEditCalendar] = useState<Calendar | null>(null);
   const [editCalendarModal, setEditCalendarModal] = useState<Calendar | null>(null);
-  const [savingCalendar, setSavingCalendar] = useState(false);
   const [editParticipants, setEditParticipants] = useState<string[]>([]);
   const [editParticipantsType, setEditParticipantsType] = useState<ParticipantsType>('defined');
   const [savingParticipants, setSavingParticipants] = useState(false);
@@ -309,7 +308,7 @@ function DashboardPage() {
                           aria-label={t('dashboard.card.editParticipants')}
                           disabled={deletingId !== null}
                         >
-                          <span className="icon-settings" aria-hidden="true"></span>
+                          <span className="icon-participants" aria-hidden="true"></span>
                         </button>
                       )}
                     </div>
@@ -422,7 +421,6 @@ function DashboardPage() {
           onSave={(updated) => {
             setCalendars(calendars.map(c => c.id === updated.id ? updated : c));
           }}
-          saving={savingCalendar}
         />
       )}
     </div>
