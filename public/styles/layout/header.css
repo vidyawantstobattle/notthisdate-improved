@@ -268,3 +268,23 @@
     box-shadow: 0 0 0 3px rgba(200, 90, 50, 0.1);
 }
 
+/* Mobile dropdown positioning */
+@media (max-width: 500px) {
+    .user-menu-dropdown {
+        position: relative;
+    }
+
+    .user-menu-list {
+        position: fixed;
+        top: auto;
+        right: 1rem;
+        bottom: calc(100% + 0.5rem);
+        left: 1rem;
+        margin-top: 0;
+        min-width: auto;
+        width: auto;
+        max-width: calc(100vw - 2rem);
+    }
+}
+
+
