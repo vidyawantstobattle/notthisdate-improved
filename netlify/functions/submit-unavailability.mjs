@@ -33,7 +33,7 @@ export default async (request, context) => {
 
     try {
         const body = await request.json();
-        const { participantName, unavailableDates } = body;
+        const { participantName, unavailableDates, removedDates } = body;
 
         if (!participantName || !participantName.trim()) {
             return new Response(JSON.stringify({ error: 'Participant name is required' }), { status: 400, headers });
@@ -41,6 +41,10 @@ export default async (request, context) => {
 
         if (!Array.isArray(unavailableDates)) {
             return new Response(JSON.stringify({ error: 'Unavailable dates must be an array' }), { status: 400, headers });
+        }
+
+        if (removedDates !== undefined && !Array.isArray(removedDates)) {
+            return new Response(JSON.stringify({ error: 'Removed dates must be an array' }), { status: 400, headers });
         }
 
         const calendarStore = getStore({
@@ -93,10 +97,13 @@ export default async (request, context) => {
 
         // Collapse historical casing duplicates into one canonical participant key.
         collapseParticipantKeys(calendar.unavailability, matchingKeys, participantKey);
+
+        // Removals win over additions so a date toggled off in the UI always clears.
+        const removalSet = new Set(Array.isArray(removedDates) ? removedDates : []);
         const mergedDates = Array.from(new Set([
             ...existingDates,
             ...unavailableDates
-        ])).sort();
+        ])).filter(date => !removalSet.has(date)).sort();
 
         // Store participant's unavailability
         calendar.unavailability[participantKey] = {

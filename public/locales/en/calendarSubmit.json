@@ -51,6 +51,7 @@
     "calendarSubmit.legend.submitted": "Submitted",
     "calendarSubmit.legend.pendingSelection": "Pending selection",
     "calendarSubmit.legend.alreadySubmitted": "Already submitted",
+    "calendarSubmit.legend.markedForRemoval": "Marked for removal",
     "calendarSubmit.removeRangeTitle": "Remove this date range",
     "calendarSubmit.removeRangeAria": "Remove {range}",
 
@@ -64,8 +65,22 @@
     "calendarSubmit.rangeTitlePending": "Pending selection",
     "calendarSubmit.titleOutsideRange": "Outside event date range",
     "calendarSubmit.titleClickToMark": "Click to mark unavailable",
+    "calendarSubmit.titleClickToUnmark": "Submitted - click to mark this date for removal",
+    "calendarSubmit.titleUndoRemoval": "Marked for removal - click to keep this date",
     "calendarSubmit.showPrevMonth": "Show previous month",
     "calendarSubmit.showNextMonth": "Show next month",
+
+    "calendarSubmit.removal.title": "{count} submitted date(s) will be removed",
+    "calendarSubmit.removal.hint": "These dates stay in place until you submit again.",
+    "calendarSubmit.removal.undo": "Keep all submitted dates",
+
+    "calendarSubmit.sync.title": "Reuse your usual unavailable dates?",
+    "calendarSubmit.sync.desc": "{count} of your saved date(s) fall inside this calendar. They'll be added as pending so you can adjust them before submitting.",
+    "calendarSubmit.sync.apply": "Add them",
+    "calendarSubmit.sync.dismiss": "Not for this group",
+
+    "calendarSubmit.saveDefault.label": "Save these dates as my default availability",
+    "calendarSubmit.saveDefault.hint": "We'll offer them on your other calendars. Each calendar stays independent.",
 
     "calendarSubmit.submitBtn": "Submit Unavailability",
     "calendarSubmit.pendingCount": "{count} date(s) not submitted yet",
@@ -78,6 +93,7 @@
     "calendarSubmit.successNoNewDates": "No new dates selected. Existing unavailable dates are unchanged.",
     "calendarSubmit.successAllAvailable": "Recorded! You're available for all dates! 🎉",
     "calendarSubmit.successSubmitted": "Your unavailability has been recorded!",
+    "calendarSubmit.successUpdated": "Your unavailable dates have been updated!",
     "calendarSubmit.errorSubmitFailed": "Failed to submit",
     "calendarSubmit.successReset": "Your dates have been reset!",
     "calendarSubmit.errorResetFailed": "Failed to reset"

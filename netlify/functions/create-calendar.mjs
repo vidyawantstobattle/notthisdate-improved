@@ -1,9 +1,15 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
 import { normalizeParticipantName } from "./utils/participant-utils.mjs";
-import { MAX_CALENDARS_PER_USER, MAX_PARTICIPANTS } from "./utils/limits.mjs";
+import { MAX_CALENDARS_PER_USER, MAX_PARTICIPANTS, MAX_CALENDAR_HORIZON_DAYS } from "./utils/limits.mjs";
 
 const MAX_BLOCKED_REASON_LENGTH = 100;
+
+function horizonDate() {
+    const limit = new Date();
+    limit.setDate(limit.getDate() + MAX_CALENDAR_HORIZON_DAYS);
+    return limit.toISOString().slice(0, 10);
+}
 
 export default async (request, context) => {
     const headers = {
@@ -46,6 +52,15 @@ export default async (request, context) => {
 
         if (!name || !name.trim()) {
             return new Response(JSON.stringify({ error: 'Calendar name is required' }), { status: 400, headers });
+        }
+
+        const maxDate = horizonDate();
+        if ((startDate && startDate > maxDate) || (endDate && endDate > maxDate)) {
+            return new Response(JSON.stringify({
+                error: `Calendar dates cannot go beyond ${maxDate}.`,
+                code: 'DATE_HORIZON_EXCEEDED',
+                maxDate
+            }), { status: 400, headers });
         }
 
         // Trim, drop blanks, and de-duplicate case-insensitively while keeping entered casing.

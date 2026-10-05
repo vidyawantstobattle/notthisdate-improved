@@ -14,6 +14,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import Footer from '../components/Footer';
 import AdPlaceholder from '../components/AdPlaceholder';
 import { unavailabilityApi } from '../api/unavailability.api';
+import { availabilityProfileApi } from '../api/availabilityProfile.api';
 import { normalizeSubmissions } from '../core/participants';
 import { formatDisplayDate } from '../core/dateRanges';
 import {
@@ -21,18 +22,19 @@ import {
   rememberParticipant,
   forgetParticipant
 } from '../utils/participantMemory';
-import type { DateRange, UnavailabilityByDate } from '../types';
+import type { AvailabilityProfile, DateRange, UnavailabilityByDate } from '../types';
 
 function CalendarPage() {
   const { calendarId } = useParams();
   const { calendar, loading, error } = useCalendar(calendarId);
-  const { user } = useAuth();
+  const { user, getAuthHeaders } = useAuth();
   const { t } = useI18n();
 
   const [activeTab, setActiveTab] = useState<'submit' | 'view'>('submit');
   const [currentParticipant, setCurrentParticipant] = useState('');
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [submittedDates, setSubmittedDates] = useState<string[]>([]);
+  const [datesToRemove, setDatesToRemove] = useState<string[]>([]);
   const [allUnavailability, setAllUnavailability] = useState<UnavailabilityByDate>({});
   const [knownParticipants, setKnownParticipants] = useState<string[]>([]);
   const [isReturningVisitor, setIsReturningVisitor] = useState(false);
@@ -40,8 +42,42 @@ function CalendarPage() {
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState<Error | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [profile, setProfile] = useState<AvailabilityProfile | null>(null);
+  const [syncDismissed, setSyncDismissed] = useState(false);
+  const [saveAsDefault, setSaveAsDefault] = useState(false);
 
   useDocumentTitle(calendar?.name || 'Calendar');
+
+  const getToken = async (): Promise<string | null> => {
+    const headers = await getAuthHeaders();
+    return headers['Authorization']?.replace('Bearer ', '') || null;
+  };
+
+  // A signed-in user's saved dates are only a suggestion; they are never applied
+  // automatically, so availability can still differ per group.
+  useEffect(() => {
+    if (!user) {
+      setProfile(null);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await getToken();
+        const data = await availabilityProfileApi.get(token);
+        if (!cancelled) {
+          setProfile(data.profile);
+          setSaveAsDefault(data.profile.dates.length === 0);
+        }
+      } catch (err) {
+        console.error('Failed to load availability profile:', err);
+      }
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Restore the name this visitor last used on this calendar so they don't submit twice.
   useEffect(() => {
@@ -131,15 +167,18 @@ function CalendarPage() {
     }
   };
 
-  // Handle single date selection (toggle on/off)
+  // Pending dates toggle on/off; already-submitted dates toggle into a removal set.
   const handleDateSelect = (dateStr: string) => {
-    if (submittedDates.includes(dateStr)) return;
-
-    if (selectedDates.includes(dateStr)) {
-      setSelectedDates(prev => prev.filter(d => d !== dateStr));
-    } else {
-      setSelectedDates(prev => [...prev, dateStr].sort());
+    if (submittedDates.includes(dateStr)) {
+      setDatesToRemove(prev =>
+        prev.includes(dateStr) ? prev.filter(d => d !== dateStr) : [...prev, dateStr].sort()
+      );
+      return;
     }
+
+    setSelectedDates(prev =>
+      prev.includes(dateStr) ? prev.filter(d => d !== dateStr) : [...prev, dateStr].sort()
+    );
   };
 
   const handleRemoveRange = (range: DateRange) => {
@@ -154,9 +193,15 @@ function CalendarPage() {
     setSelectedDates(filtered);
   };
 
+  const handleRemoveSubmittedRange = (range: DateRange) => {
+    const inRange = submittedDates.filter(d => d >= range.start && d <= range.end);
+    setDatesToRemove(prev => Array.from(new Set([...prev, ...inRange])).sort());
+  };
+
   const handleParticipantChange = (name: string) => {
     setCurrentParticipant(name);
     setSelectedDates([]);
+    setDatesToRemove([]);
     if (!name) {
       setIsReturningVisitor(false);
       setSubmittedDates([]);
@@ -174,16 +219,35 @@ function CalendarPage() {
     setApiError(null);
 
     try {
-      await unavailabilityApi.submit(calendar.id, currentParticipant, selectedDates);
+      await unavailabilityApi.submit(calendar.id, currentParticipant, selectedDates, datesToRemove);
 
-      const message = selectedDates.length === 0
-        ? t('calendarSubmit.successAllAvailable')
-        : t('calendarSubmit.successSubmitted');
+      const nextSubmitted = Array.from(new Set([...submittedDates, ...selectedDates]))
+        .filter(d => !datesToRemove.includes(d))
+        .sort();
+
+      if (user && saveAsDefault) {
+        try {
+          const token = await getToken();
+          const { profile: saved } = await availabilityProfileApi.save({ dates: nextSubmitted }, token);
+          setProfile(saved);
+        } catch (err) {
+          // Saving the reusable profile is a convenience; the submission itself already succeeded.
+          console.error('Failed to save availability profile:', err);
+        }
+      }
+
+      let message = t('calendarSubmit.successSubmitted');
+      if (datesToRemove.length > 0) {
+        message = t('calendarSubmit.successUpdated');
+      } else if (selectedDates.length === 0) {
+        message = t('calendarSubmit.successAllAvailable');
+      }
 
       showStatus('success', message);
 
-      setSubmittedDates(prev => Array.from(new Set([...prev, ...selectedDates])).sort());
+      setSubmittedDates(nextSubmitted);
       setSelectedDates([]);
+      setDatesToRemove([]);
       loadAllUnavailability();
     } catch (err) {
       setApiError(err as Error);
@@ -216,6 +280,7 @@ function CalendarPage() {
       showStatus('success', t('calendarSubmit.successReset'));
       setSelectedDates([]);
       setSubmittedDates([]);
+      setDatesToRemove([]);
       loadAllUnavailability();
     } catch (err) {
       setApiError(err as Error);
@@ -267,6 +332,44 @@ function CalendarPage() {
     calendar.ownerEmail &&
     user.email.toLowerCase() === calendar.ownerEmail.toLowerCase()
   );
+
+  const blockedSet = new Set(calendar.blockedDates || []);
+
+  // Only the saved dates that actually fit this calendar are worth offering.
+  const syncCandidates = (profile?.dates || []).filter(d =>
+    d >= calendar.startDate &&
+    d <= calendar.endDate &&
+    !blockedSet.has(d) &&
+    !selectedDates.includes(d)
+  );
+
+  // Offered once per calendar, and only before the first submission, so a group
+  // with different availability is never nudged after they've answered.
+  const showSyncOffer = Boolean(
+    user &&
+    currentParticipant &&
+    submittedDates.length === 0 &&
+    syncCandidates.length > 0 &&
+    !syncDismissed &&
+    !profile?.dismissedCalendars.includes(calendar.id)
+  );
+
+  const applySync = () => {
+    setSelectedDates(prev => Array.from(new Set([...prev, ...syncCandidates])).sort());
+    setSyncDismissed(true);
+  };
+
+  const dismissSync = async () => {
+    setSyncDismissed(true);
+    try {
+      const token = await getToken();
+      await availabilityProfileApi.save({ dismissCalendarId: calendar.id }, token);
+    } catch (err) {
+      console.error('Failed to record sync preference:', err);
+    }
+  };
+
+  const pendingChanges = selectedDates.length + datesToRemove.length;
 
   return (
     <div className="page-wrapper">
@@ -350,6 +453,23 @@ function CalendarPage() {
 
                   {currentParticipant && (
                     <>
+                      {showSyncOffer && (
+                        <div className="sync-offer" role="region" aria-label={t('calendarSubmit.sync.title')}>
+                          <div className="sync-offer-body">
+                            <h4>{t('calendarSubmit.sync.title')}</h4>
+                            <p>{t('calendarSubmit.sync.desc', { count: syncCandidates.length })}</p>
+                          </div>
+                          <div className="sync-offer-actions">
+                            <button type="button" className="btn btn-primary btn-small" onClick={applySync}>
+                              {t('calendarSubmit.sync.apply')}
+                            </button>
+                            <button type="button" className="btn btn-outline btn-small" onClick={dismissSync}>
+                              {t('calendarSubmit.sync.dismiss')}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="date-picker-section">
                         <RichText as="h3" k="calendarSubmit.selectDatesLabel" />
                         <p className="form-hint">{t('calendarSubmit.selectDatesHint')}</p>
@@ -358,6 +478,7 @@ function CalendarPage() {
                           endDate={calendar.endDate}
                           selectedDates={selectedDates}
                           submittedDates={submittedDates}
+                          datesToRemove={datesToRemove}
                           blockedDates={calendar.blockedDates}
                           blockedDateReasons={calendar.blockedDateReasons}
                           onDateSelect={handleDateSelect}
@@ -375,8 +496,40 @@ function CalendarPage() {
                       {submittedDates.length > 0 && (
                         <div className="submitted-dates-section">
                           <h3>Already Submitted ({submittedDates.length})</h3>
-                          <DateRangeDisplay dates={submittedDates} />
+                          <DateRangeDisplay
+                            dates={submittedDates}
+                            onRemoveRange={handleRemoveSubmittedRange}
+                          />
                         </div>
+                      )}
+
+                      {datesToRemove.length > 0 && (
+                        <div className="removal-dates-section">
+                          <h3>{t('calendarSubmit.removal.title', { count: datesToRemove.length })}</h3>
+                          <p className="form-hint">{t('calendarSubmit.removal.hint')}</p>
+                          <button
+                            type="button"
+                            className="btn btn-outline btn-small"
+                            onClick={() => setDatesToRemove([])}
+                          >
+                            {t('calendarSubmit.removal.undo')}
+                          </button>
+                        </div>
+                      )}
+
+                      {user && (
+                        <label className="checkbox-option save-default-option">
+                          <input
+                            type="checkbox"
+                            checked={saveAsDefault}
+                            onChange={e => setSaveAsDefault(e.target.checked)}
+                            disabled={submitting}
+                          />
+                          <span>
+                            <strong>{t('calendarSubmit.saveDefault.label')}</strong>
+                            <span className="form-hint">{t('calendarSubmit.saveDefault.hint')}</span>
+                          </span>
+                        </label>
                       )}
 
                       {statusMessage.text && (
@@ -405,12 +558,12 @@ function CalendarPage() {
                       {/* Mobile-only: keeps the submit action in view so pending dates aren't left unsubmitted. */}
                       <div className="mobile-submit-bar" role="region" aria-label={t('calendarSubmit.submitBtn')}>
                         <span className="mobile-submit-bar-count">
-                          {t('calendarSubmit.pendingCount', { count: selectedDates.length })}
+                          {t('calendarSubmit.pendingCount', { count: pendingChanges })}
                         </span>
                         <button
                           className="btn btn-primary"
                           onClick={handleSubmit}
-                          disabled={submitting || selectedDates.length === 0}
+                          disabled={submitting || pendingChanges === 0}
                         >
                           {submitting ? t('common.submitting') : t('calendarSubmit.submitBtn')}
                         </button>

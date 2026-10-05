@@ -48,6 +48,7 @@
     "create.dates.quickSixMonths": "Next 6 months",
     "create.dates.duration": "{count} days in range",
     "create.dates.durationOne": "1 day in range",
+    "create.dates.horizonHint": "Calendars can run up to {date}.",
 
     "create.review.title": "Extras and Summary",
     "create.review.subtitle": "All optional, and you can change any of this later.",
@@ -73,6 +74,7 @@
     "create.error.missingName": "Please enter a title",
     "create.error.missingDates": "Please select both a first and last date",
     "create.error.endBeforeStart": "The last date must be after the first date",
+    "create.error.beyondHorizon": "Dates can't go past {date}. Please pick an earlier window.",
     "create.error.noParticipants": "Please add at least one participant",
     "create.error.tooManyParticipants": "A calendar can have at most {max} participants.",
     "create.error.blockedOutOfRange": "Blocked dates must fall inside the calendar's date range.",

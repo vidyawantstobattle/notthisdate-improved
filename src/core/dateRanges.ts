@@ -33,6 +33,14 @@ export function formatDisplayDate(dateStr: string | null | undefined): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+// Latest date a calendar may reach, measured from today. Keeps ranges realistic
+// and bounds how much unavailability data a single calendar can accumulate.
+export function getHorizonDate(horizonDays: number, from: Date = new Date()): string {
+  const limit = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  limit.setDate(limit.getDate() + horizonDays);
+  return formatDateLocal(limit);
+}
+
 // Collapses a flat list of dates into contiguous [start, end] ranges,
 // e.g. ['2026-06-01','2026-06-02','2026-06-05'] -> [{start:06-01,end:06-02},{start:06-05,end:06-05}]
 export function groupIntoRanges(dates: string[]): DateRange[] {

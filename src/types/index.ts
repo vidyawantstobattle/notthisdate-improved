@@ -44,6 +44,13 @@ export interface Submission {
   timestamp: string | null;
 }
 
+// A signed-in user's reusable unavailable dates, shared across their calendars.
+export interface AvailabilityProfile {
+  dates: string[];
+  dismissedCalendars: string[];
+  updatedAt: string | null;
+}
+
 export interface DateRange {
   start: string;
   end: string;

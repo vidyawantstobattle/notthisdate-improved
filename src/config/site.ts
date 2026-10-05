@@ -5,3 +5,4 @@ export const SITE_URL = 'https://reverse-date-picker.netlify.app';
 // Mirrors netlify/functions/utils/limits.mjs; keep both in sync.
 export const MAX_CALENDARS_PER_USER = 5;
 export const MAX_PARTICIPANTS = 40;
+export const MAX_CALENDAR_HORIZON_DAYS = 365;

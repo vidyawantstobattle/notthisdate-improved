@@ -720,7 +720,26 @@
     background: var(--danger-color);
     border-color: var(--danger-color);
     color: var(--color-white);
-    cursor: not-allowed;
+}
+
+.ntd-day.is-submitted:hover:not(:disabled) {
+    background: var(--danger-color);
+    border-color: var(--text-primary);
+}
+
+/* Submitted date the user has toggled off; cleared on the next submit. */
+.ntd-day.is-removing {
+    background: var(--bg-white);
+    border-color: var(--danger-color);
+    border-style: dashed;
+    color: var(--danger-color);
+    text-decoration: line-through;
+    opacity: 0.85;
+}
+
+.ntd-day.is-removing:hover:not(:disabled) {
+    background: var(--danger-bg);
+    border-color: var(--danger-color);
 }
 
 .ntd-day.is-pending {
@@ -744,22 +763,26 @@
 }
 
 .ntd-day.is-pending.range-start,
-.ntd-day.is-submitted.range-start {
+.ntd-day.is-submitted.range-start,
+.ntd-day.is-removing.range-start {
     border-radius: var(--radius-sm) 0 0 var(--radius-sm);
 }
 
 .ntd-day.is-pending.range-middle,
-.ntd-day.is-submitted.range-middle {
+.ntd-day.is-submitted.range-middle,
+.ntd-day.is-removing.range-middle {
     border-radius: 0;
 }
 
 .ntd-day.is-pending.range-end,
-.ntd-day.is-submitted.range-end {
+.ntd-day.is-submitted.range-end,
+.ntd-day.is-removing.range-end {
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .ntd-day.is-pending.range-single,
-.ntd-day.is-submitted.range-single {
+.ntd-day.is-submitted.range-single,
+.ntd-day.is-removing.range-single {
     border-radius: var(--radius-sm);
 }
 
@@ -837,6 +860,80 @@
 .date-selection-legend .legend-color.submitted {
     background: var(--danger-color);
     border: 2px solid var(--danger-color);
+}
+
+.date-picker-legend .legend-color.removing,
+.date-selection-legend .legend-color.removing {
+    background: var(--bg-white);
+    border: 2px dashed var(--danger-color);
+}
+
+/* ===== AVAILABILITY SYNC OFFER ===== */
+.sync-offer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    background: var(--primary-bg);
+    border: 1px solid var(--primary-color);
+    border-radius: var(--radius-lg);
+}
+
+.sync-offer-body {
+    min-width: 0;
+    flex: 1 1 260px;
+}
+
+.sync-offer-body h4 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    color: var(--secondary-color);
+}
+
+.sync-offer-body p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.sync-offer-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* ===== PENDING REMOVALS ===== */
+.removal-dates-section {
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-color);
+    border-radius: var(--radius-lg);
+}
+
+.removal-dates-section h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    color: var(--danger-color);
+}
+
+.removal-dates-section .form-hint {
+    margin-bottom: 0.75rem;
+}
+
+.save-default-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    margin-bottom: 1.5rem;
+}
+
+.save-default-option .form-hint {
+    display: block;
+    margin: 0.125rem 0 0;
 }
 
 /* ===== AVAILABILITY VIEW ===== */

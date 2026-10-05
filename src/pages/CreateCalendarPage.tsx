@@ -9,8 +9,8 @@ import BlockedDatesInput from '../components/BlockedDatesInput';
 import AdPlaceholder from '../components/AdPlaceholder';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import { calendarsApi } from '../api/calendars.api';
-import { formatDisplayDate } from '../core/dateRanges';
-import { MAX_PARTICIPANTS } from '../config/site';
+import { formatDisplayDate, getHorizonDate } from '../core/dateRanges';
+import { MAX_PARTICIPANTS, MAX_CALENDAR_HORIZON_DAYS } from '../config/site';
 import type { CreateCalendarInput, ParticipantsType } from '../types';
 
 const BASE_STEPS = ['basics', 'dates', 'review'] as const;
@@ -35,6 +35,12 @@ function addMonths(months: number): string {
   const date = new Date();
   date.setMonth(date.getMonth() + months);
   return formatDateInput(date);
+}
+
+// Clamped so the quick picks can never propose a range past the horizon.
+function addMonthsCapped(months: number, maxDate: string): string {
+  const candidate = addMonths(months);
+  return candidate > maxDate ? maxDate : candidate;
 }
 
 function daysBetween(start: string, end: string): number {
@@ -70,6 +76,9 @@ function CreateCalendarPage() {
 
   const draftRestored = useRef(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
+
+  const today = formatDateInput(new Date());
+  const maxDate = getHorizonDate(MAX_CALENDAR_HORIZON_DAYS);
 
   useDocumentTitle(t('create.docTitle'));
 
@@ -131,6 +140,9 @@ function CreateCalendarPage() {
     if (index === 1) {
       if (!startDate || !endDate) return t('create.error.missingDates');
       if (startDate > endDate) return t('create.error.endBeforeStart');
+      if (startDate > maxDate || endDate > maxDate) {
+        return t('create.error.beyondHorizon', { date: formatDisplayDate(maxDate) });
+      }
     }
     if (index === 2) {
       if (blockedDates.some(d => d < startDate || d > endDate)) {
@@ -407,6 +419,8 @@ function CreateCalendarPage() {
                     id="create-start"
                     type="date"
                     value={startDate}
+                    min={today}
+                    max={maxDate}
                     onChange={e => setStartDate(e.target.value)}
                     disabled={submitting}
                   />
@@ -418,6 +432,7 @@ function CreateCalendarPage() {
                     type="date"
                     value={endDate}
                     min={startDate}
+                    max={maxDate}
                     onChange={e => setEndDate(e.target.value)}
                     disabled={submitting}
                   />
@@ -430,10 +445,10 @@ function CreateCalendarPage() {
                   <button
                     type="button"
                     className={`btn btn-outline btn-small ${selectedQuickPick === 'month' ? 'btn-selected' : ''}`}
-                    onClick={() => { 
+                    onClick={() => {
                       setSelectedQuickPick('month');
-                      setStartDate(formatDateInput(new Date())); 
-                      setEndDate(addMonths(1)); 
+                      setStartDate(today);
+                      setEndDate(addMonthsCapped(1, maxDate));
                     }}
                   >
                     {t('create.dates.quickMonth')}
@@ -441,10 +456,10 @@ function CreateCalendarPage() {
                   <button
                     type="button"
                     className={`btn btn-outline btn-small ${selectedQuickPick === 'threeMonths' ? 'btn-selected' : ''}`}
-                    onClick={() => { 
+                    onClick={() => {
                       setSelectedQuickPick('threeMonths');
-                      setStartDate(formatDateInput(new Date())); 
-                      setEndDate(addMonths(3)); 
+                      setStartDate(today);
+                      setEndDate(addMonthsCapped(3, maxDate));
                     }}
                   >
                     {t('create.dates.quickThreeMonths')}
@@ -452,15 +467,16 @@ function CreateCalendarPage() {
                   <button
                     type="button"
                     className={`btn btn-outline btn-small ${selectedQuickPick === 'sixMonths' ? 'btn-selected' : ''}`}
-                    onClick={() => { 
+                    onClick={() => {
                       setSelectedQuickPick('sixMonths');
-                      setStartDate(formatDateInput(new Date())); 
-                      setEndDate(addMonths(6)); 
+                      setStartDate(today);
+                      setEndDate(addMonthsCapped(6, maxDate));
                     }}
                   >
                     {t('create.dates.quickSixMonths')}
                   </button>
                 </div>
+                <p className="form-hint">{t('create.dates.horizonHint', { date: formatDisplayDate(maxDate) })}</p>
               </div>
 
               {rangeDays > 0 && (

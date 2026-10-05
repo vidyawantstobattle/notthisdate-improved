@@ -6,6 +6,7 @@ interface DatePickerProps {
   endDate: string;
   selectedDates?: string[];
   submittedDates?: string[];
+  datesToRemove?: string[];
   blockedDates?: string[];
   blockedDateReasons?: Record<string, string>;
   onDateSelect?: (dateStr: string) => void;
@@ -78,6 +79,7 @@ function DatePicker({
   endDate,
   selectedDates = [],
   submittedDates = [],
+  datesToRemove = [],
   blockedDates = [],
   blockedDateReasons = {},
   onDateSelect
@@ -119,7 +121,7 @@ function DatePicker({
   };
 
   const handleDayClick = (dateStr: string) => {
-    if (blockedDates.includes(dateStr) || submittedDates.includes(dateStr)) return;
+    if (blockedDates.includes(dateStr)) return;
     onDateSelect?.(dateStr);
   };
 
@@ -158,6 +160,7 @@ function DatePicker({
                 rangeEnd={rangeEnd}
                 selectedDates={selectedDates}
                 submittedDates={submittedDates}
+                datesToRemove={datesToRemove}
                 blockedDates={blockedDates}
                 blockedDateReasons={blockedDateReasons}
                 onDayClick={handleDayClick}
@@ -176,6 +179,10 @@ function DatePicker({
           <span className="legend-color submitted" aria-hidden="true"></span>
           <span>{t('calendarSubmit.legend.alreadySubmitted')}</span>
         </span>
+        <span className="legend-item">
+          <span className="legend-color removing" aria-hidden="true"></span>
+          <span>{t('calendarSubmit.legend.markedForRemoval')}</span>
+        </span>
       </div>
     </div>
   );
@@ -187,6 +194,7 @@ interface PickerMonthProps {
   rangeEnd: Date;
   selectedDates: string[];
   submittedDates: string[];
+  datesToRemove: string[];
   blockedDates: string[];
   blockedDateReasons: Record<string, string>;
   onDayClick: (dateStr: string) => void;
@@ -199,6 +207,7 @@ function PickerMonth({
   rangeEnd,
   selectedDates,
   submittedDates,
+  datesToRemove,
   blockedDates,
   blockedDateReasons,
   onDayClick,
@@ -223,6 +232,7 @@ function PickerMonth({
     const dateStr = formatDateLocal(dateObj);
     const isInRange = dateObj >= rangeStart && dateObj <= rangeEnd;
     const isSubmitted = submittedDates.includes(dateStr);
+    const isRemoving = isSubmitted && datesToRemove.includes(dateStr);
     const isPending = selectedDates.includes(dateStr);
     const isBlocked = blockedDates.includes(dateStr);
 
@@ -240,17 +250,20 @@ function PickerMonth({
       title = blockedDateReasons[dateStr]
         ? t('calendarView.blocked.tooltipWithReason', { reason: blockedDateReasons[dateStr] })
         : t('calendarView.blocked.tooltip');
+    } else if (isRemoving) {
+      classNames.push('is-removing');
+      title = t('calendarSubmit.titleUndoRemoval');
     } else if (isSubmitted) {
       classNames.push('is-submitted');
-      disabled = true;
-      title = t('calendarSubmit.rangeTitleSubmitted');
+      title = t('calendarSubmit.titleClickToUnmark');
     } else if (isPending) {
       classNames.push('is-pending');
       title = t('calendarSubmit.rangeTitlePending');
     }
 
     if (isInRange && (isSubmitted || isPending)) {
-      const rangePosition = getRangePosition(dateStr, isSubmitted ? submittedDates : selectedDates);
+      const rangeSource = isRemoving ? datesToRemove : isSubmitted ? submittedDates : selectedDates;
+      const rangePosition = getRangePosition(dateStr, rangeSource);
       if (rangePosition) classNames.push(rangePosition);
     }
 
@@ -261,7 +274,7 @@ function PickerMonth({
         className={classNames.join(' ')}
         disabled={disabled}
         title={title}
-        aria-pressed={isPending}
+        aria-pressed={isPending || isSubmitted}
         onClick={() => onDayClick(dateStr)}
       >
         <span className="ntd-day-number">{dayNumber}</span>

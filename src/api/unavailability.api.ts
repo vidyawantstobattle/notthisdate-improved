@@ -8,11 +8,13 @@ export const unavailabilityApi = {
   submit(
     calendarId: string,
     participantName: string,
-    unavailableDates: string[]
+    unavailableDates: string[],
+    removedDates: string[] = []
   ): Promise<{ success: boolean; participant: string; unavailableDates: string[]; error?: string }> {
     return apiClient.post(`/submit-unavailability?calendarId=${encodeURIComponent(calendarId)}`, {
       participantName,
-      unavailableDates
+      unavailableDates,
+      removedDates
     });
   },
 
