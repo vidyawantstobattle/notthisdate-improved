@@ -372,6 +372,7 @@
 }
 
 .ad-slot-banner {
+    display: none;
     width: 100%;
     max-width: 970px;
     min-height: 100px;

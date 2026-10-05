@@ -709,6 +709,10 @@
         grid-template-columns: minmax(0, 720px);
     }
 
+    .ad-slot-banner {
+        display: block;
+    }
+
     .create-rail {
         display: none;
     }

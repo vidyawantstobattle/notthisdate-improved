@@ -13,6 +13,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Footer from '../components/Footer';
 import AdPlaceholder from '../components/AdPlaceholder';
+import { calendarsApi } from '../api/calendars.api';
 import { unavailabilityApi } from '../api/unavailability.api';
 import { availabilityProfileApi } from '../api/availabilityProfile.api';
 import { normalizeSubmissions } from '../core/participants';
@@ -23,6 +24,32 @@ import {
   forgetParticipant
 } from '../utils/participantMemory';
 import type { AvailabilityProfile, DateRange, UnavailabilityByDate } from '../types';
+
+const LOCAL_PROFILE_KEY = 'ntd.availabilityProfile';
+
+function readLocalProfile(): AvailabilityProfile | null {
+  try {
+    const raw = localStorage.getItem(LOCAL_PROFILE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<AvailabilityProfile>;
+    if (!Array.isArray(parsed.dates) || !Array.isArray(parsed.dismissedCalendars)) return null;
+    return {
+      dates: parsed.dates.filter((entry): entry is string => typeof entry === 'string').sort(),
+      dismissedCalendars: parsed.dismissedCalendars.filter((entry): entry is string => typeof entry === 'string'),
+      updatedAt: typeof parsed.updatedAt === 'string' ? parsed.updatedAt : null
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeLocalProfile(profile: AvailabilityProfile): void {
+  try {
+    localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(profile));
+  } catch {
+    // Storage can be disabled by the browser privacy mode.
+  }
+}
 
 function CalendarPage() {
   const { calendarId } = useParams();
@@ -43,6 +70,7 @@ function CalendarPage() {
   const [apiError, setApiError] = useState<Error | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [profile, setProfile] = useState<AvailabilityProfile | null>(null);
+  const [historicalSuggestionDates, setHistoricalSuggestionDates] = useState<string[]>([]);
   const [syncDismissed, setSyncDismissed] = useState(false);
   const [saveAsDefault, setSaveAsDefault] = useState(false);
 
@@ -68,10 +96,16 @@ function CalendarPage() {
         const data = await availabilityProfileApi.get(token);
         if (!cancelled) {
           setProfile(data.profile);
+          writeLocalProfile(data.profile);
           setSaveAsDefault(data.profile.dates.length === 0);
         }
       } catch (err) {
         console.error('Failed to load availability profile:', err);
+        const fallback = readLocalProfile();
+        if (!cancelled && fallback) {
+          setProfile(fallback);
+          setSaveAsDefault(fallback.dates.length === 0);
+        }
       }
     })();
 
@@ -110,6 +144,47 @@ function CalendarPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [calendar?.id, activeTab]);
+
+  useEffect(() => {
+    if (!user || !calendar?.id || !currentParticipant) {
+      setHistoricalSuggestionDates([]);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await getToken();
+        const { calendars } = await calendarsApi.list(token);
+        const otherCalendars = calendars.filter(entry => entry.id !== calendar.id);
+        const dateSet = new Set<string>();
+
+        await Promise.all(otherCalendars.map(async (entry) => {
+          try {
+            const data = await unavailabilityApi.getUserSubmissions(entry.id, currentParticipant);
+            const submissions = normalizeSubmissions(data.submissions, currentParticipant);
+            submissions.forEach(submission => {
+              (submission.dates || []).forEach(date => dateSet.add(date));
+            });
+          } catch {
+            // Keep searching remaining calendars if one call fails.
+          }
+        }));
+
+        if (!cancelled) {
+          setHistoricalSuggestionDates(Array.from(dateSet).sort());
+        }
+      } catch (err) {
+        console.error('Failed to load historical suggestions:', err);
+        if (!cancelled) {
+          setHistoricalSuggestionDates([]);
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, calendar?.id, currentParticipant]);
 
   const loadUserSubmissions = async () => {
     if (!calendar) return;
@@ -230,7 +305,15 @@ function CalendarPage() {
           const token = await getToken();
           const { profile: saved } = await availabilityProfileApi.save({ dates: nextSubmitted }, token);
           setProfile(saved);
+          writeLocalProfile(saved);
         } catch (err) {
+          const local: AvailabilityProfile = {
+            dates: nextSubmitted,
+            dismissedCalendars: profile?.dismissedCalendars || [],
+            updatedAt: new Date().toISOString()
+          };
+          setProfile(local);
+          writeLocalProfile(local);
           // Saving the reusable profile is a convenience; the submission itself already succeeded.
           console.error('Failed to save availability profile:', err);
         }
@@ -334,12 +417,17 @@ function CalendarPage() {
   );
 
   const blockedSet = new Set(calendar.blockedDates || []);
+  const suggestionPool = Array.from(new Set([
+    ...(profile?.dates || []),
+    ...historicalSuggestionDates
+  ])).sort();
 
-  // Only the saved dates that actually fit this calendar are worth offering.
-  const syncCandidates = (profile?.dates || []).filter(d =>
+  // Only suggestion dates that fit this calendar are worth offering.
+  const syncCandidates = suggestionPool.filter(d =>
     d >= calendar.startDate &&
     d <= calendar.endDate &&
     !blockedSet.has(d) &&
+    !submittedDates.includes(d) &&
     !selectedDates.includes(d)
   );
 
@@ -361,9 +449,20 @@ function CalendarPage() {
 
   const dismissSync = async () => {
     setSyncDismissed(true);
+
+    const nextProfile: AvailabilityProfile = {
+      dates: profile?.dates || [],
+      dismissedCalendars: Array.from(new Set([...(profile?.dismissedCalendars || []), calendar.id])),
+      updatedAt: new Date().toISOString()
+    };
+    setProfile(nextProfile);
+    writeLocalProfile(nextProfile);
+
     try {
       const token = await getToken();
-      await availabilityProfileApi.save({ dismissCalendarId: calendar.id }, token);
+      const { profile: saved } = await availabilityProfileApi.save({ dismissCalendarId: calendar.id }, token);
+      setProfile(saved);
+      writeLocalProfile(saved);
     } catch (err) {
       console.error('Failed to record sync preference:', err);
     }
