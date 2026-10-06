@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n, RichText } from '../context/I18nContext';
@@ -23,12 +23,20 @@ function AboutPage() {
   const [stats, setStats] = useState<AppStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
   const [redirecting, setRedirecting] = useState(false);
+  // Only a login performed from this page should redirect; browsing here while
+  // already signed in must stay put.
+  const wasSignedOut = useRef(false);
 
   useDocumentTitle('About');
 
   // Redirect to dashboard after login
   useEffect(() => {
-    if (user && !loading && !redirecting) {
+    if (loading) return;
+    if (!user) {
+      wasSignedOut.current = true;
+      return;
+    }
+    if (wasSignedOut.current && !redirecting) {
       setRedirecting(true);
       navigate('/dashboard', { replace: true });
     }

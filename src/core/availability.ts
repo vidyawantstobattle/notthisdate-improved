@@ -39,23 +39,30 @@ export interface BestDatesResult {
 
 // Scans the calendar range for the date(s) that clash with the fewest people.
 // Blocked dates are excluded: nobody can pick them, so they are not a result.
+// Dates that have already passed are excluded too - a day nobody marked
+// unavailable is still not something the group can go and do.
 // Returns null when there is nothing meaningful to report yet.
 export function findBestDates(
   startDate: string,
   endDate: string,
   allUnavailability: UnavailabilityByDate,
   totalPeople: number,
-  blockedDates: string[] = []
+  blockedDates: string[] = [],
+  today: Date = new Date()
 ): BestDatesResult | null {
   const start = parseDateLocal(startDate);
   const end = parseDateLocal(endDate);
   if (!start || !end || start > end) return null;
 
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const firstCandidate = start > todayStart ? start : todayStart;
+  if (firstCandidate > end) return null;
+
   const blocked = new Set(blockedDates);
   let best = Infinity;
   let dates: string[] = [];
 
-  for (const cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
+  for (const cursor = new Date(firstCandidate); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
     const dateStr = formatDateLocal(cursor);
     if (blocked.has(dateStr)) continue;
 

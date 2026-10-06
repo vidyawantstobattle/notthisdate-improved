@@ -13,6 +13,9 @@
     "calendarView.best.none": "No date works for the whole group yet.",
     "calendarView.best.more": "+{count} more",
     "calendarView.best.awaitingSubmissions": "Nobody has submitted their unavailable dates yet.",
+    "calendarView.best.allPast": "This calendar's date range has already passed.",
+
+    "calendarView.past.tooltip": "This date has already passed",
 
     "calendarView.dateDetails.title": "Date Details",
     "calendarView.dateDetails.everyoneAvailable": "🎉 Everyone is available on this date!",

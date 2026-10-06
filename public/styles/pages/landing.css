@@ -326,6 +326,8 @@
 .steps-section {
     padding: 4rem 1rem;
     background: var(--secondary-color);
+    /* Clears the sticky header when linked to via #how-it-works. */
+    scroll-margin-top: 4rem;
 }
 
 .steps-inner {

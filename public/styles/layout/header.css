@@ -114,14 +114,18 @@
     font-weight: 500;
     letter-spacing: -0.01em;
     max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 0;
     cursor: pointer;
     transition: color 0.2s ease;
     display: flex;
     align-items: center;
     gap: 0.4rem;
+}
+
+.user-email-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .user-email-btn:hover {
@@ -195,6 +199,11 @@
 
 .user-menu-item:hover {
     background: var(--bg-primary);
+}
+
+/* Desktop keeps the standalone logout button, so the menu entry stays hidden. */
+.user-menu-item-logout {
+    display: none;
 }
 
 .user-menu-item.is-danger {
@@ -275,14 +284,9 @@
     }
 
     .user-menu-list {
-        position: fixed;
-        top: auto;
-        right: 1rem;
-        bottom: calc(100% + 0.5rem);
-        left: 1rem;
-        margin-top: 0;
-        min-width: auto;
-        width: auto;
+        right: 0;
+        left: auto;
+        min-width: 160px;
         max-width: calc(100vw - 2rem);
     }
 }

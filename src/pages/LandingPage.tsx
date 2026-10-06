@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n, RichText } from '../context/I18nContext';
@@ -21,6 +21,9 @@ function LandingPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [redirecting, setRedirecting] = useState(false);
+  // Someone already signed in may navigate here on purpose (e.g. the header logo),
+  // so only a login that happens while this page is open sends them to the dashboard.
+  const wasSignedOut = useRef(false);
 
   const startCreateCalendar = (category?: string) => {
     navigate(category ? `/create?category=${encodeURIComponent(category)}` : '/create');
@@ -34,7 +37,12 @@ function LandingPage() {
 
   // Redirect to dashboard after login
   useEffect(() => {
-    if (user && !loading && !redirecting) {
+    if (loading) return;
+    if (!user) {
+      wasSignedOut.current = true;
+      return;
+    }
+    if (wasSignedOut.current && !redirecting) {
       setRedirecting(true);
       navigate('/dashboard', { replace: true });
     }

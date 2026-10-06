@@ -177,12 +177,21 @@ function DashboardPage() {
                   onClick={() => setShowAccountMenu(!showAccountMenu)}
                   aria-expanded={showAccountMenu}
                   aria-haspopup="menu"
+                  aria-label={user.email}
                 >
-                  {user.email}
+                  <span className="user-email-text">{user.email}</span>
                   <span className="dropdown-icon" aria-hidden="true"></span>
                 </button>
                 {showAccountMenu && (
                   <div className="user-menu-list" role="menu">
+                    {/* Mobile has no room for a standalone logout button, so it lives here too. */}
+                    <button
+                      className="user-menu-item user-menu-item-logout"
+                      onClick={logout}
+                      role="menuitem"
+                    >
+                      {t('nav.logout')}
+                    </button>
                     <button
                       className="user-menu-item is-danger"
                       onClick={() => {
@@ -196,7 +205,7 @@ function DashboardPage() {
                   </div>
                 )}
               </div>
-              <button className="btn btn-outline btn-small" onClick={logout}>{t('nav.logout')}</button>
+              <button className="btn btn-outline btn-small user-menu-logout" onClick={logout}>{t('nav.logout')}</button>
             </div>
           </nav>
         </div>
@@ -338,6 +347,8 @@ function DashboardPage() {
           }}
         />
       )}
+
+      <Footer />
     </div>
   );
 }

@@ -660,6 +660,7 @@ function CalendarPage() {
                   <AvailabilityView
                     calendar={calendar}
                     allUnavailability={allUnavailability}
+                    submittedParticipants={knownParticipants}
                   />
                 </div>
               )}

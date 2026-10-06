@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect, type ReactElement } from 'react';
 import { getAvailabilityColor, getAvailabilityTextColor, findBestDates, type BestDatesResult } from '../core/availability';
-import { groupIntoRanges, formatDisplayDate, formatDateDisplay } from '../core/dateRanges';
+import { groupIntoRanges, formatDisplayDate, formatDateDisplay, formatDateLocal } from '../core/dateRanges';
+import { normalizeParticipantName } from '../core/participants';
 import { useI18n } from '../context/I18nContext';
 import type { Calendar, UnavailabilityByDate } from '../types';
 
 interface AvailabilityViewProps {
   calendar: Calendar;
   allUnavailability: UnavailabilityByDate;
+  submittedParticipants?: string[];
 }
 
-function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps) {
+function AvailabilityView({ calendar, allUnavailability, submittedParticipants = [] }: AvailabilityViewProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { t } = useI18n();
 
@@ -17,6 +19,7 @@ function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps
 
   const startDate = new Date(calendar.startDate + 'T12:00:00');
   const endDate = new Date(calendar.endDate + 'T12:00:00');
+  const todayStr = formatDateLocal(new Date());
 
   // Generate months to display
   const months: { year: number; month: number }[] = [];
@@ -45,12 +48,23 @@ function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps
     totalPeople,
     blockedDates
   );
+  const isEntirelyPast = calendar.endDate < todayStr;
+
+  const pendingParticipants = calendar.participantsType === 'defined'
+    ? getPendingParticipants(calendar.participants || [], submittedParticipants)
+    : [];
 
   return (
     <div className="availability-view">
       <div className="availability-header">
         <h3>{t('calendarShell.tabs.view')}</h3>
-        <BestDatesPanel result={bestDates} hasSubmissions={hasSubmissions} />
+        <BestDatesPanel result={bestDates} hasSubmissions={hasSubmissions} isEntirelyPast={isEntirelyPast} />
+        {calendar.participantsType === 'defined' && (
+          <PendingParticipantsPanel
+            pending={pendingParticipants}
+            total={calendar.participants?.length || 0}
+          />
+        )}
         <p className="form-hint info">{t('calendarView.legend.note')}</p>
       </div>
 
@@ -87,6 +101,7 @@ function AvailabilityView({ calendar, allUnavailability }: AvailabilityViewProps
             totalPeople={totalPeople}
             blockedDates={blockedDates}
             blockedDateReasons={blockedDateReasons}
+            todayStr={todayStr}
             onDateClick={setSelectedDate}
             t={t}
           />
@@ -116,11 +131,16 @@ function formatRange(start: string, end: string): string {
 interface BestDatesPanelProps {
   result: BestDatesResult | null;
   hasSubmissions: boolean;
+  isEntirelyPast: boolean;
 }
 
 // The headline answer: which date(s) currently clash with the fewest people.
-function BestDatesPanel({ result, hasSubmissions }: BestDatesPanelProps) {
+function BestDatesPanel({ result, hasSubmissions, isEntirelyPast }: BestDatesPanelProps) {
   const { t } = useI18n();
+
+  if (isEntirelyPast) {
+    return <p className="best-dates-panel is-empty">{t('calendarView.best.allPast')}</p>;
+  }
 
   if (!hasSubmissions) {
     return (
@@ -169,6 +189,7 @@ interface MonthCalendarProps {
   totalPeople: number;
   blockedDates: string[];
   blockedDateReasons: Record<string, string>;
+  todayStr: string;
   onDateClick: (dateStr: string) => void;
   t: (key: string, params?: Record<string, string | number>) => string;
 }
@@ -182,6 +203,7 @@ function MonthCalendar({
   totalPeople,
   blockedDates,
   blockedDateReasons,
+  todayStr,
   onDateClick,
   t
 }: MonthCalendarProps) {
@@ -246,14 +268,16 @@ function MonthCalendar({
     const ratio = totalPeople > 0 ? unavailableCount / totalPeople : 0;
     const bgColor = getAvailabilityColor(ratio);
     const textColor = getAvailabilityTextColor(ratio);
+    const isPast = dateStr < todayStr;
 
     calendarCells.push(
       <button
         key={day}
-        className="av-calendar-day in-range"
+        className={`av-calendar-day in-range${isPast ? ' is-past' : ''}`}
         style={{ backgroundColor: bgColor, color: textColor }}
         onClick={() => onDateClick(dateStr)}
-        aria-label={`${monthName} ${day}. ${unavailableCount > 0 ? `${unavailableCount} people unavailable` : 'Everyone available'}`}
+        title={isPast ? t('calendarView.past.tooltip') : undefined}
+        aria-label={`${monthName} ${day}. ${isPast ? t('calendarView.past.tooltip') : unavailableCount > 0 ? `${unavailableCount} people unavailable` : 'Everyone available'}`}
       >
         <span className="day-number">{day}</span>
         {unavailableCount > 0 && (
@@ -353,6 +377,43 @@ function DateDetailsModal({ dateStr, calendar, allUnavailability, blockedDateRea
       </div>
     </div>
   );
+}
+
+interface PendingParticipantsPanelProps {
+  pending: string[];
+  total: number;
+}
+
+// Named calendars know exactly who is missing, so say so instead of leaving the
+// organiser to work it out from the heatmap.
+function PendingParticipantsPanel({ pending, total }: PendingParticipantsPanelProps) {
+  const { t } = useI18n();
+
+  if (total === 0) return null;
+
+  if (pending.length === 0) {
+    return <p className="pending-participants is-complete">{t('calendarView.pending.allSubmitted')}</p>;
+  }
+
+  return (
+    <div className="pending-participants">
+      <span className="pending-participants-label">{t('calendarView.pending.title')}</span>
+      <p className="pending-participants-desc">
+        {t('calendarView.pending.desc', { count: pending.length, total })}
+      </p>
+      <ul className="pending-participants-list">
+        {pending.map(name => (
+          <li key={name} className="pending-participant">{name}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// Matching is case-insensitive because that is how submissions are keyed.
+function getPendingParticipants(participants: string[], submitted: string[]): string[] {
+  const submittedKeys = new Set(submitted.map(normalizeParticipantName));
+  return participants.filter(name => !submittedKeys.has(normalizeParticipantName(name)));
 }
 
 function getAllParticipants(allUnavailability: UnavailabilityByDate, calendar: Calendar): string[] {

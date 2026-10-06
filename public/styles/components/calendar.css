@@ -1012,6 +1012,57 @@
     color: var(--text-secondary);
 }
 
+/* Who still owes an answer. Only shown for named-participant calendars. */
+.pending-participants {
+    max-width: 32rem;
+    margin: 0 auto 0.75rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    text-align: center;
+}
+
+.pending-participants.is-complete {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.pending-participants-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.pending-participants-desc {
+    margin: 0.35rem 0 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.pending-participants-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pending-participant {
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--secondary-color);
+}
+
 .legend {
     padding: 1rem 1.5rem;
     background: var(--bg-primary);
@@ -1225,6 +1276,14 @@
     transform: scale(1.1);
     box-shadow: var(--shadow);
     z-index: 1;
+}
+
+/* Dates that have already passed are never an option, so they are drained of
+   the heatmap color that would otherwise read as "this still works". */
+.av-calendar-day.is-past {
+    filter: grayscale(1);
+    opacity: 0.45;
+    text-decoration: line-through;
 }
 
 /* Organiser-blocked dates: same hatched treatment as the submit calendar so the
