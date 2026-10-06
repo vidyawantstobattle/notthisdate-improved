@@ -722,6 +722,21 @@
     cursor: not-allowed;
 }
 
+/* Already happened: still shown for context, but no longer selectable. */
+.ntd-day.is-past {
+    background: var(--bg-primary);
+    color: var(--text-muted);
+    opacity: 0.5;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.ntd-day.is-past.is-submitted {
+    background: var(--danger-color);
+    border-color: var(--danger-color);
+    color: var(--color-white);
+}
+
 .ntd-day.is-submitted {
     background: var(--danger-color);
     border-color: var(--danger-color);

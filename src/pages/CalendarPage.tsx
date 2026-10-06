@@ -17,7 +17,7 @@ import { calendarsApi } from '../api/calendars.api';
 import { unavailabilityApi } from '../api/unavailability.api';
 import { availabilityProfileApi } from '../api/availabilityProfile.api';
 import { normalizeSubmissions } from '../core/participants';
-import { formatDisplayDate } from '../core/dateRanges';
+import { formatDisplayDate, formatDateLocal } from '../core/dateRanges';
 import {
   getRememberedParticipant,
   rememberParticipant,
@@ -412,11 +412,13 @@ function CalendarPage() {
   );
 
   const blockedSet = new Set(calendar.blockedDates || []);
+  const todayStr = formatDateLocal(new Date());
 
   // Only suggestion dates that fit this calendar are worth offering.
   const syncCandidates = historicalSuggestionDates.filter(d =>
     d >= calendar.startDate &&
     d <= calendar.endDate &&
+    d >= todayStr &&
     !blockedSet.has(d) &&
     !submittedDates.includes(d) &&
     !selectedDates.includes(d)

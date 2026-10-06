@@ -64,6 +64,7 @@
     "calendarSubmit.rangeTitleSubmitted": "Already submitted",
     "calendarSubmit.rangeTitlePending": "Pending selection",
     "calendarSubmit.titleOutsideRange": "Outside event date range",
+    "calendarSubmit.titlePastDate": "This date has already passed",
     "calendarSubmit.titleClickToMark": "Click to mark unavailable",
     "calendarSubmit.titleClickToUnmark": "Submitted - click to mark this date for removal",
     "calendarSubmit.titleUndoRemoval": "Marked for removal - click to keep this date",

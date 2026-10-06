@@ -1,5 +1,15 @@
 import { getStore } from "@netlify/blobs";
 
+// `store.list()` resolves to a { blobs } object; only `paginate: true` gives an
+// async iterable. Iterating the plain call threw, which is why counts read zero.
+async function countBlobs(store) {
+    let count = 0;
+    for await (const page of store.list({ paginate: true })) {
+        count += page.blobs.length;
+    }
+    return count;
+}
+
 /**
  * Get app-wide statistics: number of users and calendars
  * No authentication required - public endpoint
@@ -38,9 +48,7 @@ export default async (request, context) => {
         // Count unique users (one entry per user in user-calendars store)
         let userCount = 0;
         try {
-            for await (const entry of userStore.list()) {
-                userCount++;
-            }
+            userCount = await countBlobs(userStore);
         } catch (e) {
             console.warn('Error counting users:', e);
         }
@@ -48,9 +56,7 @@ export default async (request, context) => {
         // Count total calendars (one entry per calendar in calendars store)
         let calendarCount = 0;
         try {
-            for await (const entry of calendarStore.list()) {
-                calendarCount++;
-            }
+            calendarCount = await countBlobs(calendarStore);
         } catch (e) {
             console.warn('Error counting calendars:', e);
         }

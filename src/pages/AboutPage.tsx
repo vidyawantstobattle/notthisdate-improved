@@ -13,7 +13,8 @@ interface AppStats {
   timestamp: string;
 }
 
-const STATS_CACHE_KEY = 'notthisdate_app_stats';
+// Key is versioned so the broken zero counts cached by the previous build are dropped.
+const STATS_CACHE_KEY = 'notthisdate_app_stats_v2';
 const STATS_CACHE_TTL = 3600000; // 1 hour in milliseconds
 
 function AboutPage() {

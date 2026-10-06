@@ -87,6 +87,7 @@ function DatePicker({
   const { t } = useI18n();
   const rangeStart = new Date(startDate + 'T12:00:00');
   const rangeEnd = new Date(endDate + 'T12:00:00');
+  const todayStr = formatDateLocal(new Date());
 
   const [monthsToShow, setMonthsToShow] = useState(getMonthsToShow());
   const [viewStart, setViewStart] = useState(() =>
@@ -122,6 +123,7 @@ function DatePicker({
 
   const handleDayClick = (dateStr: string) => {
     if (blockedDates.includes(dateStr)) return;
+    if (dateStr < todayStr) return;
     onDateSelect?.(dateStr);
   };
 
@@ -163,6 +165,7 @@ function DatePicker({
                 datesToRemove={datesToRemove}
                 blockedDates={blockedDates}
                 blockedDateReasons={blockedDateReasons}
+                todayStr={todayStr}
                 onDayClick={handleDayClick}
                 t={t}
               />
@@ -197,6 +200,7 @@ interface PickerMonthProps {
   datesToRemove: string[];
   blockedDates: string[];
   blockedDateReasons: Record<string, string>;
+  todayStr: string;
   onDayClick: (dateStr: string) => void;
   t: (key: string, params?: Record<string, string | number>) => string;
 }
@@ -210,6 +214,7 @@ function PickerMonth({
   datesToRemove,
   blockedDates,
   blockedDateReasons,
+  todayStr,
   onDayClick,
   t
 }: PickerMonthProps) {
@@ -235,6 +240,7 @@ function PickerMonth({
     const isRemoving = isSubmitted && datesToRemove.includes(dateStr);
     const isPending = selectedDates.includes(dateStr);
     const isBlocked = blockedDates.includes(dateStr);
+    const isPast = dateStr < todayStr;
 
     const classNames = ['ntd-day'];
     let disabled = false;
@@ -244,6 +250,12 @@ function PickerMonth({
       classNames.push('is-out-of-range');
       disabled = true;
       title = t('calendarSubmit.titleOutsideRange');
+    } else if (isPast) {
+      // A day that has already happened can't be planned around any more.
+      classNames.push('is-past');
+      if (isSubmitted) classNames.push('is-submitted');
+      disabled = true;
+      title = t('calendarSubmit.titlePastDate');
     } else if (isBlocked) {
       classNames.push('is-blocked');
       disabled = true;
