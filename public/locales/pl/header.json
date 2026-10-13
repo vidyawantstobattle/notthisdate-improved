@@ -1,7 +1,8 @@
 {
-    "app.name": "NotThisDate",
-    "nav.login": "Inloggen",
-    "nav.logout": "Uitloggen",
-    "nav.howItWorks": "Hoe Het Werkt",
-    "nav.about": "Over Ons"
+    "nav.login": "Zaloguj się",
+    "nav.signup": "Zarejestruj się",
+    "nav.logout": "Wyloguj się",
+    "nav.howItWorks": "Jak to działa",
+    "nav.about": "O nas",
+    "nav.dashboard": "Panel"
 }

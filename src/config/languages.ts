@@ -10,7 +10,7 @@
 // t() and setLang() even while they're absent from ENABLED_LANGUAGES.
 export const LANGUAGE_REGISTRY = {
   en: { label: 'EN' },
-  nl: { label: 'NL' },
+  pl: { label: 'PL' },
   mr: { label: 'मराठी' }
 } as const;
 
@@ -19,7 +19,7 @@ export type LanguageCode = keyof typeof LANGUAGE_REGISTRY;
 // What the dropdown offers, in display order. Comment a line out to hide it.
 const ENABLED_LANGUAGES: LanguageCode[] = [
   'en',
-  // 'nl',
+  'pl',
   'mr'
 ];
 

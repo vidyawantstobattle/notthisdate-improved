@@ -141,7 +141,7 @@ Every language in the dropdown is driven by one array in **`src/config/languages
 // What the dropdown offers, in display order. Comment a line out to hide it.
 const ENABLED_LANGUAGES: LanguageCode[] = [
   'en',
-  // 'nl',      <-- THIS is the line to comment out to disable Dutch
+  // 'pl',      <-- THIS is the line to comment out to disable polish
   'mr'
 ];
 ```

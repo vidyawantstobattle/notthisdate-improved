@@ -1,0 +1,33 @@
+{
+    "about.title": "O NotThisDate",
+    "about.subtitle": "Upraszczamy planowanie zajęć grupowych, jeden kalendarz po drugim.",
+    "about.mission.title": "Nasza misja",
+    "about.mission.p1": "Uważamy, że koordynowanie dostępności członków grupy powinno być proste, szybkie i bezpłatne. NotThisDate powstało w wyniku frustracji związanej ze skomplikowanymi narzędziami do planowania, które wymagają rejestracji, mają płatne wersje premium lub po prostu zajmują zbyt dużo czasu.",
+    "about.mission.p2": "Nasze podejście jest inne: zamiast pytać wszystkich, kiedy mają czas (co może być przytłaczające), pytamy, kiedy <strong>NIE</strong> mają czasu. Jest to szybsze, bardziej intuicyjne i pozwala sprawniej znaleźć idealną datę.",
+
+    "about.howItWorks.step1.title": "Stwórz kalendarz",
+    "about.howItWorks.step1.desc": "Ustaw wydarzenie z zakresem dat i zaproś swoją grupę.",
+    "about.howItWorks.step2.title": "Udostępnij link",
+    "about.howItWorks.step2.desc": "Wyślij uczestnikom prosty link - nie muszą zakładać konta.",
+    "about.howItWorks.step3.title": "Zaznacz niedostępność",
+    "about.howItWorks.step3.desc": "Każdy zaznacza, kiedy NIE MOŻE - szybko i łatwo.",
+    "about.howItWorks.step4.title": "Znajdź najlepszą datę",
+    "about.howItWorks.step4.desc": "Jednym rzutem oka zobacz, które terminy pasują wszystkim najlepiej.",
+    "about.howItWorks.step5.title": "Dopracuj listę gości",
+    "about.howItWorks.step5.desc": "Chcesz zmienić listę zaproszonych? Zaktualizuj uczestników w dowolnym momencie, bez zaczynania od nowa.",
+    "about.howItWorks.step6.title": "Zatwierdź i udostępnij",
+    "about.howItWorks.step6.desc": "Wybierz zwycięski termin i wyślij jedną końcową wiadomość, żeby wszyscy byli na bieżąco.",
+
+    "about.whyReverse.title": "Dlaczego „odwrotna” dostępność?",
+    "about.whyReverse.p1": "Tradycyjne ankiety terminów każą zaznaczać każdy dzień, w którym jesteś dostępny. Ale większość z nas ma więcej wolnego czasu niż zajętego - zaznaczanie dostępności w 3-miesięcznym zakresie jest żmudne!",
+    "about.whyReverse.p2": "W NotThisDate zaznaczasz tylko te dni, w które <em>nie możesz</em> przyjść. Dla większości osób to zaledwie kilka dat. Jest szybciej, łatwiej i kończysz w kilka sekund zamiast minut.",
+
+    "about.stats.title": "Dołącz do grona planujących",
+    "about.stats.users": "Osoby planujące",
+    "about.stats.calendars": "Wydarzenia koordynowane",
+    "about.stats.unavailable": "Statystyki obecnie niedostępne",
+
+    "about.cta.title": "Gotowy na planowanie następnego wydarzenia?",
+    "about.cta.desc": "Rozpocznij za darmo - nie wymaga karty kredytowej.",
+    "about.cta.dashboard": "Przejdź do panelu"
+}

@@ -1,0 +1,7 @@
+{
+    "calendarShell.loading": "Ładowanie kalendarza...",
+    "calendarShell.error.title": "Nie znaleziono kalendarza",
+    "calendarShell.error.desc": "Ten kalendarz mógł zostać usunięty lub link jest nieprawidłowy.",
+    "calendarShell.tabs.submit": "Prześlij niedostępność",
+    "calendarShell.tabs.view": "Zobacz dostępność"
+}

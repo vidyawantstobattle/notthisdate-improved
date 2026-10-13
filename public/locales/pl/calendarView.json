@@ -1,0 +1,33 @@
+{
+    "calendarView.legend.title": "Legenda",
+    "calendarView.legend.everyoneAvailable": "Wszyscy dostępni",
+    "calendarView.legend.someUnavailable": "Część niedostępna",
+    "calendarView.legend.manyUnavailable": "Wielu niedostępnych",
+    "calendarView.legend.allUnavailable": "Wszyscy niedostępni",
+    "calendarView.legend.blocked": "Zablokowane (wydarzenie)",
+    "calendarView.legend.note": "Kliknij dowolną datę, aby zobaczyć, kto jest niedostępny",
+
+    "calendarView.best.title": "Najlepsze na razie",
+    "calendarView.best.everyoneAvailable": "Wszyscy są dostępni",
+    "calendarView.best.someAvailable": "Dostępnych: {available} z {total}",
+    "calendarView.best.none": "Brak terminu, który pasuje całej grupie.",
+    "calendarView.best.more": "+{count} więcej",
+    "calendarView.best.awaitingSubmissions": "Nikt jeszcze nie przesłał swoich niedostępnych terminów.",
+    "calendarView.best.allPast": "Zakres dat tego kalendarza już minął.",
+
+    "calendarView.past.tooltip": "Ta data już minęła",
+
+    "calendarView.dateDetails.title": "Szczegóły daty",
+    "calendarView.dateDetails.everyoneAvailable": "🎉 W tym terminie wszyscy są dostępni!",
+    "calendarView.dateDetails.unavailableCount": "{count} niedostępnych:",
+    "calendarView.dateDetails.availableCount": "{count} dostępnych:",
+    "calendarView.invalidDateRange": "Nieprawidłowy zakres dat kalendarza",
+    "calendarView.dateTitleUnavailable": "Niedostępnych: {count}",
+
+    "calendarView.pending.title": "Oczekiwanie na odpowiedzi",
+    "calendarView.pending.desc": "Uczestnicy, którzy jeszcze nie przesłali swoich terminów: {count} z {total}",
+    "calendarView.pending.allSubmitted": "Wszyscy przesłali swoje terminy.",
+    "calendarView.blocked.title": "Zablokowane daty",
+    "calendarView.blocked.tooltip": "Zablokowane przez organizatora",
+    "calendarView.blocked.tooltipWithReason": "Zablokowane przez organizatora: {reason}"
+}
