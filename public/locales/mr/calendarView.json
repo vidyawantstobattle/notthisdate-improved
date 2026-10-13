@@ -1,0 +1,33 @@
+{
+    "calendarView.legend.title": "लीजेंड",
+    "calendarView.legend.everyoneAvailable": "सर्व उपलब्ध",
+    "calendarView.legend.someUnavailable": "काही अनुपलब्ध",
+    "calendarView.legend.manyUnavailable": "अनेक अनुपलब्ध",
+    "calendarView.legend.allUnavailable": "सर्व अनुपलब्ध",
+    "calendarView.legend.blocked": "अवरोधित (कार्यक्रम)",
+    "calendarView.legend.note": "कोण अनुपलब्ध आहे ते पाहण्यासाठी कोणत्याही तारखेला क्लिक करा",
+
+    "calendarView.best.title": "आत्तापर्यंत सर्वोत्तम",
+    "calendarView.best.everyoneAvailable": "सर्व उपलब्ध आहेत",
+    "calendarView.best.someAvailable": "{available} पैकी {total} उपलब्ध आहेत",
+    "calendarView.best.none": "अजून कोणतीही तारीख संपूर्ण गटासाठी योग्य नाही.",
+    "calendarView.best.more": "+{count} अधिक",
+    "calendarView.best.awaitingSubmissions": "अजून कोणालाही त्यांची अनुपलब्ध तारीख सादर केलेली नाही.",
+    "calendarView.best.allPast": "या कॅलेंडरची तारीख श्रेणी आधीच गेली आहे.",
+
+    "calendarView.past.tooltip": "ही तारीख आधीच गेली आहे",
+
+    "calendarView.dateDetails.title": "तारीख तपशील",
+    "calendarView.dateDetails.everyoneAvailable": "🎉 या तारखेला सर्व उपलब्ध आहेत!",
+    "calendarView.dateDetails.unavailableCount": "{count} अनुपलब्ध:",
+    "calendarView.dateDetails.availableCount": "{count} उपलब्ध:",
+    "calendarView.invalidDateRange": "अवैध कॅलेंडर तारीख श्रेणी",
+    "calendarView.dateTitleUnavailable": "{count} अनुपलब्ध",
+
+    "calendarView.pending.title": "प्रलंबित",
+    "calendarView.pending.desc": "{count} पैकी {total} सहभागी अजून त्यांची तारीख सादर केलेली नाहीत:",
+    "calendarView.pending.allSubmitted": "सर्वांनी त्यांची तारीख सादर केली आहे.",
+    "calendarView.blocked.title": "अवरोधित तारखा",
+    "calendarView.blocked.tooltip": "संगठकाद्वारे अवरोधित",
+    "calendarView.blocked.tooltipWithReason": "संगठकाद्वारे अवरोधित: {reason}"
+}

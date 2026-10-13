@@ -9,6 +9,16 @@
 [functions]
   node_bundler = "esbuild"
 
+# `netlify dev` runs Vite as a child and serves the functions itself, so
+# functions that only exist locally resolve instead of 404ing against prod.
+[dev]
+  command = "npm run dev"
+  targetPort = 8888
+  port = 9999
+  framework = "#custom"
+  publish = "dist"
+  autoLaunch = false
+
 
 [[redirects]]
   from = "/*"

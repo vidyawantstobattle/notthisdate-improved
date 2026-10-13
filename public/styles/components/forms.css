@@ -46,6 +46,132 @@
     resize: vertical;
 }
 
+/* ===== RICH TEXT EDITOR ===== */
+.rich-text-editor {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background: var(--bg-white);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rich-text-editor:focus-within {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px var(--primary-bg);
+}
+
+.rich-text-editor.is-disabled {
+    background: var(--bg-primary);
+    opacity: 0.7;
+}
+
+.rich-text-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.4rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.rich-text-btn {
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.rich-text-btn:hover:not(:disabled) {
+    background: var(--bg-white);
+    border-color: var(--border-color);
+}
+
+.rich-text-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.rich-text-btn.is-bold { font-weight: 700; }
+.rich-text-btn.is-italic { font-style: italic; }
+.rich-text-btn.is-underline { text-decoration: underline; }
+
+.rich-text-surface {
+    min-height: 90px;
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: var(--font-family-body);
+    color: var(--text-primary);
+    line-height: 1.6;
+    outline: none;
+}
+
+.rich-text-surface[data-empty="true"]::before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.rich-text-surface p {
+    margin: 0 0 0.5rem;
+}
+
+.rich-text-surface ol,
+.rich-text-surface ul {
+    margin: 0 0 0.5rem;
+    padding-left: 1.5rem;
+}
+
+.rich-text-surface a {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.rich-text-hint {
+    margin: 0;
+    padding: 0 12px 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.rich-text-hint.is-error {
+    color: var(--danger-color);
+}
+
+.rich-text-link-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-primary);
+}
+
+.rich-text-link-input {
+    flex: 1;
+    min-width: 10rem;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: var(--font-family-body);
+    color: var(--text-primary);
+    background: var(--bg-white);
+}
+
+.rich-text-link-input:focus {
+    outline: none;
+    border-color: var(--border-focus);
+}
+
 .form-hint {
     font-size: 0.8rem;
     color: var(--text-muted);
@@ -90,6 +216,68 @@
     font-size: 0.85rem;
     color: var(--text-muted);
     margin-bottom: 0.75rem;
+}
+
+/* ===== OPTIONAL EVENT TIME ===== */
+
+.event-time-input {
+    margin-top: 1.25rem;
+}
+
+.event-time-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.event-time-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.event-time-row input[type="time"] {
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--text-primary);
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+}
+
+.event-time-row input[type="time"]:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.1);
+}
+
+.event-time-sep {
+    color: var(--text-muted);
+}
+
+.event-time-clear {
+    padding: 0;
+    margin-left: 0.25rem;
+    font-size: 13px;
+    color: var(--primary-color);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.event-time-clear:hover {
+    color: var(--primary-dark);
+}
+
+.event-time-error {
+    margin: 0.5rem 0 0;
+    font-size: 13px;
+    color: var(--danger-color);
 }
 
 .radio-option {

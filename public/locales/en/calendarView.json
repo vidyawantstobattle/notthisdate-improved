@@ -29,5 +29,26 @@
     "calendarView.pending.allSubmitted": "Everyone has submitted their dates.",
     "calendarView.blocked.title": "Blocked dates",
     "calendarView.blocked.tooltip": "Blocked by the organiser",
-    "calendarView.blocked.tooltipWithReason": "Blocked by the organiser: {reason}"
+    "calendarView.blocked.tooltipWithReason": "Blocked by the organiser: {reason}",
+
+    "calendarView.finalize.pickButton": "Lock in a meeting date",
+    "calendarView.finalize.changeButton": "Change",
+    "calendarView.finalize.reopenButton": "Reopen calendar",
+    "calendarView.finalize.confirmButton": "Lock it in",
+    "calendarView.finalize.ownerPanelTitle": "Pick the date you're meeting on",
+    "calendarView.finalize.startLabel": "Start date",
+    "calendarView.finalize.endLabel": "End date (optional)",
+    "calendarView.finalize.lockedSummary": "Meeting locked for {date}",
+    "calendarView.finalize.overlayTitle": "We're meeting on",
+    "calendarView.finalize.overlayHint": "The organiser has locked in this date. Use the button above to change it or reopen the calendar.",
+    "calendarView.finalize.toastSet": "Meeting date locked in.",
+    "calendarView.finalize.toastReopened": "Calendar reopened.",
+    "calendarView.finalize.toastFailed": "Couldn't update the meeting date. Please try again.",
+    "calendarView.finalize.errorOutOfRange": "Pick a date inside the calendar's date range.",
+    "calendarView.finalize.errorEndBeforeStart": "The end date must be on or after the start date, and inside the calendar's range.",
+
+    "calendarView.addToCalendar.label": "Add to your calendar",
+    "calendarView.addToCalendar.google": "Google",
+    "calendarView.addToCalendar.outlook": "Outlook",
+    "calendarView.addToCalendar.apple": "Apple / .ics"
 }

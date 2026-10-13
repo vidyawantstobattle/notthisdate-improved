@@ -3,13 +3,16 @@ import { useParams, Link } from 'react-router-dom';
 import { useCalendar } from '../hooks/useCalendar';
 import { useAuth } from '../context/AuthContext';
 import { useI18n, RichText } from '../context/I18nContext';
+import { useToast } from '../context/ToastContext';
 import LanguageSelector from '../components/LanguageSelector';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import DatePicker from '../components/DatePicker';
+import ImportBusyDates from '../components/ImportBusyDates';
 import DateRangeDisplay from '../components/DateRangeDisplay';
 import ParticipantInput from '../components/ParticipantInput';
 import AvailabilityView from '../components/AvailabilityView';
 import ErrorMessage from '../components/ErrorMessage';
+import RichTextContent from '../components/RichTextContent';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Footer from '../components/Footer';
 import AdPlaceholder from '../components/AdPlaceholder';
@@ -52,9 +55,10 @@ function writeLocalProfile(profile: AvailabilityProfile): void {
 
 function CalendarPage() {
   const { calendarId } = useParams();
-  const { calendar, loading, error } = useCalendar(calendarId);
+  const { calendar, setCalendar, loading, error } = useCalendar(calendarId);
   const { user, getAuthHeaders } = useAuth();
   const { t } = useI18n();
+  const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'submit' | 'view'>('submit');
   const [currentParticipant, setCurrentParticipant] = useState('');
@@ -71,6 +75,7 @@ function CalendarPage() {
   const [profile, setProfile] = useState<AvailabilityProfile | null>(null);
   const [historicalSuggestionDates, setHistoricalSuggestionDates] = useState<string[]>([]);
   const [syncDismissed, setSyncDismissed] = useState(false);
+  const [savingFinalizedDate, setSavingFinalizedDate] = useState(false);
 
   useDocumentTitle(calendar?.name || 'Calendar');
 
@@ -107,6 +112,27 @@ function CalendarPage() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // Opening someone else's calendar while signed in is what puts it on the
+  // dashboard. Silent and best-effort: a calendar that requires email
+  // verification answers 403 here and simply stays off the list.
+  useEffect(() => {
+    if (!user || !calendar?.id) return;
+    if (calendar.ownerEmail && user.email.toLowerCase() === calendar.ownerEmail.toLowerCase()) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await getToken();
+        if (!cancelled) await calendarsApi.join(calendar.id, token);
+      } catch {
+        // Not worth interrupting the page for; the paste-a-link box is the fallback.
+      }
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, calendar?.id]);
 
   // Restore the name this visitor last used on this calendar so they don't submit twice.
   useEffect(() => {
@@ -264,8 +290,15 @@ function CalendarPage() {
     );
   };
 
-  const handleRemoveRange = (range: DateRange) => {
-    const start = new Date(range.start + 'T12:00:00');
+  // Imported days join the pending selection; anything already submitted stays
+  // as it is so an import can't silently queue a removal.
+  const handleImportBusyDates = (dates: string[]) => {
+    const additions = dates.filter(d => !submittedDates.includes(d));
+    setSelectedDates(prev => Array.from(new Set([...prev, ...additions])).sort());
+    showToast(t('calendarSubmit.import.toastApplied', { count: additions.length }));
+  };
+
+  const handleRemoveRange = (range: DateRange) => {    const start = new Date(range.start + 'T12:00:00');
     const end = new Date(range.end + 'T12:00:00');
 
     const filtered = selectedDates.filter(dateStr => {
@@ -411,6 +444,26 @@ function CalendarPage() {
     user.email.toLowerCase() === calendar.ownerEmail.toLowerCase()
   );
 
+  // null clears the finalized date, reopening the calendar.
+  const handleSetFinalizedDate = async (finalizedDate: string | null, finalizedEndDate?: string | null) => {
+    setSavingFinalizedDate(true);
+    try {
+      const token = await getToken();
+      const { calendar: updated } = await calendarsApi.setFinalizedDate(
+        calendar.id,
+        { finalizedDate, finalizedEndDate },
+        token
+      );
+      setCalendar(updated);
+      showToast(finalizedDate ? t('calendarView.finalize.toastSet') : t('calendarView.finalize.toastReopened'));
+    } catch (err) {
+      console.error('Failed to update finalized date:', err);
+      showToast(t('calendarView.finalize.toastFailed'));
+    } finally {
+      setSavingFinalizedDate(false);
+    }
+  };
+
   const blockedSet = new Set(calendar.blockedDates || []);
   const todayStr = formatDateLocal(new Date());
 
@@ -489,7 +542,9 @@ function CalendarPage() {
           <div className="calendar-header-section">
             {isOwner && <Link to="/dashboard" className="back-link">← Back to Dashboard</Link>}
             <h1>{calendar.name}</h1>
-            {calendar.description && <p className="calendar-description">{calendar.description}</p>}
+            {calendar.description && (
+              <RichTextContent html={calendar.description} className="calendar-description" />
+            )}
             <p className="calendar-date-range">
               <span className="meta-icon date-range"></span>
               {formatDisplayDate(calendar.startDate)} - {formatDisplayDate(calendar.endDate)}
@@ -563,6 +618,18 @@ function CalendarPage() {
                       <div className="date-picker-section">
                         <RichText as="h3" k="calendarSubmit.selectDatesLabel" />
                         <p className="form-hint">{t('calendarSubmit.selectDatesHint')}</p>
+                        <ImportBusyDates
+                          rangeStart={calendar.startDate}
+                          rangeEnd={calendar.endDate}
+                          blockedDates={calendar.blockedDates}
+                          alreadyMarked={[...selectedDates, ...submittedDates]}
+                          meetingWindow={
+                            calendar.startTime && calendar.endTime
+                              ? { startTime: calendar.startTime, endTime: calendar.endTime }
+                              : null
+                          }
+                          onApply={handleImportBusyDates}
+                        />
                         <DatePicker
                           startDate={calendar.startDate}
                           endDate={calendar.endDate}
@@ -663,6 +730,9 @@ function CalendarPage() {
                     calendar={calendar}
                     allUnavailability={allUnavailability}
                     submittedParticipants={knownParticipants}
+                    isOwner={isOwner}
+                    onSetFinalizedDate={handleSetFinalizedDate}
+                    savingFinalizedDate={savingFinalizedDate}
                   />
                 </div>
               )}

@@ -1,7 +1,9 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
 import { normalizeParticipantName } from "./utils/participant-utils.mjs";
+import { sanitizeDescription } from "./utils/rich-text.mjs";
 import { MAX_CALENDARS_PER_USER, MAX_PARTICIPANTS, MAX_CALENDAR_HORIZON_DAYS } from "./utils/limits.mjs";
+import { normalizeEventTimes } from "./utils/event-times.mjs";
 
 const MAX_BLOCKED_REASON_LENGTH = 100;
 
@@ -48,7 +50,7 @@ export default async (request, context) => {
 
     try {
         const body = await request.json();
-        const { name, description, dateRangeType, startDate, endDate, participantsType, participants, requireEmailVerification, blockedDates, blockedDateReasons } = body;
+        const { name, description, dateRangeType, startDate, endDate, participantsType, participants, requireEmailVerification, blockedDates, blockedDateReasons, startTime, endTime } = body;
 
         if (!name || !name.trim()) {
             return new Response(JSON.stringify({ error: 'Calendar name is required' }), { status: 400, headers });
@@ -131,13 +133,17 @@ export default async (request, context) => {
             });
         }
 
+        const safeTimes = normalizeEventTimes(startTime, endTime);
+
         const calendar = {
             id: calendarId,
             name: name.trim(),
-            description: description?.trim() || '',
+            description: sanitizeDescription(description),
             dateRangeType,
             startDate,
             endDate,
+            startTime: safeTimes.startTime,
+            endTime: safeTimes.endTime,
             participantsType,
             participants: cleanParticipants,
             blockedDates: safeBlockedDates,

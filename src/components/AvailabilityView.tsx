@@ -2,6 +2,9 @@ import { useState, useRef, useEffect, type ReactElement } from 'react';
 import { getAvailabilityColor, getAvailabilityTextColor, findBestDates, type BestDatesResult } from '../core/availability';
 import { groupIntoRanges, formatDisplayDate, formatDateDisplay, formatDateLocal } from '../core/dateRanges';
 import { normalizeParticipantName } from '../core/participants';
+import { richTextToPlainText } from '../utils/richText';
+import { SITE_URL } from '../config/site';
+import AddToCalendar from './AddToCalendar';
 import { useI18n } from '../context/I18nContext';
 import type { Calendar, UnavailabilityByDate } from '../types';
 
@@ -9,9 +12,19 @@ interface AvailabilityViewProps {
   calendar: Calendar;
   allUnavailability: UnavailabilityByDate;
   submittedParticipants?: string[];
+  isOwner?: boolean;
+  onSetFinalizedDate?: (date: string | null, endDate?: string | null) => void | Promise<void>;
+  savingFinalizedDate?: boolean;
 }
 
-function AvailabilityView({ calendar, allUnavailability, submittedParticipants = [] }: AvailabilityViewProps) {
+function AvailabilityView({
+  calendar,
+  allUnavailability,
+  submittedParticipants = [],
+  isOwner = false,
+  onSetFinalizedDate,
+  savingFinalizedDate = false
+}: AvailabilityViewProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { t } = useI18n();
 
@@ -56,56 +69,91 @@ function AvailabilityView({ calendar, allUnavailability, submittedParticipants =
 
   return (
     <div className="availability-view">
-      <div className="availability-header">
-        <h3>{t('calendarShell.tabs.view')}</h3>
-        <BestDatesPanel result={bestDates} hasSubmissions={hasSubmissions} isEntirelyPast={isEntirelyPast} />
-        {calendar.participantsType === 'defined' && (
-          <PendingParticipantsPanel
-            pending={pendingParticipants}
-            total={calendar.participants?.length || 0}
-          />
-        )}
-        <p className="form-hint info">{t('calendarView.legend.note')}</p>
-      </div>
+      {isOwner && (
+        <FinalizeDateControl
+          calendar={calendar}
+          onSetFinalizedDate={onSetFinalizedDate}
+          saving={savingFinalizedDate}
+        />
+      )}
 
-      <div className="availability-legend" role="region" aria-label={t('calendarView.legend.title')}>
-        <div className="legend-item">
-          <span className="legend-color" style={{ background: '#4ade80' }} aria-hidden="true"></span>
-          <span>{t('calendarView.legend.everyoneAvailable')}</span>
+      <div className={`availability-dimmable${calendar.finalizedDate ? ' is-finalized' : ''}`}>
+        <div className="availability-dimmable-content">
+          <div className="availability-header">
+            <h3>{t('calendarShell.tabs.view')}</h3>
+            <BestDatesPanel result={bestDates} hasSubmissions={hasSubmissions} isEntirelyPast={isEntirelyPast} />
+            {calendar.participantsType === 'defined' && (
+              <PendingParticipantsPanel
+                pending={pendingParticipants}
+                total={calendar.participants?.length || 0}
+              />
+            )}
+            <p className="form-hint info">{t('calendarView.legend.note')}</p>
+          </div>
+
+          <div className="availability-legend" role="region" aria-label={t('calendarView.legend.title')}>
+            <div className="legend-item">
+              <span className="legend-color" style={{ background: '#4ade80' }} aria-hidden="true"></span>
+              <span>{t('calendarView.legend.everyoneAvailable')}</span>
+            </div>
+            <div className="legend-item">
+              <span className="legend-color" style={{ background: '#fbbf24' }} aria-hidden="true"></span>
+              <span>{t('calendarView.legend.someUnavailable')}</span>
+            </div>
+            <div className="legend-item">
+              <span className="legend-color" style={{ background: '#6b7280' }} aria-hidden="true"></span>
+              <span>{t('calendarView.legend.manyUnavailable')}</span>
+            </div>
+            {blockedDates.length > 0 && (
+              <div className="legend-item">
+                <span className="legend-color legend-color-blocked" aria-hidden="true"></span>
+                <span>{t('calendarView.legend.blocked')}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="availability-months-grid">
+            {months.map(({ year, month }) => (
+              <MonthCalendar
+                key={`${year}-${month}`}
+                year={year}
+                month={month}
+                startDate={startDate}
+                endDate={endDate}
+                allUnavailability={allUnavailability}
+                totalPeople={totalPeople}
+                blockedDates={blockedDates}
+                blockedDateReasons={blockedDateReasons}
+                todayStr={todayStr}
+                onDateClick={setSelectedDate}
+                t={t}
+              />
+            ))}
+          </div>
         </div>
-        <div className="legend-item">
-          <span className="legend-color" style={{ background: '#fbbf24' }} aria-hidden="true"></span>
-          <span>{t('calendarView.legend.someUnavailable')}</span>
-        </div>
-        <div className="legend-item">
-          <span className="legend-color" style={{ background: '#6b7280' }} aria-hidden="true"></span>
-          <span>{t('calendarView.legend.manyUnavailable')}</span>
-        </div>
-        {blockedDates.length > 0 && (
-          <div className="legend-item">
-            <span className="legend-color legend-color-blocked" aria-hidden="true"></span>
-            <span>{t('calendarView.legend.blocked')}</span>
+
+        {calendar.finalizedDate && (
+          <div className="finalized-overlay" role="status">
+            <div className="finalized-overlay-card">
+              <span className="finalized-overlay-icon" aria-hidden="true">📅</span>
+              <p className="finalized-overlay-title">{t('calendarView.finalize.overlayTitle')}</p>
+              <p className="finalized-overlay-date">
+                {formatFinalizedRange(calendar.finalizedDate, calendar.finalizedEndDate)}
+              </p>
+              <AddToCalendar
+                uidSeed={calendar.id}
+                event={{
+                  title: calendar.name,
+                  description: richTextToPlainText(calendar.description || ''),
+                  url: `${SITE_URL}/c/${calendar.id}`,
+                  startDate: calendar.finalizedDate,
+                  endDate: calendar.finalizedEndDate
+                }}
+              />
+              <p className="finalized-overlay-hint">{t('calendarView.finalize.overlayHint')}</p>
+            </div>
           </div>
         )}
-      </div>
-
-      <div className="availability-months-grid">
-        {months.map(({ year, month }) => (
-          <MonthCalendar
-            key={`${year}-${month}`}
-            year={year}
-            month={month}
-            startDate={startDate}
-            endDate={endDate}
-            allUnavailability={allUnavailability}
-            totalPeople={totalPeople}
-            blockedDates={blockedDates}
-            blockedDateReasons={blockedDateReasons}
-            todayStr={todayStr}
-            onDateClick={setSelectedDate}
-            t={t}
-          />
-        ))}
       </div>
 
       {selectedDate && (
@@ -126,6 +174,130 @@ const MAX_BEST_RANGES_SHOWN = 3;
 
 function formatRange(start: string, end: string): string {
   return start === end ? formatDisplayDate(start) : `${formatDateDisplay(start)} – ${formatDisplayDate(end)}`;
+}
+
+function formatFinalizedRange(start: string, end?: string | null): string {
+  return !end || end === start ? formatDisplayDate(start) : formatRange(start, end);
+}
+
+interface FinalizeDateControlProps {
+  calendar: Calendar;
+  onSetFinalizedDate?: (date: string | null, endDate?: string | null) => void | Promise<void>;
+  saving: boolean;
+}
+
+// Owner-only control for locking in (or clearing) the meeting date. Clearing it
+// is what makes the overlay below disappear and reopens the calendar for everyone.
+function FinalizeDateControl({ calendar, onSetFinalizedDate, saving }: FinalizeDateControlProps) {
+  const { t } = useI18n();
+  const [editing, setEditing] = useState(false);
+  const [draftStart, setDraftStart] = useState(calendar.finalizedDate || calendar.startDate);
+  const [draftEnd, setDraftEnd] = useState(calendar.finalizedEndDate || '');
+  const [error, setError] = useState('');
+
+  const isFinalized = Boolean(calendar.finalizedDate);
+
+  const startEditing = () => {
+    setDraftStart(calendar.finalizedDate || calendar.startDate);
+    setDraftEnd(calendar.finalizedEndDate || '');
+    setError('');
+    setEditing(true);
+  };
+
+  const handleConfirm = async () => {
+    if (!draftStart) return;
+
+    // The date inputs' min/max only constrain the picker UI; a typed-in value
+    // can still land outside the window participants answered for.
+    if (draftStart < calendar.startDate || draftStart > calendar.endDate) {
+      setError(t('calendarView.finalize.errorOutOfRange'));
+      return;
+    }
+    if (draftEnd && (draftEnd < draftStart || draftEnd > calendar.endDate)) {
+      setError(t('calendarView.finalize.errorEndBeforeStart'));
+      return;
+    }
+
+    setError('');
+    // A single-day lock-in is stored as a bare start date.
+    await onSetFinalizedDate?.(draftStart, draftEnd && draftEnd !== draftStart ? draftEnd : null);
+    setEditing(false);
+  };
+
+  const handleReopen = async () => {
+    setError('');
+    await onSetFinalizedDate?.(null);
+    setEditing(false);
+  };
+
+  if (!editing && !isFinalized) {
+    return (
+      <div className="finalize-date-control">
+        <button type="button" className="btn btn-outline btn-small" onClick={startEditing}>
+          {t('calendarView.finalize.pickButton')}
+        </button>
+      </div>
+    );
+  }
+
+  if (!editing && isFinalized) {
+    return (
+      <div className="finalize-date-control is-set">
+        <span className="finalize-date-control-summary">
+          {t('calendarView.finalize.lockedSummary', {
+            date: formatFinalizedRange(calendar.finalizedDate as string, calendar.finalizedEndDate)
+          })}
+        </span>
+        <div className="finalize-date-control-actions">
+          <button type="button" className="btn btn-outline btn-small" onClick={startEditing} disabled={saving}>
+            {t('calendarView.finalize.changeButton')}
+          </button>
+          <button type="button" className="btn btn-outline btn-small" onClick={handleReopen} disabled={saving}>
+            {saving ? t('common.loading') : t('calendarView.finalize.reopenButton')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="finalize-date-control is-editing">
+      <span className="finalize-date-control-label">{t('calendarView.finalize.ownerPanelTitle')}</span>
+      <div className="finalize-date-control-inputs">
+        <input
+          type="date"
+          aria-label={t('calendarView.finalize.startLabel')}
+          value={draftStart}
+          min={calendar.startDate}
+          max={calendar.endDate}
+          onChange={e => setDraftStart(e.target.value)}
+        />
+        <span className="finalize-date-control-sep">–</span>
+        <input
+          type="date"
+          aria-label={t('calendarView.finalize.endLabel')}
+          value={draftEnd}
+          min={draftStart || calendar.startDate}
+          max={calendar.endDate}
+          onChange={e => setDraftEnd(e.target.value)}
+        />
+      </div>
+      {error && <p className="finalize-date-control-error" role="alert">{error}</p>}
+      <div className="finalize-date-control-actions">
+        <button
+          type="button"
+          className="btn btn-primary btn-small"
+          onClick={handleConfirm}
+          disabled={saving || !draftStart}
+        >
+          {saving ? t('common.loading') : t('calendarView.finalize.confirmButton')}
+        </button>
+        <button type="button" className="btn btn-outline btn-small" onClick={() => setEditing(false)} disabled={saving}>
+          {t('common.cancel')}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 interface BestDatesPanelProps {

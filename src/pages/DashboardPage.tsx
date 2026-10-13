@@ -12,6 +12,8 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import EditCalendarModal from '../components/EditCalendarModal';
 import Footer from '../components/Footer';
 import { formatDisplayDate } from '../core/dateRanges';
+import { parseCalendarLink } from '../core/calendarLink';
+import { richTextToPlainText } from '../utils/richText';
 import type { Calendar } from '../types';
 
 function DashboardPage() {
@@ -20,6 +22,10 @@ function DashboardPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [calendars, setCalendars] = useState<Calendar[]>([]);
+  const [sharedCalendars, setSharedCalendars] = useState<Calendar[]>([]);
+  const [joinLink, setJoinLink] = useState('');
+  const [joinError, setJoinError] = useState('');
+  const [joining, setJoining] = useState(false);
   const [loadingCalendars, setLoadingCalendars] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -40,6 +46,7 @@ function DashboardPage() {
   useEffect(() => {
     if (user && !loading) {
       loadUserCalendars();
+      loadSharedCalendars();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, loading]);
@@ -88,6 +95,53 @@ function DashboardPage() {
       setCalendars([]);
     } finally {
       setLoadingCalendars(false);
+    }
+  };
+
+  // Secondary to the owned list, so a failure here leaves the dashboard usable.
+  const loadSharedCalendars = async () => {
+    try {
+      const token = await getToken();
+      const data = await calendarsApi.listShared(token);
+      setSharedCalendars(data.calendars || []);
+    } catch (err) {
+      console.error('Failed to load shared calendars:', err);
+      setSharedCalendars([]);
+    }
+  };
+
+  const handleJoinByLink = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const parsedId = parseCalendarLink(joinLink);
+    if (!parsedId) {
+      setJoinError(t('dashboard.join.errorInvalid'));
+      return;
+    }
+
+    setJoinError('');
+    setJoining(true);
+
+    try {
+      const token = await getToken();
+      const result = await calendarsApi.join(parsedId, token);
+
+      if (result.joined) {
+        setJoinLink('');
+        await loadSharedCalendars();
+        showToast(t('dashboard.join.toastAdded'));
+      } else if (result.reason === 'owner') {
+        setJoinError(t('dashboard.join.errorOwner'));
+      } else {
+        setJoinError(t('dashboard.join.errorUnknown'));
+      }
+    } catch (err) {
+      const status = (err as { status?: number }).status;
+      if (status === 403) setJoinError(t('dashboard.join.errorVerification'));
+      else if (status === 404) setJoinError(t('dashboard.join.errorNotFound'));
+      else setJoinError(t('dashboard.join.errorUnknown'));
+    } finally {
+      setJoining(false);
     }
   };
 
@@ -257,7 +311,7 @@ function DashboardPage() {
                     </button>
                   </div>
                   {calendar.description && (
-                    <p className="calendar-card-description">{calendar.description}</p>
+                    <p className="calendar-card-description">{richTextToPlainText(calendar.description)}</p>
                   )}
                   <div className="calendar-card-meta">
                     <span className="meta-item">
@@ -311,6 +365,82 @@ function DashboardPage() {
               </button>
             </div>
           )}
+
+          <section className="shared-calendars">
+            <div className="shared-calendars-intro">
+              <h2>{t('dashboard.shared.title')}</h2>
+              <p className="dashboard-subtitle">{t('dashboard.shared.subtitle')}</p>
+            </div>
+
+            <form className="join-calendar" onSubmit={handleJoinByLink}>
+              <label className="join-calendar-label" htmlFor="join-calendar-link">
+                {t('dashboard.join.label')}
+              </label>
+              <div className="join-calendar-row">
+                <input
+                  id="join-calendar-link"
+                  type="text"
+                  className="join-calendar-input"
+                  value={joinLink}
+                  placeholder={t('dashboard.join.placeholder')}
+                  onChange={e => { setJoinLink(e.target.value); setJoinError(''); }}
+                  disabled={joining}
+                />
+                <button type="submit" className="btn btn-outline btn-small" disabled={joining || !joinLink.trim()}>
+                  {joining ? t('common.loading') : t('dashboard.join.button')}
+                </button>
+              </div>
+              {joinError
+                ? <p className="join-calendar-error" role="alert">{joinError}</p>
+                : <p className="join-calendar-hint">{t('dashboard.join.hint')}</p>}
+            </form>
+
+            {sharedCalendars.length > 0 && (
+              <div className="calendars-grid">
+                {sharedCalendars.map(calendar => (
+                  <div key={calendar.id} className="calendar-card is-shared">
+                    <div className="calendar-card-header calendar-card-heading">
+                      <h3>{calendar.name}</h3>
+                    </div>
+                    {calendar.description && (
+                      <p className="calendar-card-description">{richTextToPlainText(calendar.description)}</p>
+                    )}
+                    <div className="calendar-card-meta">
+                      <span className="meta-item">
+                        <span className="meta-icon date-range"></span>
+                        {formatDisplayDate(calendar.startDate)} - {formatDisplayDate(calendar.endDate)}
+                      </span>
+                      {calendar.myParticipantName && (
+                        <span className="meta-item">
+                          <span className="meta-icon people"></span>
+                          {t('dashboard.shared.respondedAs', { name: calendar.myParticipantName })}
+                        </span>
+                      )}
+                      {calendar.finalizedDate && (
+                        <span className="meta-item is-finalized">
+                          📅 {formatDisplayDate(calendar.finalizedDate)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="calendar-card-actions">
+                      <button
+                        className="btn btn-primary btn-small"
+                        onClick={() => navigate(`/c/${calendar.id}`)}
+                      >
+                        {t('dashboard.card.open')}
+                      </button>
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={() => handleShareCalendar(calendar.id)}
+                      >
+                        {t('dashboard.card.shareLink')}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
       </main>
 

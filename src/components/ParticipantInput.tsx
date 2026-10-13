@@ -81,6 +81,14 @@ function ParticipantInput({
     return (
       <div className="participant-section">
         {knownParticipants.length > 0 && (
+          <>
+            <label htmlFor="participant-name-input">
+              {t('calendarSubmit.enterNameLabel')}
+            </label>
+            <p className="form-hint">{t('calendarSubmit.welcome.desc')}</p>
+          </>
+        )}
+        {knownParticipants.length > 0 && (
           <div className="returning-participant-picker">
             <label htmlFor="returning-participant-select">
               {t('calendarSubmit.returning.selectLabel')}

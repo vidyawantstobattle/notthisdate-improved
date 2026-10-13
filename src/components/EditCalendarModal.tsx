@@ -3,7 +3,10 @@ import { useI18n } from '../context/I18nContext';
 import { calendarsApi } from '../api/calendars.api';
 import { MAX_PARTICIPANTS, MAX_CALENDAR_HORIZON_DAYS } from '../config/site';
 import type { Calendar, ParticipantsType } from '../types';
+import { sanitizeRichText } from '../utils/richText';
 import BlockedDatesInput from './BlockedDatesInput';
+import EventTimeInput from './EventTimeInput';
+import RichTextEditor from './RichTextEditor';
 import TagsInput from './TagsInput';
 
 interface EditCalendarModalProps {
@@ -18,6 +21,8 @@ function EditCalendarModal({ calendar, getToken, onClose, onSaved }: EditCalenda
   const [name, setName] = useState(calendar.name);
   const [description, setDescription] = useState(calendar.description || '');
   const [endDate, setEndDate] = useState(calendar.endDate);
+  const [startTime, setStartTime] = useState(calendar.startTime || '');
+  const [endTime, setEndTime] = useState(calendar.endTime || '');
   const [blockedDates, setBlockedDates] = useState<string[]>(calendar.blockedDates || []);
   const [blockedDateReasons, setBlockedDateReasons] = useState<Record<string, string>>(
     calendar.blockedDateReasons || {}
@@ -57,6 +62,15 @@ function EditCalendarModal({ calendar, getToken, onClose, onSaved }: EditCalenda
       return;
     }
 
+    if (Boolean(startTime) !== Boolean(endTime)) {
+      setError(t('create.error.timeIncomplete'));
+      return;
+    }
+    if (startTime && endTime && endTime <= startTime) {
+      setError(t('create.error.timeOrder'));
+      return;
+    }
+
     if (canEditParticipants && !makeOpen) {
       if (participants.length === 0) {
         setError(t('dashboard.editParticipants.errorEmpty'));
@@ -76,7 +90,15 @@ function EditCalendarModal({ calendar, getToken, onClose, onSaved }: EditCalenda
 
       const { calendar: updated } = await calendarsApi.update(
         calendar.id,
-        { name: name.trim(), description: description.trim(), endDate, blockedDates, blockedDateReasons },
+        {
+          name: name.trim(),
+          description: sanitizeRichText(description),
+          endDate,
+          startTime,
+          endTime,
+          blockedDates,
+          blockedDateReasons
+        },
         token
       );
 
@@ -127,12 +149,11 @@ function EditCalendarModal({ calendar, getToken, onClose, onSaved }: EditCalenda
 
         <div className="form-group">
           <label htmlFor="edit-calendar-desc">{t('create.basics.descLabel')}</label>
-          <textarea
+          <RichTextEditor
             id="edit-calendar-desc"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={setDescription}
             placeholder={t('create.basics.descPlaceholder')}
-            rows={3}
             disabled={saving}
           />
         </div>
@@ -148,6 +169,15 @@ function EditCalendarModal({ calendar, getToken, onClose, onSaved }: EditCalenda
             disabled={saving}
           />
           <p className="form-hint">{t('dashboard.editCalendar.endDateHint')}</p>
+        </div>
+
+        <div className="form-group">
+          <EventTimeInput
+            startTime={startTime}
+            endTime={endTime}
+            onChange={(start, end) => { setStartTime(start); setEndTime(end); }}
+            disabled={saving}
+          />
         </div>
 
         <div className="form-group">

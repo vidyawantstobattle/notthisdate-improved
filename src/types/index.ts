@@ -13,6 +13,10 @@ export interface Calendar {
   dateRangeType: DateRangeType;
   startDate: string;
   endDate: string;
+  // Optional approximate meeting window, "HH:MM" 24-hour. Both set or both null.
+  // Lets the .ics import ignore appointments that don't actually clash.
+  startTime?: string | null;
+  endTime?: string | null;
   participantsType: ParticipantsType;
   participants: string[];
   blockedDates?: string[];
@@ -23,6 +27,11 @@ export interface Calendar {
   ownerEmail: string;
   createdAt: string;
   submittedParticipantsCount?: number;
+  // Only set on calendars returned as "shared with you": the name this user answered under.
+  myParticipantName?: string | null;
+  // Set by the owner to lock in a meeting date; clearing it reopens the calendar.
+  finalizedDate?: string | null;
+  finalizedEndDate?: string | null;
 }
 
 export interface CreateCalendarInput {
@@ -31,6 +40,8 @@ export interface CreateCalendarInput {
   dateRangeType: DateRangeType;
   startDate: string;
   endDate: string;
+  startTime?: string | null;
+  endTime?: string | null;
   participantsType: ParticipantsType;
   participants?: string[];
   requireEmailVerification?: boolean;

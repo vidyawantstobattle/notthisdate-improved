@@ -7,6 +7,7 @@ import {
     readUserEmail
 } from "./utils/participant-utils.mjs";
 import { MAX_PARTICIPANTS } from "./utils/limits.mjs";
+import { recordMembership } from "./utils/memberships.mjs";
 
 export default async (request, context) => {
     const headers = {
@@ -111,14 +112,20 @@ export default async (request, context) => {
         ])).filter(date => !removalSet.has(date)).sort();
 
         // Store participant's unavailability
+        const submitterEmail = readUserEmail(request);
         calendar.unavailability[participantKey] = {
             dates: mergedDates,
             submittedAt: new Date().toISOString(),
-            userEmail: readUserEmail(request) || existingEmail || null
+            userEmail: submitterEmail || existingEmail || null
         };
 
         // Save updated calendar
         await calendarStore.setJSON(calendarId, calendar);
+
+        // Lets the dashboard list calendars this person joined but doesn't own.
+        if (submitterEmail) {
+            await recordMembership(context, submitterEmail, calendarId);
+        }
 
         return new Response(JSON.stringify({
             success: true,

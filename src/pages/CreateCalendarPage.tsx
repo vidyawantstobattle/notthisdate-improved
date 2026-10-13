@@ -6,10 +6,13 @@ import { useToast } from '../context/ToastContext';
 import LanguageSelector from '../components/LanguageSelector';
 import TagsInput from '../components/TagsInput';
 import BlockedDatesInput from '../components/BlockedDatesInput';
+import EventTimeInput from '../components/EventTimeInput';
+import RichTextEditor from '../components/RichTextEditor';
 import AdPlaceholder from '../components/AdPlaceholder';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import { calendarsApi } from '../api/calendars.api';
 import { formatDisplayDate, getHorizonDate } from '../core/dateRanges';
+import { sanitizeRichText } from '../utils/richText';
 import { MAX_PARTICIPANTS, MAX_CALENDAR_HORIZON_DAYS } from '../config/site';
 import type { CreateCalendarInput, ParticipantsType } from '../types';
 
@@ -64,6 +67,8 @@ function CreateCalendarPage() {
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState(() => formatDateInput(new Date()));
   const [endDate, setEndDate] = useState(() => addMonths(3));
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [participantsType, setParticipantsType] = useState<ParticipantsType>('defined');
   const [participants, setParticipants] = useState<string[]>([]);
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
@@ -94,6 +99,8 @@ function CreateCalendarPage() {
     setDescription(draft.description);
     setStartDate(draft.startDate);
     setEndDate(draft.endDate);
+    setStartTime(draft.startTime || '');
+    setEndTime(draft.endTime || '');
     setParticipantsType(draft.participantsType);
     setParticipants(draft.participants);
     setBlockedDates(draft.blockedDates);
@@ -143,6 +150,8 @@ function CreateCalendarPage() {
       if (startDate > maxDate || endDate > maxDate) {
         return t('create.error.beyondHorizon', { date: formatDisplayDate(maxDate) });
       }
+      if (Boolean(startTime) !== Boolean(endTime)) return t('create.error.timeIncomplete');
+      if (startTime && endTime && endTime <= startTime) return t('create.error.timeOrder');
     }
     if (index === 2) {
       if (blockedDates.some(d => d < startDate || d > endDate)) {
@@ -154,9 +163,11 @@ function CreateCalendarPage() {
 
   const buildDraft = () => ({
     name: name.trim(),
-    description: description.trim(),
+    description: sanitizeRichText(description),
     startDate,
     endDate,
+    startTime,
+    endTime,
     participantsType,
     participants: participantsType === 'defined' ? participants : [],
     requireEmailVerification: participantsType === 'open' ? requireEmailVerification : false,
@@ -269,6 +280,10 @@ function CreateCalendarPage() {
           <dd>{formatDisplayDate(startDate)} – {formatDisplayDate(endDate)}</dd>
         </div>
         <div>
+          <dt>{t('create.review.summaryTime')}</dt>
+          <dd>{startTime && endTime ? `${startTime} – ${endTime}` : t('create.review.summaryAnyTime')}</dd>
+        </div>
+        <div>
           <dt>{t('create.review.summaryWho')}</dt>
           <dd>
             {participantsType === 'open'
@@ -352,12 +367,11 @@ function CreateCalendarPage() {
 
               <div className="form-group">
                 <label htmlFor="create-desc">{t('create.basics.descLabel')}</label>
-                <textarea
+                <RichTextEditor
                   id="create-desc"
                   value={description}
-                  rows={3}
+                  onChange={setDescription}
                   placeholder={t('create.basics.descPlaceholder')}
-                  onChange={e => setDescription(e.target.value)}
                   disabled={submitting}
                 />
               </div>
@@ -478,6 +492,13 @@ function CreateCalendarPage() {
                 </div>
                 <p className="form-hint">{t('create.dates.horizonHint', { date: formatDisplayDate(maxDate) })}</p>
               </div>
+
+              <EventTimeInput
+                startTime={startTime}
+                endTime={endTime}
+                onChange={(start, end) => { setStartTime(start); setEndTime(end); }}
+                disabled={submitting}
+              />
 
               {rangeDays > 0 && (
                 <p className="create-range-summary">

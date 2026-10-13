@@ -1,5 +1,7 @@
 import { getStore } from "@netlify/blobs";
+import { sanitizeDescription } from "./utils/rich-text.mjs";
 import { MAX_CALENDAR_HORIZON_DAYS } from "./utils/limits.mjs";
+import { normalizeEventTimes } from "./utils/event-times.mjs";
 
 const MAX_BLOCKED_REASON_LENGTH = 100;
 
@@ -42,7 +44,7 @@ export default async (request, context) => {
 
     try {
         const body = await request.json();
-        const { name, description, endDate, blockedDates, blockedDateReasons } = body;
+        const { name, description, endDate, blockedDates, blockedDateReasons, startTime, endTime } = body;
 
         if (!name || typeof name !== 'string') {
             return new Response(JSON.stringify({ error: 'Calendar name is required' }), { status: 400, headers });
@@ -111,11 +113,15 @@ export default async (request, context) => {
             });
         }
 
+        const safeTimes = normalizeEventTimes(startTime, endTime);
+
         const updated = {
             ...existing,
             name: name.trim(),
-            description: description ? description.trim() : '',
+            description: description ? sanitizeDescription(description) : '',
             endDate: safeEndDate,
+            startTime: safeTimes.startTime,
+            endTime: safeTimes.endTime,
             blockedDates: safeBlockedDates,
             blockedDateReasons: safeBlockedDateReasons
         };

@@ -30,5 +30,5 @@ export function useCalendar(calendarId: string | undefined) {
     fetchCalendar();
   }, [calendarId]);
 
-  return { calendar, loading, error };
+  return { calendar, setCalendar, loading, error };
 }

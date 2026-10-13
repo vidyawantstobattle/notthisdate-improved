@@ -39,6 +39,27 @@
     margin-bottom: 0.5rem;
 }
 
+.calendar-description p {
+    margin: 0 0 0.5rem;
+}
+
+.calendar-description p:last-child {
+    margin-bottom: 0;
+}
+
+.calendar-description ol,
+.calendar-description ul {
+    margin: 0 0 0.5rem;
+    padding-left: 1.5rem;
+    text-align: left;
+}
+
+.calendar-description a {
+    color: var(--primary-color);
+    text-decoration: underline;
+    overflow-wrap: anywhere;
+}
+
 .calendar-date-range {
     color: var(--text-muted);
     font-size: 0.9rem;
@@ -926,6 +947,162 @@
     flex-shrink: 0;
 }
 
+/* ===== IMPORT BUSY DATES ===== */
+
+.import-busy {
+    margin-bottom: 1rem;
+}
+
+.import-busy.is-asking {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    background: var(--primary-bg);
+    border: 1px solid var(--primary-color);
+    border-radius: var(--radius-lg);
+}
+
+.import-busy-question {
+    margin: 0;
+    flex: 1 1 260px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--secondary-color);
+}
+
+.import-busy-choices {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.import-busy-reopen {
+    padding: 0;
+    font-size: 13px;
+    color: var(--primary-color);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.import-busy-reopen:hover {
+    color: var(--primary-dark);
+}
+
+.import-busy.is-open {
+    padding: 1.25rem;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.import-busy-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.import-busy-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--secondary-color);
+}
+
+.import-busy-close {
+    padding: 0;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.import-busy-close:hover {
+    color: var(--text-primary);
+}
+
+.import-busy-desc {
+    margin: 0.5rem 0 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.import-busy-steps {
+    margin: 0 0 1rem;
+    padding-left: 1.25rem;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.import-busy-window {
+    margin: 0 0 0.75rem;
+    padding: 0.625rem 0.75rem;
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--primary-bg);
+    border-radius: var(--radius);
+}
+
+.import-busy-steps li {
+    margin-bottom: 0.25rem;
+}
+
+.import-busy-file {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.import-busy-file input {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.import-busy-privacy {
+    margin: 0.75rem 0 0;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.import-busy-status {
+    margin: 0.75rem 0 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.import-busy-status.is-error {
+    color: var(--danger-color);
+}
+
+.import-busy-result {
+    margin-top: 0.5rem;
+}
+
+.import-busy-list {
+    max-height: 180px;
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+    overflow-y: auto;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.import-busy-more {
+    margin: 0 0 0.75rem;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
 /* ===== PENDING REMOVALS ===== */
 .removal-dates-section {
     padding: 1rem 1.25rem;
@@ -1076,6 +1253,158 @@
     font-size: 0.85rem;
     font-weight: 500;
     color: var(--secondary-color);
+}
+
+/* ===== FINALIZED MEETING DATE (owner control + overlay) ===== */
+.finalize-date-control {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+}
+
+.finalize-date-control.is-set {
+    background: var(--success-bg);
+    border-color: var(--success-color);
+}
+
+.finalize-date-control-summary {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+.finalize-date-control-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.finalize-date-control-inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.finalize-date-control-inputs input[type="date"] {
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: var(--font-family-body);
+    color: var(--text-primary);
+    background: var(--bg-white);
+}
+
+.finalize-date-control-sep {
+    color: var(--text-muted);
+}
+
+.finalize-date-control-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.finalize-date-control-error {
+    margin: 0;
+    font-size: 13px;
+    color: var(--danger-color);
+}
+
+/* Wraps the real calendar content so it can be dimmed behind the overlay
+   without the overlay card itself being affected. */
+.availability-dimmable {
+    position: relative;
+}
+
+.availability-dimmable.is-finalized .availability-dimmable-content {
+    filter: blur(2px) saturate(0.7);
+    pointer-events: none;
+    user-select: none;
+}
+
+.finalized-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(26, 31, 54, 0.4);
+    backdrop-filter: blur(1px);
+    border-radius: var(--radius-lg);
+    z-index: 5;
+}
+
+.finalized-overlay-card {
+    max-width: 24rem;
+    width: 100%;
+    text-align: center;
+    padding: 1.75rem 2rem;
+    background: var(--bg-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.finalized-overlay-icon {
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.finalized-overlay-title {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.finalized-overlay-date {
+    margin: 0.35rem 0 0.75rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+}
+
+.finalized-overlay-hint {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.add-to-calendar {
+    margin: 0 0 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.add-to-calendar-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.add-to-calendar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.add-to-calendar-actions .btn {
+    text-decoration: none;
 }
 
 .legend {

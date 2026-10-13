@@ -35,6 +35,8 @@ export interface PendingCalendarDraft {
   description: string;
   startDate: string;
   endDate: string;
+  startTime: string;
+  endTime: string;
   participantsType: 'defined' | 'open';
   participants: string[];
   requireEmailVerification: boolean;
@@ -104,6 +106,8 @@ export function consumePendingCalendarDraft(): PendingCalendarDraft | null {
       description: parsed.description,
       startDate: parsed.startDate,
       endDate: parsed.endDate,
+      startTime: typeof parsed.startTime === 'string' ? parsed.startTime : '',
+      endTime: typeof parsed.endTime === 'string' ? parsed.endTime : '',
       participantsType: parsed.participantsType,
       participants: parsed.participants.filter(p => typeof p === 'string'),
       requireEmailVerification: parsed.requireEmailVerification,

@@ -160,6 +160,87 @@
     gap: 0.25rem;
 }
 
+/* ===== SHARED WITH YOU ===== */
+.shared-calendars {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.shared-calendars-intro {
+    margin-bottom: 1.25rem;
+}
+
+.shared-calendars-intro h2 {
+    font-family: var(--font-family-heading);
+    color: var(--secondary-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.calendar-card.is-shared {
+    border-left: 3px solid var(--primary-color);
+}
+
+/* ===== JOIN A CALENDAR BY LINK ===== */
+
+.join-calendar {
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+}
+
+.join-calendar-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.join-calendar-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.join-calendar-input {
+    flex: 1 1 260px;
+    min-width: 0;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--text-primary);
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+}
+
+.join-calendar-input:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.1);
+}
+
+.join-calendar-hint {
+    margin: 0.5rem 0 0;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.join-calendar-error {
+    margin: 0.5rem 0 0;
+    font-size: 13px;
+    color: var(--danger-color);
+}
+
+.calendar-card-meta .meta-item.is-finalized {
+    font-weight: 600;
+    color: var(--success-color);
+}
+
 .meta-icon {
     display: inline-flex;
     align-items: center;

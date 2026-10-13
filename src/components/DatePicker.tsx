@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useI18n } from '../context/I18nContext';
 
 interface DatePickerProps {
@@ -93,6 +93,7 @@ function DatePicker({
   const [viewStart, setViewStart] = useState(() =>
     clampViewStart(getMonthStart(rangeStart), rangeStart, rangeEnd, monthsToShow)
   );
+  const [blockedDateDetail, setBlockedDateDetail] = useState<string | null>(null);
 
   useEffect(() => {
     const handleResize = () => setMonthsToShow(getMonthsToShow());
@@ -122,7 +123,10 @@ function DatePicker({
   };
 
   const handleDayClick = (dateStr: string) => {
-    if (blockedDates.includes(dateStr)) return;
+    if (blockedDates.includes(dateStr)) {
+      setBlockedDateDetail(dateStr);
+      return;
+    }
     if (dateStr < todayStr) return;
     onDateSelect?.(dateStr);
   };
@@ -187,6 +191,15 @@ function DatePicker({
           <span>{t('calendarSubmit.legend.markedForRemoval')}</span>
         </span>
       </div>
+
+      {blockedDateDetail && (
+        <BlockedDateModal
+          dateStr={blockedDateDetail}
+          reason={blockedDateReasons[blockedDateDetail]}
+          onClose={() => setBlockedDateDetail(null)}
+          t={t}
+        />
+      )}
     </div>
   );
 }
@@ -258,7 +271,7 @@ function PickerMonth({
       title = t('calendarSubmit.titlePastDate');
     } else if (isBlocked) {
       classNames.push('is-blocked');
-      disabled = true;
+      // Not disabled - allow click to show blocked date reason
       title = blockedDateReasons[dateStr]
         ? t('calendarView.blocked.tooltipWithReason', { reason: blockedDateReasons[dateStr] })
         : t('calendarView.blocked.tooltip');
@@ -304,6 +317,43 @@ function PickerMonth({
         {cells}
       </div>
     </section>
+  );
+}
+
+interface BlockedDateModalProps {
+  dateStr: string;
+  reason?: string;
+  onClose: () => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}
+
+function BlockedDateModal({ dateStr, reason, onClose, t }: BlockedDateModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const firstButton = modalRef.current?.querySelector('button');
+    firstButton?.focus();
+  }, []);
+
+  const date = new Date(dateStr + 'T12:00:00');
+  const dateDisplay = date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  return (
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="blocked-date-title">
+      <div className="modal-content blocked-date-modal" onClick={(e) => e.stopPropagation()} ref={modalRef}>
+        <button className="modal-close" onClick={onClose} aria-label={t('common.closeDialog')}>&times;</button>
+        <h3 id="blocked-date-title">{dateDisplay}</h3>
+        <div className="blocked-date-notice">
+          <p className="blocked-label">{t('calendarView.blocked.tooltip')}</p>
+          {reason && <p className="blocked-reason">{reason}</p>}
+        </div>
+      </div>
+    </div>
   );
 }
 
