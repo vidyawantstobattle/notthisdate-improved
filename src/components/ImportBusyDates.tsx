@@ -173,13 +173,15 @@ function ImportBusyDates({
 
       <p className="import-busy-desc">{t('calendarSubmit.import.desc')}</p>
 
-      {meetingWindow && (
+      {meetingWindow ? (
         <p className="import-busy-window">
           {t('calendarSubmit.import.windowNote', {
             start: meetingWindow.startTime,
             end: meetingWindow.endTime
           })}
         </p>
+      ) : (
+        <p className="import-busy-window">{t('calendarSubmit.import.noWindowNote')}</p>
       )}
 
       <ol className="import-busy-steps">

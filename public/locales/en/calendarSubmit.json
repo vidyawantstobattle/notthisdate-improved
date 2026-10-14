@@ -86,6 +86,7 @@
     "calendarSubmit.import.title": "Import from Google, Outlook or Apple Calendar",
     "calendarSubmit.import.desc": "Export your calendar as an .ics file, then drop it in below. Every day that already has an event on it will be suggested as unavailable.",
     "calendarSubmit.import.windowNote": "This event runs {start}–{end}. Appointments outside that window won't count as a clash, so only genuine conflicts are suggested.",
+    "calendarSubmit.import.noWindowNote": "No time of day has been set for this event, so only all-day entries in your calendar are suggested. A one-hour meeting doesn't rule out the whole day.",
     "calendarSubmit.import.stepGoogle": "Google Calendar: Settings → Import & export → Export. Upload the .zip it gives you as-is.",
     "calendarSubmit.import.stepOutlook": "Outlook: Calendar → Share → Publish/Save calendar → .ics.",
     "calendarSubmit.import.stepApple": "Apple Calendar: File → Export → Export….",

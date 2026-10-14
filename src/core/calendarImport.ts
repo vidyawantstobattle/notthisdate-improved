@@ -10,8 +10,10 @@
 //
 // When the organiser has set a meeting window, a timed appointment only counts
 // as a clash if it actually overlaps that window, so a 9am dentist visit leaves
-// someone free for an evening meetup. All-day events always clash, because
-// there is no way to tell which part of the day they consume.
+// someone free for an evening meetup. Without a window there is no time to
+// compare against, so only all-day events count — a one-hour meeting says
+// nothing about whether the day as a whole is free. All-day events always
+// clash, because there is no way to tell which part of the day they consume.
 
 export interface ImportedBusyDay {
   date: string;
@@ -144,7 +146,8 @@ function isBusyEvent(event: Record<string, string>): boolean {
  * exclusive DTEND per RFC 5545, so the final day is dropped; timed events keep
  * their end day because an event ending 09:00 still occupies that morning.
  *
- * With a `window`, timed events only mark a day busy when they overlap it.
+ * Timed events only ever mark a day busy when they overlap `window`; without
+ * one, only all-day events count.
  */
 export function parseIcsBusyDays(
   icsText: string,
@@ -233,11 +236,15 @@ function collectEventDays(
   let day = start.date;
   for (let i = 0; i <= MAX_EVENT_SPAN_DAYS && day <= lastDay; i++) {
     if (day >= rangeStart && day <= rangeEnd) {
-      // An all-day event could cover any part of the day, so it always clashes.
-      let clashes = true;
+      const { from, to } = occupiedMinutesOnDay(day, start.date, lastDay, startMinutes, endMinutes);
 
-      if (window && !isAllDay) {
-        const { from, to } = occupiedMinutesOnDay(day, start.date, lastDay, startMinutes, endMinutes);
+      // An all-day event could cover any part of the day, so it always clashes.
+      // Without a window there is no time to compare a timed event against, so
+      // it only counts when it swallows the day whole — the middle of a trip,
+      // not a one-hour meeting.
+      let clashes = isAllDay || (from === 0 && to === MINUTES_PER_DAY);
+
+      if (!isAllDay && window) {
         // Touching end-to-end is not an overlap: an appointment finishing at
         // 12:00 leaves a window starting at 12:00 free.
         clashes = from < windowTo && to > windowFrom;
