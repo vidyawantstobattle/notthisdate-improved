@@ -202,7 +202,7 @@ const DEMO_DAYS_IN_MONTH = 31;
 // July 2026 starts on a Wednesday, so two blanks lead the grid.
 const DEMO_LEADING_BLANKS = 2;
 
-const DEMO_PEOPLE = ['Vidya', 'Arjen', 'Vivian', 'Sahir'];
+const DEMO_PEOPLE = ['Vidya', 'Piotr', 'Arjen', 'Vivian', 'Sahir'];
 const DEMO_ALREADY_SUBMITTED = [11, 12, 13];
 const DEMO_PICKS = [24, 25];
 const DEMO_BEST_DAY = 15;
